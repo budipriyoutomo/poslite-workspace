@@ -18,5 +18,5 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run lint-imports
-      # testcontainers uses the runner's Docker for integration tests
+      # When tests/integration lands: add a postgres service and set TEST_DATABASE_URL.
       - run: uv run pytest --cov --cov-fail-under=85

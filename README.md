@@ -7,17 +7,18 @@ Backend POSLite (Python · FastAPI · PostgreSQL). Tujuan sinkronisasi untuk POS
 
 ## Mulai
 
+Butuh PostgreSQL lokal (mis. Homebrew) yang jalan di `localhost:5432` dengan user OS Anda sebagai superuser. Development **tidak** memakai Docker.
+
 ```bash
 git submodule update --init
-uv sync
-docker compose up -d postgres redis
-cp .env.example .env
-uv run alembic upgrade head
-uv run uvicorn poslite.main:app --reload
+make install env db-setup migrate   # sekali di awal
+make dev                            # http://localhost:8000/api/v1/health
 ```
+
+`make help` menampilkan semua target. Untuk menjalankan frontend + backend sekaligus, pakai `make dev` di repo `poslite-workspace`.
 
 ## Cek sebelum commit
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run mypy src && uv run lint-imports && uv run pytest
+make check
 ```

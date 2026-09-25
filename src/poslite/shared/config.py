@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    database_url: str = "postgresql+asyncpg://poslite:poslite@localhost:5433/poslite"
+    database_url: str = "postgresql+asyncpg://poslite:poslite@localhost:5432/poslite"
     redis_url: str = "redis://localhost:6379/0"
     min_app_version: str = "0.0.0"
     cors_origins: list[str] = []

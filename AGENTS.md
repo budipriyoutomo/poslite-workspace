@@ -29,11 +29,10 @@ If a task conflicts with these docs, **stop and ask**. If a decision changes, up
 Python 3.12+ · FastAPI · Pydantic v2 · SQLAlchemy 2.0 async (asyncpg) · Alembic · PostgreSQL 16 · Redis · arq · uv · ruff · mypy --strict · pytest.
 
 ```bash
-uv sync                                        # install deps
-docker compose up -d postgres redis            # local services
-uv run alembic upgrade head
-uv run uvicorn poslite.main:app --reload       # API
-uv run arq poslite.worker.WorkerSettings       # background worker
+make install env db-setup migrate              # first time: deps, .env, local Postgres role + dev/test DBs
+make dev                                       # API on :8000 (local PostgreSQL, no Docker)
+make check                                     # everything below that must pass before "done"
+uv run arq poslite.worker.WorkerSettings       # background worker (needs local Redis — Fase 2)
 
 uv run pytest                                  # all tests
 uv run pytest tests/unit                       # fast, no DB
@@ -82,7 +81,7 @@ Every change to behavior follows **Red → Green → Refactor**. No production c
 |---|---|---|---|
 | `domain/` (entities, value objects, services) | `tests/unit/<module>/` | pytest, no fixtures from DB | 100% of invariants: `Money`, `div_round_half_up`, `Discount`, `PriceCalculator`, Order paid/void rules, change calc, Shift expected cash & variance, `ReceiptNumber` |
 | `application/` (use cases, handlers) | `tests/unit/<module>/` | pytest-asyncio + `FakeUnitOfWork` | Each use case: success + every rejection path + domain events emitted + **never calls `commit()`** |
-| `infrastructure/` (SQLAlchemy repos, UoW, outbox relay, projectors, `version` trigger) | `tests/integration/<module>/` | testcontainers **PostgreSQL** (not SQLite) | Mapping round-trip, UoW rollback on error, savepoint rollback discards its domain events, outbox rows written in the same transaction, relay + projector idempotent (apply twice = same rows), `version` increments on insert/update/soft-delete and follows commit order under concurrent writers |
+| `infrastructure/` (SQLAlchemy repos, UoW, outbox relay, projectors, `version` trigger) | `tests/integration/<module>/` | local **PostgreSQL** test DB `poslite_test` via `TEST_DATABASE_URL` (not SQLite); each test in a rolled-back transaction | Mapping round-trip, UoW rollback on error, savepoint rollback discards its domain events, outbox rows written in the same transaction, relay + projector idempotent (apply twice = same rows), `version` increments on insert/update/soft-delete and follows commit order under concurrent writers |
 | `presentation/` (routers) | `tests/e2e/<module>/` | `httpx.AsyncClient` + ASGI app | Status codes & envelope per `07-api-contract.md`, 401/403/422/426/429 |
 | Tenant isolation | `tests/integration/<module>/` + `tests/e2e/<module>/` | Postgres with RLS, connected as `poslite_app` | For every new table/endpoint: tenant A cannot read/write tenant B's rows; missing `app.tenant_id` → 0 rows; pull/push only see the device's tenant |
 | Sync | `tests/e2e/sync/` + `tests/integration/sync/` | as above | Same batch pushed twice → no duplicates; per-event `accepted/duplicate/flagged/rejected`; previously `rejected` event re-pushed → reprocessed; totals recomputed with payload `rates` (`TOTAL_MISMATCH`, `RATES_OUTDATED`); one rejected event doesn't roll back the batch (savepoint); order before its shift; revoked device → 401; two concurrent pushes from one device (`asyncio.gather`) → no double insert |
