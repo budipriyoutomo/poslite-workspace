@@ -90,7 +90,7 @@ Every change to behavior follows **Red → Green → Refactor**. No production c
 
 ### Shared fixtures
 
-`tests/fixtures/pricing-cases.json` is the **source of truth** shared with `poslite-web`. `PriceCalculator` tests must be parametrized over it (`pytest.mark.parametrize` loaded from the JSON). Any change requires the matching change in `poslite-web`.
+`tests/fixtures/pricing-cases.json` is the **source of truth** shared with `poslite-web` (a symlink to `poslite-web/tests/fixtures/pricing-cases.json` — one file, edit either path). `PriceCalculator` tests must be parametrized over it (`pytest.mark.parametrize` loaded from the JSON). Any change requires the matching change in `poslite-web`.
 
 > ⚠️ Money math is **integer-only** (ADR-005): rates are basis points (`int`), percentage discounts are `int` 0..100, and the only rounding function is `shared.domain.money.div_round_half_up(n, d)` = `(2n + d) // (2d)`, mirroring `divRoundHalfUp` in `poslite-web`. Never use `float`, `Decimal`, or `round()` (banker's rounding: `round(2.5) == 2`) for money. Keep exact `.5` cases in the fixture.
 

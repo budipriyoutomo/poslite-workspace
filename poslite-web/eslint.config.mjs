@@ -42,6 +42,8 @@ const architecture = {
           { from: { element: { type: "config" } }, allow: [{ to: { element: { type: "config" } } }] },
           // Domain is pure TypeScript: no framework, storage, or network libraries (ADR-002, AGENTS §5).
           { from: { element: { type: "domain" } }, disallow: [{ to: { module: { origin: "external" } } }] },
+          // …except the test runner, so domain unit tests can sit next to the code they test.
+          { from: { element: { type: "domain" } }, allow: [{ to: { module: { origin: "external", source: "vitest" } } }] },
         ],
       },
     ],

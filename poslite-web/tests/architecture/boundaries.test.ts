@@ -24,9 +24,11 @@ async function boundaryErrors(files: Record<string, string>, target: string): Pr
   projectDir = mkdtempSync(join(tmpdir(), "poslite-arch-"));
   writeFileSync(join(projectDir, "tsconfig.json"), TSCONFIG);
   // A real installed package, so it is classified as an external module.
-  mkdirSync(join(projectDir, "node_modules/dexie"), { recursive: true });
-  writeFileSync(join(projectDir, "node_modules/dexie/package.json"), '{"name":"dexie","main":"index.js"}');
-  writeFileSync(join(projectDir, "node_modules/dexie/index.js"), "module.exports = {};\n");
+  for (const pkg of ["dexie", "vitest"]) {
+    mkdirSync(join(projectDir, "node_modules", pkg), { recursive: true });
+    writeFileSync(join(projectDir, "node_modules", pkg, "package.json"), `{"name":"${pkg}","main":"index.js"}`);
+    writeFileSync(join(projectDir, "node_modules", pkg, "index.js"), "module.exports = {};\n");
+  }
   for (const [path, content] of Object.entries(files)) {
     mkdirSync(dirname(join(projectDir, path)), { recursive: true });
     writeFileSync(join(projectDir, path), content);
@@ -69,6 +71,14 @@ describe("frontend layer boundaries", () => {
       "src/features/cart/domain/cart.ts",
     );
     expect(errors).toHaveLength(1);
+  });
+
+  it("allows domain tests to import the test runner", async () => {
+    const errors = await boundaryErrors(
+      { "src/features/cart/domain/cart.test.ts": 'import { it } from "vitest";\nexport const y = it;\n' },
+      "src/features/cart/domain/cart.test.ts",
+    );
+    expect(errors).toEqual([]);
   });
 
   it("allows domain to use shared money but not shared db", async () => {

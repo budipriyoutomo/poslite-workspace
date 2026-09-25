@@ -1,0 +1,387 @@
+[
+  {
+    "name": "empty cart is all zeros",
+    "lines": [],
+    "discount": null,
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 0,
+      "discount_amount": 0,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 0
+    }
+  },
+  {
+    "name": "single line, no discount, no rates",
+    "lines": [
+      {
+        "unit_price": 25000,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 25000,
+      "discount_amount": 0,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 25000
+    }
+  },
+  {
+    "name": "lines with modifiers and quantities",
+    "lines": [
+      {
+        "unit_price": 25000,
+        "modifiers_total": 15000,
+        "quantity": 2
+      },
+      {
+        "unit_price": 5000,
+        "modifiers_total": 0,
+        "quantity": 3
+      },
+      {
+        "unit_price": 8000,
+        "modifiers_total": 5000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 108000,
+      "discount_amount": 0,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 108000
+    }
+  },
+  {
+    "name": "percentage discount 10%",
+    "lines": [
+      {
+        "unit_price": 50000,
+        "modifiers_total": 0,
+        "quantity": 2
+      }
+    ],
+    "discount": {
+      "type": "percentage",
+      "value": 10
+    },
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 100000,
+      "discount_amount": 10000,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 90000
+    }
+  },
+  {
+    "name": "percentage discount rounds exact .5 up",
+    "lines": [
+      {
+        "unit_price": 25005,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "percentage",
+      "value": 10
+    },
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 25005,
+      "discount_amount": 2501,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 22504
+    }
+  },
+  {
+    "name": "percentage discount rounds below .5 down",
+    "lines": [
+      {
+        "unit_price": 25004,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "percentage",
+      "value": 10
+    },
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 25004,
+      "discount_amount": 2500,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 22504
+    }
+  },
+  {
+    "name": "fixed discount",
+    "lines": [
+      {
+        "unit_price": 30000,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 5000
+    },
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 30000,
+      "discount_amount": 5000,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 25000
+    }
+  },
+  {
+    "name": "fixed discount is capped at subtotal",
+    "lines": [
+      {
+        "unit_price": 5000,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 5000,
+      "discount_amount": 5000,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 0
+    }
+  },
+  {
+    "name": "100% discount zeroes service and tax",
+    "lines": [
+      {
+        "unit_price": 20000,
+        "modifiers_total": 3000,
+        "quantity": 2
+      }
+    ],
+    "discount": {
+      "type": "percentage",
+      "value": 100
+    },
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 46000,
+      "discount_amount": 46000,
+      "service_charge": 0,
+      "tax": 0,
+      "total": 0
+    }
+  },
+  {
+    "name": "service 5% and PB1 10% on net + service",
+    "lines": [
+      {
+        "unit_price": 100000,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 100000,
+      "discount_amount": 0,
+      "service_charge": 5000,
+      "tax": 10500,
+      "total": 115500
+    }
+  },
+  {
+    "name": "service rounds exact .5 up",
+    "lines": [
+      {
+        "unit_price": 10010,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 10010,
+      "discount_amount": 0,
+      "service_charge": 501,
+      "tax": 0,
+      "total": 10511
+    }
+  },
+  {
+    "name": "service rounds .45 down",
+    "lines": [
+      {
+        "unit_price": 10009,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 0
+    },
+    "expected": {
+      "subtotal": 10009,
+      "discount_amount": 0,
+      "service_charge": 500,
+      "tax": 0,
+      "total": 10509
+    }
+  },
+  {
+    "name": "PB1 rounds exact .5 up",
+    "lines": [
+      {
+        "unit_price": 105,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 105,
+      "discount_amount": 0,
+      "service_charge": 0,
+      "tax": 11,
+      "total": 116
+    }
+  },
+  {
+    "name": "PB1 11% only",
+    "lines": [
+      {
+        "unit_price": 12345,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "rates": {
+      "service_bps": 0,
+      "tax_bps": 1100
+    },
+    "expected": {
+      "subtotal": 12345,
+      "discount_amount": 0,
+      "service_charge": 0,
+      "tax": 1358,
+      "total": 13703
+    }
+  },
+  {
+    "name": "discount then service then PB1",
+    "lines": [
+      {
+        "unit_price": 22000,
+        "modifiers_total": 8000,
+        "quantity": 1
+      },
+      {
+        "unit_price": 5000,
+        "modifiers_total": 5000,
+        "quantity": 2
+      }
+    ],
+    "discount": {
+      "type": "percentage",
+      "value": 15
+    },
+    "rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 50000,
+      "discount_amount": 7500,
+      "service_charge": 2125,
+      "tax": 4463,
+      "total": 49088
+    }
+  },
+  {
+    "name": "fixed discount then service then PB1",
+    "lines": [
+      {
+        "unit_price": 30000,
+        "modifiers_total": 3000,
+        "quantity": 3
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 25000
+    },
+    "rates": {
+      "service_bps": 750,
+      "tax_bps": 1000
+    },
+    "expected": {
+      "subtotal": 99000,
+      "discount_amount": 25000,
+      "service_charge": 5550,
+      "tax": 7955,
+      "total": 87505
+    }
+  }
+]
