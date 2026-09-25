@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/shared/ui/sonner";
+
+import { DeviceBootstrap } from "./device-bootstrap";
 import { ServiceWorkerProvider } from "./service-worker-provider";
 
 const geistSans = Geist({
@@ -25,7 +28,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ServiceWorkerProvider>{children}</ServiceWorkerProvider>
+        <ServiceWorkerProvider>
+          <DeviceBootstrap />
+          {children}
+          <Toaster position="top-center" offset={72} duration={2500} richColors />
+        </ServiceWorkerProvider>
       </body>
     </html>
   );

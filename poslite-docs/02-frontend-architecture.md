@@ -79,7 +79,7 @@ poslite-web/
 |---|---|---|
 | Persisted domain data | **Dexie** (IndexedDB) | produk, order, payment, shift, outbox, printer config |
 | Cart aktif | **Zustand** + `persist` ke IndexedDB | Cart tidak hilang saat app ter-reload / tablet restart |
-| Sesi kasir | Zustand (memory) + Dexie `sessions` | kasir aktif, auto-lock setelah idle |
+| Sesi kasir | Zustand + persist ke Dexie (`syncState.session`) | kasir aktif; bertahan saat reload offline, auto-lock setelah 15 menit idle |
 | Server-only data | TanStack Query (opsional) | Laporan lintas outlet di back-office |
 | UI transient | `useState` lokal | dialog open, tab aktif |
 

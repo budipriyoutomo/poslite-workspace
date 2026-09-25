@@ -13,13 +13,15 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [x] CI: lint + typecheck + unit test API & web (workflow terpisah per folder)
 
 ### Fase 1 — Core Selling Offline (MVP-1)
-- [ ] Domain `pricing` (termasuk **PB1 & service charge** dalam bps), `cart`, `receipt-number` + unit test (port dari prototype)
-- [ ] Pecah `page.tsx` prototype → `features/catalog`, `cart`, `checkout`
-- [ ] Dexie schema v1, repository, seed data lokal (belum ada backend)
-- [ ] PIN lock screen (hash lokal), shift open/close, place order, riwayat order, reprint
-- [ ] Cetak struk: driver **Web Serial** (Bluetooth Classic) + System print fallback
+- [x] Domain `pricing` (termasuk **PB1 & service charge** dalam bps; fixture `pricing-cases.json` bersama API), `cart`, `receipt-number`, business date, kas shift, pembayaran/kembalian + unit test
+- [x] Pecah `page.tsx` prototype → `features/catalog`, `cart`, `checkout`, `auth`, `shift`, `orders`, `reports`, `printing`
+- [x] Dexie schema v1, outbox tervalidasi Zod, seed data demo lokal (belum ada backend — `ensureDemoData`)
+- [x] PIN lock screen (pilih kasir + PIN, PBKDF2 lokal, lockout), shift open/close + kas masuk/keluar, place order (split payment), riwayat order, reprint
+- [ ] Cetak struk: driver **Web Serial** (Bluetooth Classic) — *menunggu spike printer* · [x] System print (`window.print()`, 58 mm) + antrian `printJobs`
 - [ ] Fase 1b: driver Web Bluetooth (BLE) & WebUSB
-- [ ] Laporan shift lokal
+- [x] Laporan shift lokal (pendapatan, transaksi, diskon, per metode bayar / kategori / menu)
+- [x] E2E `tests/e2e/sell-offline.spec.ts`: buka shift → offline → jual → bayar → struk → reload offline → order ada di Riwayat (Pending)
+- [ ] Uji manual di tablet: reboot tablet dengan data & cart tersimpan; cetak ke printer asli
 - **DoD**: kasir bisa buka shift → jual → cetak struk → tutup shift **tanpa internet sama sekali**, data bertahan setelah reboot tablet.
 
 ### Fase 2 — Backend & Sync (MVP-2)

@@ -128,3 +128,27 @@
     @apply font-sans;
   }
 }
+/* Receipt printing via the system driver (features/printing/infrastructure/system-printer.ts). */
+#poslite-print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+  body > *:not(#poslite-print-root) {
+    display: none !important;
+  }
+  #poslite-print-root {
+    display: block;
+  }
+  #poslite-print-root pre {
+    margin: 0;
+    padding: 2mm;
+    font: 11px/1.25 var(--font-geist-mono), monospace;
+    white-space: pre;
+    color: #000;
+  }
+}

@@ -158,7 +158,9 @@ export interface OutboxRow {
 /** Device-local state that is never pulled from the server. */
 export type SyncStateRow =
   | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
-  | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } };
+  | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } }
+  | { key: "cart"; value: string } // serialized by the cart store (survives reload / tablet restart)
+  | { key: "session"; value: string }; // serialized by the session store (logged-in cashier)
 
 export interface PrinterConfigRow {
   id: string;
