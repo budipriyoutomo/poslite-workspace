@@ -2,7 +2,7 @@ import { formatReceiptNo, nextReceiptCounter } from "@/features/orders";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
-import { getDb } from "@/shared/db";
+import { getDb, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
@@ -65,8 +65,8 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const now = deps.now();
     const createdAt = now.toISOString();
     const date = businessDate(now, outlet.timezone, outlet.businessDayCutoff);
-    const counter = nextReceiptCounter((await db.syncState.get("receiptCounter"))?.value, date);
-    await db.syncState.put({ key: "receiptCounter", value: counter });
+    const counter = nextReceiptCounter(await readState(db, "receiptCounter"), date);
+    await writeState(db, "receiptCounter", counter);
 
     const order: OrderRow = {
       id: deps.newId(),

@@ -155,7 +155,10 @@ export interface OutboxRow {
   createdAt: string;
 }
 
-export type SyncStateRow = { key: "receiptCounter"; value: { businessDate: string; seq: number } };
+/** Device-local state that is never pulled from the server. */
+export type SyncStateRow =
+  | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
+  | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } };
 
 export interface PrinterConfigRow {
   id: string;
