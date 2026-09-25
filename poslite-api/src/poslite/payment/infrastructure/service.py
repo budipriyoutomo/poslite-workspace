@@ -4,7 +4,9 @@ from sqlalchemy import func, select
 
 from poslite.payment.application.schemas import PaymentMethodIn, PaymentMethodOut
 from poslite.payment.infrastructure.models import PaymentMethodModel
+from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.infrastructure.sync_feed import feed
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -60,3 +62,22 @@ async def delete_payment_method(uow: SqlAlchemyUnitOfWork, method_id: str) -> No
     row = await _live(uow, method_id)
     row.deleted_at = func.now()
     await uow.session.flush()
+
+
+async def payment_method_changes(
+    uow: SqlAlchemyUnitOfWork, *, cursor: int, limit: int
+) -> list[Change]:
+    return await feed(
+        uow,
+        PaymentMethodModel,
+        "payment_method",
+        cursor=cursor,
+        limit=limit,
+        data=lambda m: {
+            "type": m.type,
+            "name": m.name,
+            "requires_reference": m.requires_reference,
+            "sort_order": m.sort_order,
+            "logo_url": m.logo_url,
+        },
+    )

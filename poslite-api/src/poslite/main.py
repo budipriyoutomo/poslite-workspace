@@ -16,6 +16,7 @@ from poslite.shared.config import Settings, get_settings
 from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
 from poslite.shared.presentation.errors import install_error_handlers
+from poslite.sync.presentation.router import router as sync_router
 from poslite.tenancy.presentation.router import router as tenancy_router
 
 
@@ -57,6 +58,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         organization_router,
         catalog_router,
         payment_router,
+        sync_router,
     ):
         api.include_router(module_router)
     app.include_router(api)

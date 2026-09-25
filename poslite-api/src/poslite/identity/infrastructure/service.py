@@ -8,6 +8,7 @@ from poslite.identity.domain.pin import PIN_ITERATIONS, hash_pin, new_pin_salt
 from poslite.identity.domain.roles import RANK, ROLE_BY_ID, ROLE_IDS, Role
 from poslite.identity.infrastructure.models import OutletUserModel, UserModel
 from poslite.identity.infrastructure.passwords import verify_password
+from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -114,3 +115,47 @@ async def set_pin(uow: SqlAlchemyUnitOfWork, *, user_id: str, pin: str) -> None:
     user.pin_salt, user.pin_iterations = salt, PIN_ITERATIONS
     user.pin_hash = await asyncio.to_thread(hash_pin, pin, salt, PIN_ITERATIONS)
     await uow.session.flush()
+
+
+async def user_changes(
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
+) -> list[Change]:
+    """Users who may log in on the device's outlet, with their PIN hash for offline login.
+
+    Every tenant user is considered (role changes touch users.version); anyone deleted, inactive or
+    without a role at this outlet is sent as a delete so the device forgets them.
+    """
+    rows = await uow.session.scalars(
+        select(UserModel)
+        .where(UserModel.version > cursor)
+        .order_by(UserModel.version)
+        .limit(limit + 1)
+    )
+    changes: list[Change] = []
+    for user in rows:
+        role = (
+            None
+            if user.deleted_at or not user.is_active
+            else await role_at(uow, user_id=user.id, outlet_id=outlet_id)
+        )
+        if role is None:
+            changes.append(
+                Change(entity="user", op="delete", id=user.id, version=user.version, data=None)
+            )
+            continue
+        changes.append(
+            Change(
+                entity="user",
+                op="upsert",
+                id=user.id,
+                version=user.version,
+                data={
+                    "name": user.name,
+                    "role": role,
+                    "pin_hash": user.pin_hash,
+                    "pin_salt": user.pin_salt,
+                    "pin_iterations": user.pin_iterations,
+                },
+            )
+        )
+    return changes

@@ -7,6 +7,7 @@ from poslite.organization.infrastructure.service import (
     get_device,
     get_outlet,
     list_outlets,
+    outlet_changes,
     register_device,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "get_device",
     "get_outlet",
     "list_outlets",
+    "outlet_changes",
     "register_device",
 ]

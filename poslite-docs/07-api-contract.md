@@ -65,7 +65,17 @@ Header wajib dari device: `Authorization: Bearer <device_token>`, `X-App-Version
 
 Entity: `outlet_setting`, `category`, `product`, `modifier_group`, `modifier_option`, `payment_method`, `user`.
 
-`outlet_setting.data` memuat antara lain `service_rate_bps`, `tax_rate_bps` (integer basis poin), `business_day_cutoff`, `timezone`, `receipt_header`, `receipt_footer`.
+Isi `data` per entity (`op: "delete"` tidak membawa `data`):
+
+| Entity | `data` |
+|---|---|
+| `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` — hanya outlet milik device |
+| `category` | `name`, `sort_order`, `print_role` |
+| `product` | `category_id`, `sku`, `name`, `price`, `image_url`, `is_available`, `modifier_group_ids` |
+| `modifier_group` | `name`, `min_select`, `max_select` |
+| `modifier_option` | `modifier_group_id`, `name`, `price`, `sort_order` |
+| `payment_method` | `type`, `name`, `requires_reference`, `sort_order`, `logo_url` |
+| `user` | `name`, `role` (di outlet device), `pin_hash`, `pin_salt`, `pin_iterations` — user yang dihapus, nonaktif, atau tidak lagi punya role di outlet device dikirim sebagai `delete` |
 
 `next_cursor` = `version` terakhir di halaman ini. Urutan `version` dijamin sama dengan urutan commit (ADR-009), jadi device cukup menyimpan satu angka.
 

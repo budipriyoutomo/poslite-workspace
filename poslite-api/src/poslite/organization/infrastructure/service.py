@@ -5,7 +5,9 @@ from sqlalchemy import func, select
 
 from poslite.organization.domain.device_code import device_code
 from poslite.organization.infrastructure.models import DeviceModel, OutletModel
+from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.infrastructure.sync_feed import feed
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -134,4 +136,28 @@ async def update_outlet_settings(
         service_rate_bps=outlet.service_rate_bps,
         receipt_header=outlet.receipt_header,
         receipt_footer=outlet.receipt_footer,
+    )
+
+
+async def outlet_changes(
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
+) -> list[Change]:
+    """The device outlet profile: rates, receipt text, business day (entity outlet_setting)."""
+    return await feed(
+        uow,
+        OutletModel,
+        "outlet_setting",
+        cursor=cursor,
+        limit=limit,
+        where=OutletModel.id == outlet_id,
+        data=lambda o: {
+            "code": o.code,
+            "name": o.name,
+            "timezone": o.timezone,
+            "business_day_cutoff": o.business_day_cutoff.strftime("%H:%M"),
+            "tax_rate_bps": o.tax_rate_bps,
+            "service_rate_bps": o.service_rate_bps,
+            "receipt_header": o.receipt_header,
+            "receipt_footer": o.receipt_footer,
+        },
     )

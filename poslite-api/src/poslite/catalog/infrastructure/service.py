@@ -19,7 +19,9 @@ from poslite.catalog.infrastructure.models import (
     ProductModel,
     ProductModifierGroupModel,
 )
+from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.infrastructure.sync_feed import feed
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 # Thin CRUD module (05-backend-architecture.md): no separate domain entities. Deletes are soft
@@ -294,3 +296,65 @@ async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str) -> Non
     row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
     row.deleted_at = func.now()
     await uow.session.flush()
+
+
+# ── Sync pull feeds ──────────────────────────────────────────────────────────────────────────
+
+
+async def catalog_changes(
+    uow: SqlAlchemyUnitOfWork, *, cursor: int, limit: int
+) -> list[list[Change]]:
+    products = await feed(
+        uow,
+        ProductModel,
+        "product",
+        cursor=cursor,
+        limit=limit,
+        data=lambda p: {
+            "category_id": p.category_id,
+            "sku": p.sku,
+            "name": p.name,
+            "price": p.price,
+            "image_url": p.image_url,
+            "is_available": p.is_available,
+        },
+    )
+    groups = await _group_ids(uow, [c.id for c in products if c.data is not None])
+    products = [
+        Change(c.entity, c.op, c.id, c.version, {**c.data, "modifier_group_ids": groups[c.id]})
+        if c.data
+        else c
+        for c in products
+    ]
+    return [
+        await feed(
+            uow,
+            CategoryModel,
+            "category",
+            cursor=cursor,
+            limit=limit,
+            data=lambda c: {"name": c.name, "sort_order": c.sort_order, "print_role": c.print_role},
+        ),
+        products,
+        await feed(
+            uow,
+            ModifierGroupModel,
+            "modifier_group",
+            cursor=cursor,
+            limit=limit,
+            data=lambda g: {"name": g.name, "min_select": g.min_select, "max_select": g.max_select},
+        ),
+        await feed(
+            uow,
+            ModifierOptionModel,
+            "modifier_option",
+            cursor=cursor,
+            limit=limit,
+            data=lambda o: {
+                "modifier_group_id": o.modifier_group_id,
+                "name": o.name,
+                "price": o.price,
+                "sort_order": o.sort_order,
+            },
+        ),
+    ]

@@ -96,14 +96,14 @@ layers = [
 [[tool.importlinter.contracts]]
 name = "module layers"
 type = "layers"
-containers = ["poslite.tenancy", "poslite.identity", "poslite.organization", "poslite.catalog", "poslite.payment"]
+containers = ["poslite.tenancy", "poslite.identity", "poslite.organization", "poslite.catalog", "poslite.payment", "poslite.sync"]
 layers = ["api", "presentation", "infrastructure", "application", "domain"]
 exhaustive = false
 
 [[tool.importlinter.contracts]]
 name = "domain is pure Python"
 type = "forbidden"
-source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain", "poslite.catalog.domain", "poslite.payment.domain"]
+source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain", "poslite.catalog.domain", "poslite.payment.domain", "poslite.sync.domain"]
 forbidden_modules = ["fastapi", "pydantic", "pydantic_settings", "sqlalchemy", "redis", "arq", "structlog", "starlette"]
 
 [[tool.importlinter.contracts]]
@@ -127,6 +127,10 @@ forbidden_modules = [
     "poslite.payment.application",
     "poslite.payment.infrastructure",
     "poslite.payment.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
 ]
 allow_indirect_imports = true
 
@@ -151,6 +155,10 @@ forbidden_modules = [
     "poslite.payment.application",
     "poslite.payment.infrastructure",
     "poslite.payment.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
 ]
 allow_indirect_imports = true
 
@@ -175,6 +183,10 @@ forbidden_modules = [
     "poslite.payment.application",
     "poslite.payment.infrastructure",
     "poslite.payment.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
 ]
 allow_indirect_imports = true
 
@@ -199,6 +211,10 @@ forbidden_modules = [
     "poslite.payment.application",
     "poslite.payment.infrastructure",
     "poslite.payment.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
 ]
 allow_indirect_imports = true
 
@@ -223,5 +239,37 @@ forbidden_modules = [
     "poslite.catalog.application",
     "poslite.catalog.infrastructure",
     "poslite.catalog.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "sync uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.sync"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
 ]
 allow_indirect_imports = true
