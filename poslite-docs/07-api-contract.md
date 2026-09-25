@@ -120,6 +120,19 @@ Entity: `outlet_setting`, `category`, `product`, `modifier_group`, `modifier_opt
 
 Tipe event MVP: `shift.opened`, `shift.closed`, `cash.moved`, `order.placed`, `order.voided`.
 
+Payload event lain (Zod `features/sync/infrastructure/event-payloads.ts`; `aggregate_id` = id shift / cash movement / order):
+
+```json
+// shift.closed
+{ "closed_by": "01J…U1", "counted_cash": 330000, "expected_cash": 337500, "variance": -7500 }
+// cash.moved (aggregate_id = id cash movement)
+{ "shift_id": "01J…S1", "type": "out", "amount": 20000, "reason": "Beli es batu", "created_by": "01J…U1" }
+// order.voided (Fase berikutnya)
+{ "reason": "Salah input", "voided_by": "01J…U1", "approved_by": "01J…U2" }
+```
+
+`business_date` **tidak** dikirim: server menurunkannya dari `occurred_at` + `timezone` & `business_day_cutoff` outlet (aturan yang sama dengan device).
+
 Batas: maks 50 event / request, body maks 1 MB.
 
 ## Endpoint — Back-office (online)

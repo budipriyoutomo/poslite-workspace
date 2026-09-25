@@ -23,7 +23,7 @@ export class PosDb extends Dexie {
 
   // Infrastruktur
   outbox!: Table<OutboxRow, number>;
-  syncState!: Table<SyncStateRow, string>;   // cursor pull, lastPushAt, deviceSeq
+  syncState!: Table<SyncStateRow, string>;   // state lokal device: receiptCounter, pinLockout (+ cursor pull, lastPushAt di Fase 2)
   printers!: Table<PrinterConfigRow, string>;
   printJobs!: Table<PrintJobRow, string>;
 
@@ -37,10 +37,10 @@ export class PosDb extends Dexie {
       users: 'id',
       settings: 'key',
       shifts: 'id, status, openedAt',
-      orders: 'id, shiftId, status, createdAt, receiptNo, syncStatus',
+      orders: 'id, shiftId, status, createdAt, businessDate, receiptNo, syncStatus',
       payments: 'id, orderId',
       cashMovements: 'id, shiftId',
-      outbox: '++seq, status, createdAt, aggregateId',
+      outbox: '++seq, [status+seq], createdAt, aggregateId',   // [status+seq]: batch push tanpa scan (spike Fase 0)
       syncState: 'key',
       printers: 'id, role',
       printJobs: 'id, status, createdAt',
@@ -129,7 +129,8 @@ contoh: JKT01A-260925-0042
 1. **Aktivasi device** (online, sekali): manager login email+password → pilih outlet → server membuat `device` + opaque token berumur panjang (hash disimpan di server, ability `device:*`). Token disimpan di IndexedDB.
 2. **PIN kasir** (offline-capable): server mengirim daftar user outlet + `pin_hash` (PBKDF2-SHA256, salt per user, iterasi tinggi) via pull. Device memverifikasi PIN dengan WebCrypto.
 3. Setiap event yang di-push membawa `cashier_id`; server memverifikasi user tsb memang aktif di outlet itu pada waktu event.
-4. Rate limit lokal: 5 PIN salah → lock 1 menit, eskalasi.
+4. Rate limit lokal: 5 PIN salah → lock 1 menit, lalu berlipat tiap 5 salah berikutnya; state disimpan di IndexedDB (`syncState.pinLockout`) agar reload tidak mereset.
+6. Layar lock: kasir **memilih nama** lalu memasukkan PIN (bukan PIN saja) — cukup satu PBKDF2 per percobaan, dan jejak audit jelas.
 5. Revoke device dari back-office → request berikutnya 401 → device wipe data sensitif (users, token) tapi **outbox tetap dipertahankan** sampai diekspor/di-sync oleh device yang di-aktivasi ulang.
 
 > Trade-off: PIN 4 digit rawan brute-force offline jika device dicuri. Mitigasi: PIN 6 digit untuk manager, hash dengan iterasi tinggi, wipe via revoke, dan PIN hanya membuka aksi di device itu (bukan kredensial API).
