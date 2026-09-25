@@ -308,9 +308,11 @@ CREATE POLICY tenant_isolation ON products
 
 | Role DB | Dipakai oleh | Hak |
 |---|---|---|
-| `poslite_owner` | Alembic migration | Owner tabel |
-| `poslite_app` | API & job per-tenant | DML saja, **tanpa** `BYPASSRLS` |
-| `poslite_system` | Relay outbox (polling lintas tenant), platform admin | `BYPASSRLS`, hanya untuk tabel yang diperlukan |
+| `poslite` (owner) | Alembic migration (`MIGRATION_DATABASE_URL`) | Owner tabel; RLS tetap berlaku (`FORCE`) |
+| `poslite_app` | API & job per-tenant (`DATABASE_URL`) | DML saja, **tanpa** `BYPASSRLS` |
+| `poslite_system` | Relay outbox (polling lintas tenant), lookup token, platform admin (`SYSTEM_DATABASE_URL`) | `BYPASSRLS`, hanya untuk tabel yang diperlukan |
+
+Ketiga role dibuat oleh `make db-setup` (lokal) dan step CI; SQL RLS/trigger ada di `shared/infrastructure/migration_sql.py`.
 
 Alur tenant context:
 1. Middleware auth me-resolve token → `api_tokens.tenant_id` (device & user) → `TenantContext`.

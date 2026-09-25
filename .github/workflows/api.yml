@@ -14,6 +14,18 @@ defaults:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Same three roles as `make db-setup` (ADR-013).
+      TEST_DATABASE_URL: postgresql+asyncpg://poslite_app:poslite@localhost:5432/poslite_test
+      TEST_MIGRATION_DATABASE_URL: postgresql+asyncpg://poslite:poslite@localhost:5432/poslite_test
+      TEST_SYSTEM_DATABASE_URL: postgresql+asyncpg://poslite_system:poslite@localhost:5432/poslite_test
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -21,9 +33,17 @@ jobs:
           enable-cache: true
           working-directory: poslite-api
       - run: uv sync --locked
+      - name: Create database roles and the test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE poslite LOGIN PASSWORD 'poslite' CREATEDB" \
+            -c "CREATE ROLE poslite_app LOGIN PASSWORD 'poslite' NOBYPASSRLS" \
+            -c "CREATE ROLE poslite_system LOGIN PASSWORD 'poslite' BYPASSRLS" \
+            -c "CREATE DATABASE poslite_test OWNER poslite"
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run lint-imports
-      # When tests/integration lands: add a postgres service and set TEST_DATABASE_URL.
       - run: uv run pytest --cov --cov-fail-under=85

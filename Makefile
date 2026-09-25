@@ -84,14 +84,20 @@ api-fmt: ## Auto-fix Python lint and format
 env: ## Create poslite-api/.env from .env.example if missing
 	@test -f $(API_DIR)/.env || (cp $(API_DIR)/.env.example $(API_DIR)/.env && echo "created $(API_DIR)/.env")
 
-db-setup: ## Create local role + dev/test databases (idempotent)
+db-setup: ## Create local roles (owner, app, system) + dev/test databases (idempotent)
 	@$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$(DB_USER)'" | grep -q 1 \
 		|| $(PSQL_ADMIN) -c "CREATE ROLE $(DB_USER) LOGIN PASSWORD '$(DB_PASSWORD)' CREATEDB"
+	@# ADR-013: the API runs as $(DB_USER)_app (row-level security applies); $(DB_USER)_system bypasses
+	@# RLS for token lookup and the outbox relay only. Tables are owned by $(DB_USER) (migrations).
+	@$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$(DB_USER)_app'" | grep -q 1 \
+		|| $(PSQL_ADMIN) -c "CREATE ROLE $(DB_USER)_app LOGIN PASSWORD '$(DB_PASSWORD)' NOBYPASSRLS"
+	@$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$(DB_USER)_system'" | grep -q 1 \
+		|| $(PSQL_ADMIN) -c "CREATE ROLE $(DB_USER)_system LOGIN PASSWORD '$(DB_PASSWORD)' BYPASSRLS"
 	@for db in $(DB_NAME) $(DB_TEST_NAME); do \
 		$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_database WHERE datname = '$$db'" | grep -q 1 \
 			|| $(PSQL_ADMIN) -c "CREATE DATABASE $$db OWNER $(DB_USER)"; \
 	done
-	@echo "databases ready: $(DB_NAME), $(DB_TEST_NAME) (role $(DB_USER))"
+	@echo "databases ready: $(DB_NAME), $(DB_TEST_NAME) (roles $(DB_USER), $(DB_USER)_app, $(DB_USER)_system)"
 
 db-drop: ## Drop local dev/test databases (asks first)
 	@read -p "Drop $(DB_NAME) and $(DB_TEST_NAME)? [y/N] " ok && [ "$$ok" = y ]
