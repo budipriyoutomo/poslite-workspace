@@ -1,0 +1,99 @@
+[project]
+name = "poslite-api"
+version = "0.1.0"
+description = "POSLite API — offline-first restaurant POS backend (sync target, back-office API)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "argon2-cffi>=25.1.0",
+    "arq>=0.28.0",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.141.1",
+    "gunicorn>=26.2.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "python-ulid>=4.0.1",
+    "redis>=5.3.1",
+    "sqlalchemy[asyncio]>=2.1.0",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.53.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/poslite"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "import-linter>=2.15",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+# Docs are Markdown for humans/agents; code snippets there are illustrative, not linted.
+extend-exclude = ["docs", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "N", "SIM", "RUF", "ASYNC", "PT", "S", "DTZ", "T20"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # assert is how pytest works
+"migrations/**" = ["S"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["poslite"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+addopts = "--strict-markers --strict-config -ra"
+markers = ["integration: needs the local PostgreSQL test database (TEST_DATABASE_URL)"]
+
+[tool.coverage.run]
+source = ["poslite"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+# Layer & module boundaries (05-backend-architecture.md). Add one `layers` contract per
+# bounded-context module and extend the `independence` contract as modules are created.
+[tool.importlinter]
+root_packages = ["poslite"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "shared kernel layers"
+type = "layers"
+layers = [
+    "poslite.shared.presentation",
+    "poslite.shared.infrastructure",
+    "poslite.shared.application",
+    "poslite.shared.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "domain is pure Python"
+type = "forbidden"
+source_modules = ["poslite.shared.domain"]
+forbidden_modules = ["fastapi", "pydantic", "pydantic_settings", "sqlalchemy", "redis", "arq", "structlog", "starlette"]
