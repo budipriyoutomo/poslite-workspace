@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 // PW_CHANNEL=chrome runs against the locally installed Google Chrome (needed where Playwright
 // ships no bundled Chromium, e.g. macOS 13). CI uses the bundled Chromium.
-const channel = process.env.PW_CHANNEL;
+const channel = process.env.PW_CHANNEL || undefined;
 
 export default defineConfig({
   testDir: "./tests/e2e",
