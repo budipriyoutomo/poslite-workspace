@@ -1,15 +1,16 @@
-# poslite-workspace
+# POSLite
 
-Titik masuk development lokal POSLite. Menjalankan backend (`poslite-api`) dan frontend (`poslite-web`) bersamaan **tanpa Docker** — PostgreSQL memakai instalasi lokal.
+Monorepo POSLite: POS PWA offline-first untuk restoran. Backend dan frontend dijalankan bersamaan **tanpa Docker** — PostgreSQL memakai instalasi lokal.
 
-## Struktur folder
+## Struktur
 
 ```
-~/Project/Personal/
-├── poslite-workspace/   ← repo ini (Makefile)
-├── poslite-api/         FastAPI
-├── poslite-web/         Next.js PWA
-└── poslite-docs/        arsitektur (submodule di api & web)
+poslite/
+├── Makefile          ← titik masuk development (api + web sekaligus)
+├── .github/workflows api.yml & web.yml (jalan hanya saat foldernya berubah)
+├── poslite-api/      FastAPI · uv · Alembic
+├── poslite-web/      Next.js PWA · pnpm
+└── poslite-docs/     dokumen arsitektur (sumber tunggal; di-symlink ke */docs/architecture)
 ```
 
 ## Prasyarat
@@ -22,8 +23,8 @@ Titik masuk development lokal POSLite. Menjalankan backend (`poslite-api`) dan f
 ```bash
 make setup    # sekali: deps, .env, role + database poslite/poslite_test, migrasi
 make dev      # API http://localhost:8000 + web http://localhost:3000 (Ctrl-C menghentikan keduanya)
-make check    # lint, typecheck, test di kedua repo
-make status   # git status semua repo POSLite
+make check    # lint, typecheck, test di api & web
+make test     # test saja
 ```
 
-Target per repo tetap bisa dipakai langsung: `make -C ../poslite-api help`, `make -C ../poslite-web help`.
+Target per app tetap bisa dipakai langsung: `make -C poslite-api help`, `make -C poslite-web help`.

@@ -1,25 +1,24 @@
-# Runs POSLite frontend + backend together for local development (no Docker).
-# Repos are expected as siblings of this folder; override with API_DIR=… WEB_DIR=… if needed.
+# POSLite monorepo: runs frontend + backend together for local development (no Docker).
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-API_DIR ?= ../poslite-api
-WEB_DIR ?= ../poslite-web
-DOCS_DIR ?= ../poslite-docs
+API_DIR ?= poslite-api
+WEB_DIR ?= poslite-web
+DOCS_DIR ?= poslite-docs
 SUBMAKE := $(MAKE) --no-print-directory
 
-.PHONY: help doctor setup install dev dev-api dev-web check test status
+.PHONY: help doctor setup install dev dev-api dev-web check test
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
 
-doctor: ## Check tools, sibling repos and local PostgreSQL
+doctor: ## Check tools, app folders and local PostgreSQL
 	@ok=1; \
 	for tool in uv pnpm psql; do \
 		command -v $$tool >/dev/null && echo "✓ $$tool" || { echo "✗ $$tool not found in PATH"; ok=0; }; \
 	done; \
 	for dir in $(API_DIR) $(WEB_DIR) $(DOCS_DIR); do \
-		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing (clone it next to this repo)"; ok=0; }; \
+		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing"; ok=0; }; \
 	done; \
 	pg_isready -h localhost -q && echo "✓ PostgreSQL on localhost:5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
 	[ $$ok = 1 ]
@@ -28,7 +27,7 @@ setup: doctor ## First-time setup: deps, .env, local DBs, migrations
 	@$(SUBMAKE) -C $(API_DIR) install env db-setup migrate
 	@$(SUBMAKE) -C $(WEB_DIR) install
 
-install: ## Install deps in both repos
+install: ## Install deps for API and web
 	@$(SUBMAKE) -C $(API_DIR) install
 	@$(SUBMAKE) -C $(WEB_DIR) install
 
@@ -44,15 +43,11 @@ dev-api: ## Run only the API
 dev-web: ## Run only the web app
 	@$(SUBMAKE) -C $(WEB_DIR) dev
 
-check: ## Run pre-commit checks in both repos
+check: ## Run pre-commit checks for API and web
 	@$(SUBMAKE) -C $(API_DIR) check
 	@$(SUBMAKE) -C $(WEB_DIR) check
 
-test: ## Run tests in both repos
+test: ## Run tests for API and web
 	@$(SUBMAKE) -C $(API_DIR) test
 	@$(SUBMAKE) -C $(WEB_DIR) test
 
-status: ## git status of all POSLite repos
-	@for dir in $(DOCS_DIR) $(API_DIR) $(WEB_DIR) .; do \
-		echo "── $$dir ($$(git -C $$dir branch --show-current))"; git -C $$dir status --short; \
-	done

@@ -1,18 +1,25 @@
-name: CI
+name: API
 
 on:
   push:
     branches: [main]
+    paths: [poslite-api/**, .github/workflows/api.yml]
   pull_request:
+    paths: [poslite-api/**, .github/workflows/api.yml]
+
+defaults:
+  run:
+    working-directory: poslite-api
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # docs submodule is not needed for CI
+      - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          working-directory: poslite-api
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .

@@ -1,20 +1,29 @@
-name: CI
+name: Web
 
 on:
   push:
     branches: [main]
+    paths: [poslite-web/**, .github/workflows/web.yml]
   pull_request:
+    paths: [poslite-web/**, .github/workflows/web.yml]
+
+defaults:
+  run:
+    working-directory: poslite-web
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # docs submodule is not needed for CI
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: poslite-web/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: poslite-web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
@@ -27,10 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: poslite-web/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: poslite-web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e

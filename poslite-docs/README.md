@@ -32,7 +32,7 @@ Sumber awal: prototype `budipriyoutomo/maharasa-pos` (Next.js 15 + shadcn/ui, di
 
 ## Lokasi Dokumen di Repo
 
-Folder ini adalah **sumber tunggal**. Di `poslite-web` dan `poslite-api` folder ini dipasang di path `docs/architecture/` (disarankan sebagai git submodule dari repo `poslite-docs`), karena `AGENTS.md` di kedua repo merujuk ke `docs/architecture/*.md`. Jangan mengedit salinan di satu repo saja.
+Folder `poslite-docs/` di monorepo ini adalah **sumber tunggal**. `poslite-web/docs/architecture` dan `poslite-api/docs/architecture` adalah symlink ke folder ini, karena `AGENTS.md` di kedua app merujuk ke `docs/architecture/*.md`. Edit hanya di `poslite-docs/`.
 
 ## Asumsi (koreksi jika salah)
 

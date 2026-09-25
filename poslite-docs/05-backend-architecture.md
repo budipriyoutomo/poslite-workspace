@@ -363,7 +363,7 @@ Projector **idempotent**: hitung ulang agregat untuk `(outlet_id, business_date)
 
 ## Konfigurasi & Deployment
 
-- **Development lokal tanpa Docker**: PostgreSQL terinstall di mesin developer; `make db-setup` membuat role `poslite` + database `poslite` & `poslite_test`. Redis lokal baru dibutuhkan saat worker arq dipakai (Fase 2). Frontend + backend dijalankan bersama dengan `make dev` di repo `poslite-workspace`.
+- **Development lokal tanpa Docker**: PostgreSQL terinstall di mesin developer; `make db-setup` membuat role `poslite` + database `poslite` & `poslite_test`. Redis lokal baru dibutuhkan saat worker arq dipakai (Fase 2). Frontend + backend dijalankan bersama dengan `make dev` di root monorepo.
 
 - `pydantic-settings`: `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `MIN_APP_VERSION`, `CORS_ORIGINS`.
 - Container: `api` (gunicorn + uvicorn workers), `worker` (arq), `postgres`, `redis`, reverse proxy (Nginx/Caddy) + HTTPS.

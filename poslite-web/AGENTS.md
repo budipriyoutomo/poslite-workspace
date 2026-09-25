@@ -81,7 +81,7 @@ Printer drivers (Web Serial/Bluetooth/USB) are tested against a **fake driver** 
 
 ### Shared fixtures
 
-`tests/fixtures/pricing-cases.json` is the **same file** as in `poslite-api`. Pricing tests must iterate over it so frontend and backend compute identical totals. Never edit it here only — change it in both repos in the same PR pair. Money math is **integer-only** (ADR-005): rates are basis points (`serviceBps`, `taxBps`), percentage discounts are integers 0..100, and the only rounding function is `divRoundHalfUp(n, d)` in `shared/money` (mirrors `div_round_half_up` in the backend). Keep exact `.5` cases in the fixture.
+`tests/fixtures/pricing-cases.json` is the **same file** as in `poslite-api`. Pricing tests must iterate over it so frontend and backend compute identical totals. Never edit it here only — change `poslite-api/tests/fixtures/pricing-cases.json` in the same commit. Money math is **integer-only** (ADR-005): rates are basis points (`serviceBps`, `taxBps`), percentage discounts are integers 0..100, and the only rounding function is `divRoundHalfUp(n, d)` in `shared/money` (mirrors `div_round_half_up` in the backend). Keep exact `.5` cases in the fixture.
 
 ### Example
 
