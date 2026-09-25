@@ -15,7 +15,7 @@ Kenapa tidak full Event Sourcing: event dari device sudah immutable dan disimpan
 | Validation / DTO | Pydantic v2 | Hanya di application & presentation, **bukan** di domain |
 | ORM | SQLAlchemy 2.0 async (`asyncpg`) | Imperative/declarative model di infrastructure saja |
 | Migration | Alembic | Review autogenerate sebelum commit |
-| Database | **PostgreSQL 16** | `ON CONFLICT DO NOTHING`, sequence untuk `version`, advisory lock |
+| Database | **PostgreSQL 16+** (dev: instalasi lokal, mis. Homebrew) | `ON CONFLICT DO NOTHING`, sequence untuk `version`, advisory lock |
 | Background jobs | `arq` (async, Redis) | Projection laporan, export |
 | Cache / rate limit | Redis | |
 | Password hash | `argon2-cffi` | Password admin/manager |
@@ -25,7 +25,7 @@ Kenapa tidak full Event Sourcing: event dari device sudah immutable dan disimpan
 | Package manager | `uv` | |
 | Lint / format | `ruff` | |
 | Type check | `mypy --strict` | |
-| Testing | `pytest`, `pytest-asyncio`, `httpx.AsyncClient`, `testcontainers[postgres]`, `pytest-cov` | |
+| Testing | `pytest`, `pytest-asyncio`, `httpx.AsyncClient`, `pytest-cov` | Integration test memakai database lokal `poslite_test` |
 | Observability | `structlog`, Sentry, OpenTelemetry (opsional) | |
 | Server | `uvicorn` (workers via `gunicorn -k uvicorn.workers.UvicornWorker`) | |
 
@@ -119,7 +119,7 @@ poslite-api/
 │       ├── models.py                    # read model tables
 │       └── presentation/router.py
 └── tests/
-    ├── conftest.py                      # app factory, async client, db (testcontainers), fixtures
+    ├── conftest.py                      # app factory, async client, db (TEST_DATABASE_URL → poslite_test), fixtures
     ├── fixtures/pricing-cases.json      # dibagi dengan poslite-web
     ├── unit/<module>/                   # domain & use case — tanpa DB/network
     ├── integration/<module>/            # repository, UoW, projector — Postgres asli
@@ -362,6 +362,8 @@ Projector **idempotent**: hitung ulang agregat untuk `(outlet_id, business_date)
 `business_date` dihitung dari `business_day_cutoff` + timezone outlet (`zoneinfo`), bukan tanggal kalender.
 
 ## Konfigurasi & Deployment
+
+- **Development lokal tanpa Docker**: PostgreSQL terinstall di mesin developer; `make db-setup` membuat role `poslite` + database `poslite` & `poslite_test`. Redis lokal baru dibutuhkan saat worker arq dipakai (Fase 2). Frontend + backend dijalankan bersama dengan `make dev` di repo `poslite-workspace`.
 
 - `pydantic-settings`: `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `MIN_APP_VERSION`, `CORS_ORIGINS`.
 - Container: `api` (gunicorn + uvicorn workers), `worker` (arq), `postgres`, `redis`, reverse proxy (Nginx/Caddy) + HTTPS.

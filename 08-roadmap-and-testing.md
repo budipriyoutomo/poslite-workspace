@@ -5,7 +5,7 @@
 ### Fase 0 — Foundation & Spike (± 1 minggu)
 Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 
-- [x] Repo `poslite-web` (Next.js, TS strict, ESLint boundaries, Vitest, Playwright) & `poslite-api` (FastAPI, uv, pytest, mypy --strict, ruff, import-linter, Alembic, testcontainers Postgres)
+- [x] Repo `poslite-web` (Next.js, TS strict, ESLint boundaries, Vitest, Playwright) & `poslite-api` (FastAPI, uv, pytest, mypy --strict, ruff, import-linter, Alembic, Postgres lokal via Makefile) + repo `poslite-workspace` (`make dev` menjalankan keduanya)
 - [ ] **Spike PWA**: Serwist configurator mode → app bisa dibuka **offline setelah reload** di Chrome Android & Windows. Jika gagal → fallback Vite (ADR-002)
 - [ ] **Spike printer**: test print ESC/POS dari printer yang benar-benar akan dipakai (Web Serial Bluetooth Classic di Android, dan di Windows)
 - [ ] **Spike Dexie**: 5.000 order dummy — cek performa query & ukuran storage
@@ -66,7 +66,7 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 | Level | Tool | Target |
 |---|---|---|
 | Unit | pytest | Entity & value object sales/shift, PriceCalculator, `div_round_half_up`; use case dengan `FakeUnitOfWork` (tidak commit) |
-| Integration | pytest + testcontainers Postgres | Repository, UoW (savepoint rollback membuang domain event), outbox ditulis di transaksi yang sama & relay idempotent, projector idempotent, trigger `version` naik saat insert/update/soft-delete |
+| Integration | pytest + Postgres lokal (`poslite_test`) | Repository, UoW (savepoint rollback membuang domain event), outbox ditulis di transaksi yang sama & relay idempotent, projector idempotent, trigger `version` naik saat insert/update/soft-delete |
 | E2E (HTTP) | pytest + `httpx.AsyncClient` | `/sync/push` idempotency (kirim batch sama 2x), urutan event, `flagged` (TOTAL_MISMATCH, RATES_OUTDATED), `rejected` lalu dikirim ulang → diproses, device revoked, permission void |
 | Contract | pytest + fixture JSON bersama | Payload event dari frontend tervalidasi server |
 | Tenant isolation | pytest + Postgres (role app, RLS aktif) | Untuk setiap tabel & endpoint: tenant A tidak bisa baca/ubah data tenant B; query tanpa `app.tenant_id` → 0 baris / error; pull & push hanya scope tenant device |
