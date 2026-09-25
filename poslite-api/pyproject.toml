@@ -77,8 +77,8 @@ branch = true
 show_missing = true
 skip_covered = true
 
-# Layer & module boundaries (05-backend-architecture.md). Add one `layers` contract per
-# bounded-context module and extend the `independence` contract as modules are created.
+# Layer & module boundaries (05-backend-architecture.md). When a module is added: add it to
+# `modules`, give it a layers contract, and list its internals in the api-only contract.
 [tool.importlinter]
 root_packages = ["poslite"]
 include_external_packages = true
@@ -94,7 +94,35 @@ layers = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "module layers"
+type = "layers"
+containers = ["poslite.tenancy", "poslite.identity", "poslite.organization"]
+layers = ["api", "presentation", "infrastructure", "application", "domain"]
+exhaustive = false
+
+[[tool.importlinter.contracts]]
 name = "domain is pure Python"
 type = "forbidden"
-source_modules = ["poslite.shared.domain"]
+source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain"]
 forbidden_modules = ["fastapi", "pydantic", "pydantic_settings", "sqlalchemy", "redis", "arq", "structlog", "starlette"]
+
+[[tool.importlinter.contracts]]
+name = "tenancy uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.tenancy"]
+forbidden_modules = ["poslite.identity.domain", "poslite.identity.application", "poslite.identity.infrastructure", "poslite.identity.presentation", "poslite.organization.domain", "poslite.organization.application", "poslite.organization.infrastructure", "poslite.organization.presentation"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "identity uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.identity"]
+forbidden_modules = ["poslite.tenancy.domain", "poslite.tenancy.application", "poslite.tenancy.infrastructure", "poslite.tenancy.presentation", "poslite.organization.domain", "poslite.organization.application", "poslite.organization.infrastructure", "poslite.organization.presentation"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "organization uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.organization"]
+forbidden_modules = ["poslite.tenancy.domain", "poslite.tenancy.application", "poslite.tenancy.infrastructure", "poslite.tenancy.presentation", "poslite.identity.domain", "poslite.identity.application", "poslite.identity.infrastructure", "poslite.identity.presentation"]
+allow_indirect_imports = true
