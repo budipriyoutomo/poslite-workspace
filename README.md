@@ -20,11 +20,24 @@ poslite/
 
 ## Pemakaian
 
+Hanya ada **satu Makefile** (di root). Jalankan `make help` untuk daftar lengkap.
+
 ```bash
-make setup    # sekali: deps, .env, role + database poslite/poslite_test, migrasi
-make dev      # API http://localhost:8000 + web http://localhost:3000 (Ctrl-C menghentikan keduanya)
-make check    # lint, typecheck, test di api & web
-make test     # test saja
+make setup                   # sekali: deps, .env, role + database poslite/poslite_test, migrasi
+make dev                     # API http://localhost:8000 + web http://localhost:3000 (Ctrl-C menghentikan keduanya)
+make dev-api / make dev-web  # jalankan salah satu saja
+make check                   # lint, typecheck, test di api & web (api-check / web-check untuk salah satu)
+make test                    # test saja
+make fmt                     # auto-fix lint & format Python
 ```
 
-Target per app tetap bisa dipakai langsung: `make -C poslite-api help`, `make -C poslite-web help`.
+Database (PostgreSQL lokal):
+
+```bash
+make migrate                 # alembic upgrade head
+make migration m="add orders"  # autogenerate migrasi baru (review filenya!)
+make migrate-down            # rollback satu migrasi
+make db-reset                # drop + buat ulang + migrasi (minta konfirmasi)
+```
+
+Port & kredensial bisa di-override, mis. `make dev API_PORT=8001 WEB_PORT=3001`.

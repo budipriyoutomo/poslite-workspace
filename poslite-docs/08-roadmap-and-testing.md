@@ -5,7 +5,7 @@
 ### Fase 0 — Foundation & Spike (± 1 minggu)
 Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 
-- [x] Repo `poslite-web` (Next.js, TS strict, ESLint boundaries, Vitest, Playwright) & `poslite-api` (FastAPI, uv, pytest, mypy --strict, ruff, import-linter, Alembic, Postgres lokal via Makefile) dalam satu monorepo (`make dev` di root menjalankan keduanya)
+- [x] Repo `poslite-web` (Next.js, TS strict, ESLint boundaries, Vitest, Playwright) & `poslite-api` (FastAPI, uv, pytest, mypy --strict, ruff, import-linter, Alembic, Postgres lokal) dalam satu monorepo dengan satu Makefile di root (`make dev` menjalankan keduanya)
 - [ ] **Spike PWA**: Serwist configurator mode → app bisa dibuka **offline setelah reload** di Chrome Android & Windows. Jika gagal → fallback Vite (ADR-002)
 - [ ] **Spike printer**: test print ESC/POS dari printer yang benar-benar akan dipakai (Web Serial Bluetooth Classic di Android, dan di Windows)
 - [ ] **Spike Dexie**: 5.000 order dummy — cek performa query & ukuran storage

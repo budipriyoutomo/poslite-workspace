@@ -29,9 +29,11 @@ If a task conflicts with these docs, **stop and ask**. If a decision changes, up
 Python 3.12+ · FastAPI · Pydantic v2 · SQLAlchemy 2.0 async (asyncpg) · Alembic · PostgreSQL 16 · Redis · arq · uv · ruff · mypy --strict · pytest.
 
 ```bash
-make install env db-setup migrate              # first time: deps, .env, local Postgres role + dev/test DBs
-make dev                                       # API on :8000 (local PostgreSQL, no Docker)
-make check                                     # everything below that must pass before "done"
+# `make` targets live only in the monorepo root Makefile — run them from the repo root.
+make setup                                     # first time: deps, .env, local Postgres role + dev/test DBs, migrations
+make dev-api                                   # API on :8000 (local PostgreSQL, no Docker); `make dev` = API + web
+make migrate                                   # alembic upgrade head; `make migration m="..."` to autogenerate
+make api-check                                 # everything below that must pass before "done"
 uv run arq poslite.worker.WorkerSettings       # background worker (needs local Redis — Fase 2)
 
 uv run pytest                                  # all tests

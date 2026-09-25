@@ -9,15 +9,13 @@ Backend POSLite (Python · FastAPI · PostgreSQL). Tujuan sinkronisasi untuk POS
 
 Butuh PostgreSQL lokal (mis. Homebrew) yang jalan di `localhost:5432` dengan user OS Anda sebagai superuser. Development **tidak** memakai Docker.
 
-```bash
-make install env db-setup migrate   # sekali di awal
-make dev                            # http://localhost:8000/api/v1/health
-```
-
-`make help` menampilkan semua target. Untuk menjalankan frontend + backend sekaligus, pakai `make dev` di root monorepo.
-
-## Cek sebelum commit
+Semua perintah `make` dijalankan dari **root monorepo** (satu-satunya Makefile):
 
 ```bash
-make check
+make setup      # sekali di awal: deps, .env, role + DB lokal, migrasi
+make dev-api    # hanya API: http://localhost:8000/api/v1/health  (make dev = API + web)
+make migrate    # terapkan migrasi; make migration m="..." untuk membuat baru
+make api-check  # wajib lulus sebelum commit
 ```
+
+`make help` menampilkan semua target.

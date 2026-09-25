@@ -7,17 +7,14 @@ POS PWA **offline-first** untuk restoran (Next.js + TypeScript). Kasir tetap bis
 
 ## Mulai
 
-```bash
-make install
-make dev          # http://localhost:3000
-```
-
-`make help` menampilkan semua target. Untuk menjalankan frontend + backend sekaligus, pakai `make dev` di root monorepo.
-
-## Cek sebelum commit
+Semua perintah `make` dijalankan dari **root monorepo** (satu-satunya Makefile):
 
 ```bash
-make check
+make web-install  # deps
+make dev-web      # hanya web: http://localhost:3000  (make dev = API + web)
+make web-check    # wajib lulus sebelum commit
 ```
+
+`make help` menampilkan semua target.
 
 Batas layer (`features/*/{domain,application,infrastructure,components}`) di-enforce oleh `eslint-plugin-boundaries` dan dibuktikan oleh `tests/architecture/boundaries.test.ts`.

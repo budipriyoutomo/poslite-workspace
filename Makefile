@@ -1,16 +1,34 @@
-# POSLite monorepo: runs frontend + backend together for local development (no Docker).
+# POSLite monorepo — the only Makefile. Local development without Docker (local PostgreSQL).
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
 API_DIR ?= poslite-api
 WEB_DIR ?= poslite-web
 DOCS_DIR ?= poslite-docs
-SUBMAKE := $(MAKE) --no-print-directory
 
-.PHONY: help doctor setup install dev dev-api dev-web check test
+API_PORT ?= 8000
+WEB_PORT ?= 3000
+DB_HOST ?= localhost
+DB_USER ?= poslite
+DB_PASSWORD ?= poslite
+DB_NAME ?= poslite
+DB_TEST_NAME ?= poslite_test
+# Admin connection as the current OS user (Homebrew Postgres default superuser).
+PSQL_ADMIN ?= psql -h $(DB_HOST) -d postgres -v ON_ERROR_STOP=1 -q
+
+UV := uv --directory $(API_DIR)
+PNPM := pnpm --dir $(WEB_DIR)
+
+.PHONY: help doctor setup install dev check test fmt \
+	dev-api api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
+	dev-web web-install web-test web-check web-build web-e2e
 
 help: ## Show available targets
-	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
+	@awk 'BEGIN { FS = ":.*## " } \
+		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } \
+		/^[a-z0-9-]+:.*## / { printf "  \033[36m%-13s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+##@ Workspace (API + web)
 
 doctor: ## Check tools, app folders and local PostgreSQL
 	@ok=1; \
@@ -20,34 +38,95 @@ doctor: ## Check tools, app folders and local PostgreSQL
 	for dir in $(API_DIR) $(WEB_DIR) $(DOCS_DIR); do \
 		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing"; ok=0; }; \
 	done; \
-	pg_isready -h localhost -q && echo "✓ PostgreSQL on localhost:5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
+	pg_isready -h $(DB_HOST) -q && echo "✓ PostgreSQL on $(DB_HOST):5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
 	[ $$ok = 1 ]
 
-setup: doctor ## First-time setup: deps, .env, local DBs, migrations
-	@$(SUBMAKE) -C $(API_DIR) install env db-setup migrate
-	@$(SUBMAKE) -C $(WEB_DIR) install
+setup: doctor install env db-setup migrate ## First-time setup: deps, .env, local DBs, migrations
 
-install: ## Install deps for API and web
-	@$(SUBMAKE) -C $(API_DIR) install
-	@$(SUBMAKE) -C $(WEB_DIR) install
+install: api-install web-install ## Install deps for API and web
 
 dev: ## Run API (:8000) and web (:3000) together — Ctrl-C stops both
 	@trap 'kill 0' INT TERM; \
-	$(SUBMAKE) dev-api 2>&1 | awk '{ print "\033[35m[api]\033[0m " $$0; fflush() }' & \
-	$(SUBMAKE) dev-web 2>&1 | awk '{ print "\033[36m[web]\033[0m " $$0; fflush() }' & \
+	$(MAKE) --no-print-directory dev-api 2>&1 | awk '{ print "\033[35m[api]\033[0m " $$0; fflush() }' & \
+	$(MAKE) --no-print-directory dev-web 2>&1 | awk '{ print "\033[36m[web]\033[0m " $$0; fflush() }' & \
 	wait
 
-dev-api: ## Run only the API
-	@$(SUBMAKE) -C $(API_DIR) dev
+check: api-check web-check ## Everything required before a commit (API + web)
 
-dev-web: ## Run only the web app
-	@$(SUBMAKE) -C $(WEB_DIR) dev
+test: api-test web-test ## Run tests for API and web
 
-check: ## Run pre-commit checks for API and web
-	@$(SUBMAKE) -C $(API_DIR) check
-	@$(SUBMAKE) -C $(WEB_DIR) check
+fmt: api-fmt ## Auto-fix lint and format
 
-test: ## Run tests for API and web
-	@$(SUBMAKE) -C $(API_DIR) test
-	@$(SUBMAKE) -C $(WEB_DIR) test
+##@ API (poslite-api)
 
+dev-api: ## Run only the API with auto-reload (API_PORT, default 8000)
+	PYTHONUNBUFFERED=1 $(UV) run uvicorn poslite.main:app --reload --port $(API_PORT)
+
+api-install: ## Install Python deps (uv)
+	$(UV) sync
+
+api-test: ## Run API tests
+	$(UV) run pytest
+
+api-check: ## ruff, format check, mypy, import-linter, pytest + coverage
+	$(UV) run ruff check .
+	$(UV) run ruff format --check .
+	$(UV) run mypy src
+	$(UV) run lint-imports
+	$(UV) run pytest --cov --cov-fail-under=85
+
+api-fmt: ## Auto-fix Python lint and format
+	$(UV) run ruff check . --fix
+	$(UV) run ruff format .
+
+##@ Database
+
+env: ## Create poslite-api/.env from .env.example if missing
+	@test -f $(API_DIR)/.env || (cp $(API_DIR)/.env.example $(API_DIR)/.env && echo "created $(API_DIR)/.env")
+
+db-setup: ## Create local role + dev/test databases (idempotent)
+	@$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$(DB_USER)'" | grep -q 1 \
+		|| $(PSQL_ADMIN) -c "CREATE ROLE $(DB_USER) LOGIN PASSWORD '$(DB_PASSWORD)' CREATEDB"
+	@for db in $(DB_NAME) $(DB_TEST_NAME); do \
+		$(PSQL_ADMIN) -tAc "SELECT 1 FROM pg_database WHERE datname = '$$db'" | grep -q 1 \
+			|| $(PSQL_ADMIN) -c "CREATE DATABASE $$db OWNER $(DB_USER)"; \
+	done
+	@echo "databases ready: $(DB_NAME), $(DB_TEST_NAME) (role $(DB_USER))"
+
+db-drop: ## Drop local dev/test databases (asks first)
+	@read -p "Drop $(DB_NAME) and $(DB_TEST_NAME)? [y/N] " ok && [ "$$ok" = y ]
+	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_NAME)" -c "DROP DATABASE IF EXISTS $(DB_TEST_NAME)"
+
+db-reset: db-drop db-setup migrate ## Drop, recreate and migrate local databases (asks first)
+
+migrate: ## Apply Alembic migrations (upgrade head)
+	$(UV) run alembic upgrade head
+
+migrate-down: ## Roll back the last Alembic migration
+	$(UV) run alembic downgrade -1
+
+migration: ## New autogenerated migration: make migration m="add orders" (then REVIEW the file)
+	@test -n "$(m)" || { echo 'usage: make migration m="describe change"'; exit 1; }
+	$(UV) run alembic revision --autogenerate -m "$(m)"
+
+##@ Web (poslite-web)
+
+dev-web: ## Run only the Next.js dev server (WEB_PORT, default 3000)
+	$(PNPM) dev --port $(WEB_PORT)
+
+web-install: ## Install JS deps (pnpm)
+	$(PNPM) install
+
+web-test: ## Run unit/component/architecture tests
+	$(PNPM) test
+
+web-check: ## typecheck, lint, tests
+	$(PNPM) typecheck
+	$(PNPM) lint
+	$(PNPM) test
+
+web-build: ## Production build
+	$(PNPM) build
+
+web-e2e: ## Playwright end-to-end tests (needs `pnpm --dir poslite-web exec playwright install chromium` once)
+	$(PNPM) e2e
