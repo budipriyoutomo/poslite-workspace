@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints
 
-from poslite.shared.presentation.schemas import Email, Name
+from poslite.shared.presentation.schemas import Bps, Email, Name, TimeZone
 
 
 class OutletOut(BaseModel):
@@ -35,3 +35,18 @@ class ActivationResult(BaseModel):
 
 class DeviceMe(BaseModel):
     device: DeviceOut
+
+
+class OutletSettingsIn(BaseModel):
+    name: Name
+    timezone: TimeZone
+    business_day_cutoff: Annotated[str, StringConstraints(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")]
+    tax_rate_bps: Bps
+    service_rate_bps: Bps
+    receipt_header: Annotated[str, StringConstraints(max_length=500)] = ""
+    receipt_footer: Annotated[str, StringConstraints(max_length=500)] = ""
+
+
+class OutletSettingsOut(OutletSettingsIn):
+    id: str
+    code: str

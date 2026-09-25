@@ -26,7 +26,7 @@ async def login(
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
 ) -> ApiResponse[AuthResult]:
     user = await authenticate(system, body.email, body.password)
-    async for uow in open_uow(request, user.tenant_id):
+    async with open_uow(request, user.tenant_id) as uow:
         tenant = await get_tenant(uow)
         result = await start_backoffice_session(
             uow,
@@ -46,7 +46,7 @@ async def login(
 async def logout(
     request: Request, principal: Annotated[Principal, Depends(require_ability("backoffice:*"))]
 ) -> ApiResponse[None]:
-    async for uow in open_uow(request, principal.tenant_id):
+    async with open_uow(request, principal.tenant_id) as uow:
         await revoke_token(uow, principal.token_id)
         await uow.commit()
     return ok(None)

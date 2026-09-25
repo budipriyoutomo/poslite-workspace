@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import time
 
 from sqlalchemy import func, select
 
@@ -88,3 +89,49 @@ async def get_device(uow: SqlAlchemyUnitOfWork, device_id: str) -> DeviceInfo:
         raise DomainError("DEVICE_REVOKED", "Device is revoked", kind="unauthorized")
     outlet = await get_outlet(uow, device.outlet_id)
     return DeviceInfo(id=device.id, code=device.code, name=device.name, outlet=outlet)
+
+
+@dataclass(frozen=True, slots=True)
+class OutletSettings:
+    id: str
+    code: str
+    name: str
+    timezone: str
+    business_day_cutoff: time
+    tax_rate_bps: int
+    service_rate_bps: int
+    receipt_header: str
+    receipt_footer: str
+
+
+async def update_outlet_settings(
+    uow: SqlAlchemyUnitOfWork,
+    outlet_id: str,
+    *,
+    name: str,
+    timezone: str,
+    business_day_cutoff: time,
+    tax_rate_bps: int,
+    service_rate_bps: int,
+    receipt_header: str,
+    receipt_footer: str,
+) -> OutletSettings:
+    """New rates apply to new orders; devices keep the snapshot they sold with (ADR-011)."""
+    outlet = await uow.session.get(OutletModel, outlet_id)
+    if outlet is None or outlet.deleted_at is not None:
+        raise DomainError("OUTLET_NOT_FOUND", "Outlet not found", kind="not_found")
+    outlet.name, outlet.timezone, outlet.business_day_cutoff = name, timezone, business_day_cutoff
+    outlet.tax_rate_bps, outlet.service_rate_bps = tax_rate_bps, service_rate_bps
+    outlet.receipt_header, outlet.receipt_footer = receipt_header, receipt_footer
+    await uow.session.flush()
+    return OutletSettings(
+        id=outlet.id,
+        code=outlet.code,
+        name=outlet.name,
+        timezone=outlet.timezone,
+        business_day_cutoff=outlet.business_day_cutoff,
+        tax_rate_bps=outlet.tax_rate_bps,
+        service_rate_bps=outlet.service_rate_bps,
+        receipt_header=outlet.receipt_header,
+        receipt_footer=outlet.receipt_footer,
+    )

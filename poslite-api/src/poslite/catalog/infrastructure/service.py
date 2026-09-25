@@ -1,0 +1,296 @@
+from collections.abc import Callable
+
+from sqlalchemy import delete, func, select, update
+from sqlalchemy.exc import IntegrityError
+
+from poslite.catalog.application.schemas import (
+    CategoryIn,
+    CategoryOut,
+    ModifierGroupIn,
+    ModifierGroupOut,
+    OptionOut,
+    ProductIn,
+    ProductOut,
+)
+from poslite.catalog.infrastructure.models import (
+    CategoryModel,
+    ModifierGroupModel,
+    ModifierOptionModel,
+    ProductModel,
+    ProductModifierGroupModel,
+)
+from poslite.shared.domain.errors import DomainError
+from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
+
+# Thin CRUD module (05-backend-architecture.md): no separate domain entities. Deletes are soft
+# (deleted_at) so devices receive them as `op: "delete"` on pull; RLS scopes every query.
+
+
+async def _live[M: (CategoryModel, ProductModel, ModifierGroupModel)](
+    uow: SqlAlchemyUnitOfWork, model: type[M], row_id: str, code: str
+) -> M:
+    row = await uow.session.get(model, row_id)
+    if row is None or row.deleted_at is not None:
+        raise DomainError(code, kind="not_found")
+    return row
+
+
+# ── Categories ───────────────────────────────────────────────────────────────────────────────
+
+
+def _category(c: CategoryModel) -> CategoryOut:
+    return CategoryOut(
+        id=c.id, name=c.name, sort_order=c.sort_order, color=c.color, print_role=c.print_role
+    )
+
+
+async def list_categories(uow: SqlAlchemyUnitOfWork) -> list[CategoryOut]:
+    rows = await uow.session.scalars(
+        select(CategoryModel)
+        .where(CategoryModel.deleted_at.is_(None))
+        .order_by(CategoryModel.sort_order, CategoryModel.name)
+    )
+    return [_category(c) for c in rows]
+
+
+async def create_category(
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: CategoryIn
+) -> CategoryOut:
+    row = CategoryModel(id=new_id(), tenant_id=uow.tenant_id, **body.model_dump())
+    uow.session.add(row)
+    await uow.session.flush()
+    return _category(row)
+
+
+async def update_category(
+    uow: SqlAlchemyUnitOfWork, category_id: str, body: CategoryIn
+) -> CategoryOut:
+    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND")
+    for key, value in body.model_dump().items():
+        setattr(row, key, value)
+    await uow.session.flush()
+    return _category(row)
+
+
+async def delete_category(uow: SqlAlchemyUnitOfWork, category_id: str) -> None:
+    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND")
+    row.deleted_at = func.now()
+    await uow.session.flush()
+
+
+# ── Products ─────────────────────────────────────────────────────────────────────────────────
+
+
+async def _group_ids(uow: SqlAlchemyUnitOfWork, product_ids: list[str]) -> dict[str, list[str]]:
+    rows = await uow.session.execute(
+        select(ProductModifierGroupModel.product_id, ProductModifierGroupModel.modifier_group_id)
+        .where(ProductModifierGroupModel.product_id.in_(product_ids))
+        .order_by(ProductModifierGroupModel.sort_order)
+    )
+    result: dict[str, list[str]] = {pid: [] for pid in product_ids}
+    for product_id, group_id in rows:
+        result[product_id].append(group_id)
+    return result
+
+
+def _product(p: ProductModel, group_ids: list[str]) -> ProductOut:
+    return ProductOut(
+        id=p.id,
+        category_id=p.category_id,
+        sku=p.sku,
+        name=p.name,
+        price=p.price,
+        image_url=p.image_url,
+        is_available=p.is_available,
+        modifier_group_ids=group_ids,
+    )
+
+
+async def list_products(uow: SqlAlchemyUnitOfWork) -> list[ProductOut]:
+    rows = list(
+        await uow.session.scalars(
+            select(ProductModel)
+            .where(ProductModel.deleted_at.is_(None))
+            .order_by(ProductModel.name)
+        )
+    )
+    groups = await _group_ids(uow, [p.id for p in rows])
+    return [_product(p, groups[p.id]) for p in rows]
+
+
+async def _check_references(uow: SqlAlchemyUnitOfWork, body: ProductIn) -> None:
+    await _live(uow, CategoryModel, body.category_id, "CATEGORY_NOT_FOUND")
+    for group_id in body.modifier_group_ids:
+        await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+
+
+async def _set_groups(uow: SqlAlchemyUnitOfWork, product_id: str, group_ids: list[str]) -> None:
+    await uow.session.execute(
+        delete(ProductModifierGroupModel).where(ProductModifierGroupModel.product_id == product_id)
+    )
+    uow.session.add_all(
+        ProductModifierGroupModel(
+            tenant_id=uow.tenant_id, product_id=product_id, modifier_group_id=g, sort_order=i
+        )
+        for i, g in enumerate(dict.fromkeys(group_ids))
+    )
+
+
+async def _flush_unique_sku(uow: SqlAlchemyUnitOfWork) -> None:
+    try:
+        async with uow.session.begin_nested():
+            await uow.session.flush()
+    except IntegrityError as err:
+        raise DomainError(
+            "SKU_TAKEN", "SKU is already used by another product", kind="conflict"
+        ) from err
+
+
+async def create_product(
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ProductIn
+) -> ProductOut:
+    await _check_references(uow, body)
+    row = ProductModel(
+        id=new_id(), tenant_id=uow.tenant_id, **body.model_dump(exclude={"modifier_group_ids"})
+    )
+    uow.session.add(row)
+    await _flush_unique_sku(uow)
+    await _set_groups(uow, row.id, body.modifier_group_ids)
+    await uow.session.flush()
+    return _product(row, list(dict.fromkeys(body.modifier_group_ids)))
+
+
+async def update_product(uow: SqlAlchemyUnitOfWork, product_id: str, body: ProductIn) -> ProductOut:
+    """Full replace. The UPDATE re-versions the product, which carries its modifier group links."""
+    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
+    await _check_references(uow, body)
+    for key, value in body.model_dump(exclude={"modifier_group_ids"}).items():
+        setattr(row, key, value)
+    row.updated_at = func.now()
+    await _flush_unique_sku(uow)
+    await _set_groups(uow, row.id, body.modifier_group_ids)
+    await uow.session.flush()
+    return _product(row, list(dict.fromkeys(body.modifier_group_ids)))
+
+
+async def delete_product(uow: SqlAlchemyUnitOfWork, product_id: str) -> None:
+    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
+    row.deleted_at = func.now()
+    await uow.session.flush()
+
+
+# ── Modifier groups ──────────────────────────────────────────────────────────────────────────
+
+
+async def _options(uow: SqlAlchemyUnitOfWork, group_ids: list[str]) -> dict[str, list[OptionOut]]:
+    rows = await uow.session.scalars(
+        select(ModifierOptionModel)
+        .where(
+            ModifierOptionModel.modifier_group_id.in_(group_ids),
+            ModifierOptionModel.deleted_at.is_(None),
+        )
+        .order_by(ModifierOptionModel.sort_order)
+    )
+    result: dict[str, list[OptionOut]] = {g: [] for g in group_ids}
+    for o in rows:
+        result[o.modifier_group_id].append(OptionOut(id=o.id, name=o.name, price=o.price))
+    return result
+
+
+def _group(g: ModifierGroupModel, options: list[OptionOut]) -> ModifierGroupOut:
+    return ModifierGroupOut(
+        id=g.id, name=g.name, min_select=g.min_select, max_select=g.max_select, options=options
+    )
+
+
+def _check_range(body: ModifierGroupIn) -> None:
+    if body.min_select > body.max_select:
+        raise DomainError("INVALID_SELECTION_RANGE", "min_select must not exceed max_select")
+
+
+async def list_modifier_groups(uow: SqlAlchemyUnitOfWork) -> list[ModifierGroupOut]:
+    rows = list(
+        await uow.session.scalars(
+            select(ModifierGroupModel)
+            .where(ModifierGroupModel.deleted_at.is_(None))
+            .order_by(ModifierGroupModel.name)
+        )
+    )
+    options = await _options(uow, [g.id for g in rows])
+    return [_group(g, options[g.id]) for g in rows]
+
+
+async def _save_options(
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], group_id: str, body: ModifierGroupIn
+) -> None:
+    """Upsert the given options (by id) and soft-delete the ones that were left out."""
+    kept: list[str] = []
+    for i, option in enumerate(body.options):
+        if option.id:
+            await uow.session.execute(
+                update(ModifierOptionModel)
+                .where(
+                    ModifierOptionModel.id == option.id,
+                    ModifierOptionModel.modifier_group_id == group_id,
+                )
+                .values(name=option.name, price=option.price, sort_order=i, updated_at=func.now())
+            )
+            kept.append(option.id)
+        else:
+            option_id = new_id()
+            uow.session.add(
+                ModifierOptionModel(
+                    id=option_id,
+                    tenant_id=uow.tenant_id,
+                    modifier_group_id=group_id,
+                    name=option.name,
+                    price=option.price,
+                    sort_order=i,
+                )
+            )
+            kept.append(option_id)
+    await uow.session.flush()
+    await uow.session.execute(
+        update(ModifierOptionModel)
+        .where(
+            ModifierOptionModel.modifier_group_id == group_id,
+            ModifierOptionModel.id.not_in(kept),
+            ModifierOptionModel.deleted_at.is_(None),
+        )
+        .values(deleted_at=func.now())
+    )
+
+
+async def create_modifier_group(
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ModifierGroupIn
+) -> ModifierGroupOut:
+    _check_range(body)
+    row = ModifierGroupModel(
+        id=new_id(),
+        tenant_id=uow.tenant_id,
+        name=body.name,
+        min_select=body.min_select,
+        max_select=body.max_select,
+    )
+    uow.session.add(row)
+    await uow.session.flush()
+    await _save_options(uow, new_id, row.id, body)
+    return _group(row, (await _options(uow, [row.id]))[row.id])
+
+
+async def update_modifier_group(
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], group_id: str, body: ModifierGroupIn
+) -> ModifierGroupOut:
+    _check_range(body)
+    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+    row.name, row.min_select, row.max_select = body.name, body.min_select, body.max_select
+    row.updated_at = func.now()
+    await uow.session.flush()
+    await _save_options(uow, new_id, row.id, body)
+    return _group(row, (await _options(uow, [row.id]))[row.id])
+
+
+async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str) -> None:
+    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+    row.deleted_at = func.now()
+    await uow.session.flush()

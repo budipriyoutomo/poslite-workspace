@@ -1,8 +1,10 @@
+import asyncio
 from dataclasses import dataclass
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from poslite.identity.domain.pin import PIN_ITERATIONS, hash_pin, new_pin_salt
 from poslite.identity.domain.roles import RANK, ROLE_BY_ID, ROLE_IDS, Role
 from poslite.identity.infrastructure.models import OutletUserModel, UserModel
 from poslite.identity.infrastructure.passwords import verify_password
@@ -92,3 +94,23 @@ async def role_at(uow: SqlAlchemyUnitOfWork, *, user_id: str, outlet_id: str) ->
     if "owner" in roles.values():
         return "owner"
     return roles.get(outlet_id)
+
+
+async def list_users(uow: SqlAlchemyUnitOfWork) -> list[tuple[UserModel, dict[str, Role]]]:
+    users = list(
+        await uow.session.scalars(
+            select(UserModel).where(UserModel.deleted_at.is_(None)).order_by(UserModel.name)
+        )
+    )
+    return [(u, await roles_of(uow, u.id)) for u in users]
+
+
+async def set_pin(uow: SqlAlchemyUnitOfWork, *, user_id: str, pin: str) -> None:
+    """Server-side PIN hash (fresh salt); devices get it through sync pull and verify offline."""
+    user = await uow.session.get(UserModel, user_id)
+    if user is None or user.deleted_at is not None:
+        raise DomainError("USER_NOT_FOUND", kind="not_found")
+    salt = new_pin_salt()
+    user.pin_salt, user.pin_iterations = salt, PIN_ITERATIONS
+    user.pin_hash = await asyncio.to_thread(hash_pin, pin, salt, PIN_ITERATIONS)
+    await uow.session.flush()

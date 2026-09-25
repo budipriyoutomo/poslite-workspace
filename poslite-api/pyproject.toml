@@ -77,8 +77,8 @@ branch = true
 show_missing = true
 skip_covered = true
 
-# Layer & module boundaries (05-backend-architecture.md). When a module is added: add it to
-# `modules`, give it a layers contract, and list its internals in the api-only contract.
+# Layer & module boundaries (05-backend-architecture.md), generated from the module list:
+# every module has a layers contract, a pure domain, and may use other modules only via api.py.
 [tool.importlinter]
 root_packages = ["poslite"]
 include_external_packages = true
@@ -96,33 +96,132 @@ layers = [
 [[tool.importlinter.contracts]]
 name = "module layers"
 type = "layers"
-containers = ["poslite.tenancy", "poslite.identity", "poslite.organization"]
+containers = ["poslite.tenancy", "poslite.identity", "poslite.organization", "poslite.catalog", "poslite.payment"]
 layers = ["api", "presentation", "infrastructure", "application", "domain"]
 exhaustive = false
 
 [[tool.importlinter.contracts]]
 name = "domain is pure Python"
 type = "forbidden"
-source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain"]
+source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain", "poslite.catalog.domain", "poslite.payment.domain"]
 forbidden_modules = ["fastapi", "pydantic", "pydantic_settings", "sqlalchemy", "redis", "arq", "structlog", "starlette"]
 
 [[tool.importlinter.contracts]]
 name = "tenancy uses other modules only through their api.py"
 type = "forbidden"
 source_modules = ["poslite.tenancy"]
-forbidden_modules = ["poslite.identity.domain", "poslite.identity.application", "poslite.identity.infrastructure", "poslite.identity.presentation", "poslite.organization.domain", "poslite.organization.application", "poslite.organization.infrastructure", "poslite.organization.presentation"]
+forbidden_modules = [
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
+]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "identity uses other modules only through their api.py"
 type = "forbidden"
 source_modules = ["poslite.identity"]
-forbidden_modules = ["poslite.tenancy.domain", "poslite.tenancy.application", "poslite.tenancy.infrastructure", "poslite.tenancy.presentation", "poslite.organization.domain", "poslite.organization.application", "poslite.organization.infrastructure", "poslite.organization.presentation"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
+]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "organization uses other modules only through their api.py"
 type = "forbidden"
 source_modules = ["poslite.organization"]
-forbidden_modules = ["poslite.tenancy.domain", "poslite.tenancy.application", "poslite.tenancy.infrastructure", "poslite.tenancy.presentation", "poslite.identity.domain", "poslite.identity.application", "poslite.identity.infrastructure", "poslite.identity.presentation"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "catalog uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.catalog"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "payment uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.payment"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+]
 allow_indirect_imports = true

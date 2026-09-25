@@ -5,9 +5,12 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from poslite.catalog.presentation.router import router as catalog_router
 from poslite.identity.api import SqlTokenResolver
 from poslite.identity.presentation.router import router as identity_router
+from poslite.identity.presentation.users_router import router as users_router
 from poslite.organization.presentation.router import router as organization_router
+from poslite.payment.presentation.router import router as payment_router
 from poslite.shared.application.clock import SystemClock
 from poslite.shared.config import Settings, get_settings
 from poslite.shared.domain.ids import new_ulid
@@ -47,7 +50,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def health() -> dict[str, Any]:
         return {"data": {"status": "ok"}, "message": "OK", "meta": {}}
 
-    for module_router in (tenancy_router, identity_router, organization_router):
+    for module_router in (
+        tenancy_router,
+        identity_router,
+        users_router,
+        organization_router,
+        catalog_router,
+        payment_router,
+    ):
         api.include_router(module_router)
     app.include_router(api)
     return app

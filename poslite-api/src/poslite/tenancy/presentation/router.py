@@ -31,7 +31,7 @@ async def signup(
         raise DomainError("EMAIL_TAKEN", "Email is already registered", kind="conflict")
 
     owner_id = new_id()
-    async for uow in open_uow(request, new_id()):
+    async with open_uow(request, new_id()) as uow:
         tenant = await create_tenant(
             uow, slug=body.slug, name=body.business_name, timezone=body.outlet.timezone
         )

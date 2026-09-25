@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
@@ -11,6 +12,7 @@ from poslite.organization.infrastructure.service import (
     get_outlet,
     list_outlets,
     register_device,
+    update_outlet_settings,
 )
 from poslite.organization.presentation.schemas import (
     ActivateRequest,
@@ -18,6 +20,8 @@ from poslite.organization.presentation.schemas import (
     DeviceMe,
     DeviceOut,
     OutletOut,
+    OutletSettingsIn,
+    OutletSettingsOut,
 )
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
@@ -41,7 +45,7 @@ def _device_out(d: DeviceInfo) -> DeviceOut:
 async def outlets(
     request: Request, principal: Annotated[Principal, Depends(require_ability("backoffice:read"))]
 ) -> ApiResponse[list[OutletOut]]:
-    async for uow in open_uow(request, principal.tenant_id):
+    async with open_uow(request, principal.tenant_id) as uow:
         rows = await list_outlets(uow)
     return ok([OutletOut(id=o.id, code=o.code, name=o.name) for o in rows])
 
@@ -56,7 +60,7 @@ async def activate(
 ) -> ApiResponse[ActivationResult]:
     """A manager signs a tablet in to an outlet once; the device then works with its own token."""
     manager = await identity.authenticate(system, body.email, body.password)
-    async for uow in open_uow(request, manager.tenant_id):
+    async with open_uow(request, manager.tenant_id) as uow:
         outlet = await get_outlet(uow, body.outlet_id)
         if not identity.can_activate_devices(
             await identity.role_at(uow, user_id=manager.user_id, outlet_id=outlet.id)
@@ -90,6 +94,42 @@ async def activate(
 async def me(
     request: Request, principal: Annotated[Principal, Depends(require_ability("device:read"))]
 ) -> ApiResponse[DeviceMe]:
-    async for uow in open_uow(request, principal.tenant_id):
+    async with open_uow(request, principal.tenant_id) as uow:
         device = await get_device(uow, principal.owner_id)
     return ok(DeviceMe(device=_device_out(device)))
+
+
+@router.put("/outlets/{outlet_id}")
+async def update_settings(
+    outlet_id: str,
+    body: OutletSettingsIn,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+) -> ApiResponse[OutletSettingsOut]:
+    hour, minute = map(int, body.business_day_cutoff.split(":"))
+    async with open_uow(request, principal.tenant_id) as uow:
+        saved = await update_outlet_settings(
+            uow,
+            outlet_id,
+            name=body.name,
+            timezone=body.timezone,
+            business_day_cutoff=time(hour, minute),
+            tax_rate_bps=body.tax_rate_bps,
+            service_rate_bps=body.service_rate_bps,
+            receipt_header=body.receipt_header,
+            receipt_footer=body.receipt_footer,
+        )
+        await uow.commit()
+    return ok(
+        OutletSettingsOut(
+            id=saved.id,
+            code=saved.code,
+            name=saved.name,
+            timezone=saved.timezone,
+            business_day_cutoff=saved.business_day_cutoff.strftime("%H:%M"),
+            tax_rate_bps=saved.tax_rate_bps,
+            service_rate_bps=saved.service_rate_bps,
+            receipt_header=saved.receipt_header,
+            receipt_footer=saved.receipt_footer,
+        )
+    )
