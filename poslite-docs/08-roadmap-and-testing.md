@@ -6,9 +6,10 @@
 Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 
 - [x] Repo `poslite-web` (Next.js, TS strict, ESLint boundaries, Vitest, Playwright) & `poslite-api` (FastAPI, uv, pytest, mypy --strict, ruff, import-linter, Alembic, Postgres lokal) dalam satu monorepo dengan satu Makefile di root (`make dev` menjalankan keduanya)
-- [ ] **Spike PWA**: Serwist configurator mode → app bisa dibuka **offline setelah reload** di Chrome Android & Windows. Jika gagal → fallback Vite (ADR-002)
-- [ ] **Spike printer**: test print ESC/POS dari printer yang benar-benar akan dipakai (Web Serial Bluetooth Classic di Android, dan di Windows)
-- [ ] **Spike Dexie**: 5.000 order dummy — cek performa query & ukuran storage
+- [x] **Spike PWA**: Serwist configurator mode → app bisa dibuka **offline setelah reload** — lulus otomatis (e2e `tests/e2e/offline.spec.ts`, Chrome desktop & emulasi tablet). Tetap di Next.js; fallback Vite tidak diperlukan (ADR-002). [Hasil](#hasil-spike-fase-0)
+  - [ ] Uji manual di perangkat asli: Chrome Android (install ke home screen, mode pesawat, buka ulang) & Chrome/Edge Windows
+- [ ] **Spike printer**: test print ESC/POS dari printer yang benar-benar akan dipakai (Web Serial Bluetooth Classic di Android, dan di Windows) — *ditunda sampai printer tersedia*
+- [x] **Spike Dexie**: 5.000 order dummy — cek performa query & ukuran storage (`make web-spike-dexie`). [Hasil](#hasil-spike-fase-0)
 - [x] CI: lint + typecheck + unit test API & web (workflow terpisah per folder)
 
 ### Fase 1 — Core Selling Offline (MVP-1)
@@ -48,6 +49,37 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [ ] Integrasi QRIS dinamis (payment gateway), e-wallet callback
 - [ ] Integrasi inventory / ERP / RestaurantOps (konsumsi domain event dari `outbox_messages`) — inventory **tidak** dibangun di POSLite
 - [ ] Wrapper native (Capacitor) bila perlu iOS + Bluetooth
+
+## Hasil Spike Fase 0
+
+Diukur 2026-09-25 di Chrome 154 (macOS, Intel). Angka tablet = CPU di-throttle 4× via DevTools sebagai pendekatan tablet Android kelas menengah; **bukan** pengganti uji di perangkat asli (I/O flash tablet lebih lambat).
+
+### PWA (Serwist configurator mode)
+
+- `pnpm build` = `next build && serwist build serwist.config.mjs` → `public/sw.js` mem-precache route hasil prerender (`/`) + semua chunk JS/CSS, font, ikon (15 URL, ±633 kB).
+- E2E: kunjungan pertama online → SW mengontrol halaman → `context.setOffline(true)` → reload → app shell tampil. Manifest `standalone`/`landscape` dengan ikon 192/512.
+- `skipWaiting: false`: versi SW baru menunggu; banner "Versi baru tersedia" + aktivasi hanya saat cart kosong dikerjakan di Fase 1. `reloadOnOnline` dimatikan agar app tidak reload di tengah transaksi.
+- Catatan: Playwright 1.63 tidak menyediakan Chromium untuk macOS 13 → jalankan lokal dengan `PW_CHANNEL=chrome` (Chrome terpasang). CI tetap memakai Chromium bawaan.
+
+### Dexie (5.000 order, ±4 baris/order, 200 order/hari, 200 pending + outbox)
+
+| Query | Baris | 1× p50 / p95 (ms) | 4× p50 / p95 (ms) |
+|---|---|---|---|
+| Riwayat: 50 order terbaru (`orderBy('createdAt').reverse()`) | 50 | 1,3 / 2,3 | 3,1 / 4,8 |
+| Cari order via `receiptNo` | 1 | 0,5 / 0,7 | 1,0 / 2,2 |
+| Detail order + payments | 2 | 0,8 / 1,7 | 1,8 / 6,5 |
+| Laporan shift (index `shiftId`) + sum | 100 | 2,2 / 4,6 | 5,6 / 6,8 |
+| Laporan hari ini (range `createdAt`) | 200 | 3,7 / 7,2 | 10,2 / 19,3 |
+| Badge sync: count `syncStatus = pending` | 200 | 0,3 / 0,3 | 1,0 / 1,8 |
+| Batch push outbox (50, urut `seq`) | 50 | 2,8 / 3,4 | 8,5 / 15,8 |
+| **Tulis: place order** (order + payment + outbox + counter, 1 transaksi) | 1 | 1,5 / 2,3 | 6,4 / 9,8 |
+| Worst case: scan semua order + agregasi | 5.000 | 128 / 138 | 447 / 651 |
+
+- Seed 5.000 order dalam satu transaksi: 1,0 s (1×) / 1,8 s (4×) — relevan untuk initial sync/restore.
+- Storage: ±8,9 MB untuk 5.000 order (±1,8 KB/order; JSON mentah 5,2 MB). Dengan prune 30 hari @200 order/hari (±6.000 order) → ±11 MB, jauh di bawah kuota Chrome.
+- **Kesimpulan**: skema v1 di [03](./03-offline-sync.md) layak. Semua query interaktif < 20 ms p95 bahkan di 4×, dan menulis satu transaksi penjualan < 10 ms.
+- **Aturan yang dihasilkan**: layar & laporan harus memakai index (`shiftId`, range `createdAt`, `syncStatus`), jangan scan seluruh `orders` (±0,5 detik di 4×, tumbuh linear). Laporan lintas hari yang besar lebih baik memakai ringkasan per shift yang disimpan saat tutup shift.
+- Batch outbox saat ini memindai urut `seq` lalu filter status — cepat selama outbox kecil (normal: hanya event yang belum terkirim). Bila outbox bisa besar (offline berhari-hari), pertimbangkan compound index `[status+seq]` saat membuat skema v1 di Fase 1.
 
 ## Strategi Testing
 

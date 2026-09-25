@@ -21,12 +21,12 @@ PNPM := pnpm --dir $(WEB_DIR)
 
 .PHONY: help doctor setup install dev check test fmt \
 	dev-api api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
-	dev-web web-install web-test web-check web-build web-e2e
+	dev-web web-install web-test web-check web-build web-e2e web-spike-dexie
 
 help: ## Show available targets
 	@awk 'BEGIN { FS = ":.*## " } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } \
-		/^[a-z0-9-]+:.*## / { printf "  \033[36m%-13s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+		/^[a-z0-9-]+:.*## / { printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 ##@ Workspace (API + web)
 
@@ -130,3 +130,6 @@ web-build: ## Production build
 
 web-e2e: ## Playwright e2e (once: playwright install chromium; macOS 13: make web-e2e PW_CHANNEL=chrome)
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) e2e
+
+web-spike-dexie: ## Fase 0 spike: Dexie with 5,000 orders in real Chrome at 1x and 4x CPU
+	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config tests/spikes/playwright.config.ts

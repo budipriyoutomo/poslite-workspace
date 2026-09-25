@@ -77,7 +77,7 @@ flowchart LR
 
 - **Keputusan**: Semua route POS adalah Client Component tanpa data server-side (`'use client'` di level feature), di-prerender statis saat build. Tidak ada Server Actions / RSC data fetching di aplikasi POS. Tidak pakai dynamic segment (`/orders/[id]`) → pakai state/query param agar semua halaman bisa di-precache.
 - **Kenapa**: Service worker hanya bisa menyajikan halaman yang sudah di-precache. SSR/RSC fetch butuh server = gagal saat offline.
-- **Catatan Serwist**: `output: "export"` belum didukung resmi oleh `@serwist/next` (lihat issue serwist#230). Gunakan **configurator mode** (`serwist build` dijalankan setelah `next build`) dan deploy sebagai Node/standalone. Verifikasi di spike Fase 0.
+- **Catatan Serwist**: `output: "export"` belum didukung resmi oleh `@serwist/next` (lihat issue serwist#230). Gunakan **configurator mode** (`serwist build` dijalankan setelah `next build`) dan deploy sebagai Node/standalone. Verifikasi di spike Fase 0 → **terverifikasi 2026-09-25** (app shell terbuka offline setelah reload; lihat [hasil spike](./08-roadmap-and-testing.md#hasil-spike-fase-0)). Fallback Vite tidak diperlukan.
 - **Alternatif**: Vite + React + `vite-plugin-pwa` — lebih sederhana untuk SPA offline murni. Jadi fallback bila spike Serwist bermasalah; kode `features/*` tetap portable karena tidak bergantung API khusus Next.
 
 ### ADR-003 — Client-generated ULID + immutable transactions

@@ -34,10 +34,10 @@ pnpm test                # Vitest (unit + component + integration), run once
 pnpm test:watch          # Vitest watch mode — use during TDD
 pnpm test -- <path>      # run a single test file
 pnpm test:coverage
-pnpm e2e                 # Playwright
+pnpm e2e                 # Playwright (PW_CHANNEL=chrome to use installed Chrome, e.g. macOS 13)
 pnpm typecheck           # tsc --noEmit
 pnpm lint                # ESLint (incl. layer boundaries)
-pnpm build               # next build (+ serwist build after the Fase 0 PWA spike)
+pnpm build               # next build && serwist build (writes public/sw.js — never commit it)
 pnpm api:types           # regenerate src/shared/api/schema.d.ts from ../poslite-api/openapi.json
 ```
 
