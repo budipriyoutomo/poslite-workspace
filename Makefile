@@ -128,5 +128,5 @@ web-check: ## typecheck, lint, tests
 web-build: ## Production build
 	$(PNPM) build
 
-web-e2e: ## Playwright end-to-end tests (needs `pnpm --dir poslite-web exec playwright install chromium` once)
-	$(PNPM) e2e
+web-e2e: ## Playwright e2e (once: playwright install chromium; macOS 13: make web-e2e PW_CHANNEL=chrome)
+	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) e2e

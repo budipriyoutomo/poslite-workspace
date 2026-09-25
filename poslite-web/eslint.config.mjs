@@ -59,7 +59,7 @@ const eslintConfig = defineConfig([
       "no-restricted-globals": ["error", { name: "alert", message: "Use a sonner toast." }, { name: "confirm", message: "Use a shadcn Dialog." }],
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**", "next-env.d.ts", "src/shared/api/schema.d.ts"]),
+  globalIgnores(["public/sw.js", ".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**", "next-env.d.ts", "src/shared/api/schema.d.ts"]),
 ]);
 
 export default eslintConfig;

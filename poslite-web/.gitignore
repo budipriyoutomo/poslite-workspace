@@ -44,3 +44,7 @@ next-env.d.ts
 /coverage
 /playwright-report
 /test-results
+
+# serwist build output
+/public/sw.js
+/public/sw.js.map
