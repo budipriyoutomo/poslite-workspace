@@ -9,14 +9,16 @@ POS PWA **offline-first** untuk restoran (Next.js + TypeScript). Kasir tetap bis
 
 ```bash
 git submodule update --init
-pnpm install
-pnpm dev
+make install
+make dev          # http://localhost:3000
 ```
+
+`make help` menampilkan semua target. Untuk menjalankan frontend + backend sekaligus, pakai `make dev` di repo `poslite-workspace`.
 
 ## Cek sebelum commit
 
 ```bash
-pnpm typecheck && pnpm lint && pnpm test
+make check
 ```
 
 Batas layer (`features/*/{domain,application,infrastructure,components}`) di-enforce oleh `eslint-plugin-boundaries` dan dibuktikan oleh `tests/architecture/boundaries.test.ts`.
