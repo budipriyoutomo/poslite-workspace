@@ -1,4 +1,6 @@
-import { divRoundHalfUp } from "@/shared/money";
+import { discountAmount, divRoundHalfUp } from "@/shared/money";
+
+export { discountAmount };
 
 export type Discount =
   | { type: "percentage"; value: number } // integer 0..100
@@ -37,18 +39,6 @@ export function lineTotal(line: PricedLine): number {
     throw new RangeError(`quantity must be a positive integer, got ${line.quantity}`);
   }
   return (line.unitPrice + line.modifiersTotal) * line.quantity;
-}
-
-export function discountAmount(base: number, discount: Discount | null | undefined): number {
-  if (!discount) return 0;
-  if (discount.type === "percentage") {
-    if (!Number.isInteger(discount.value) || discount.value < 0 || discount.value > 100) {
-      throw new RangeError(`percentage discount must be an integer 0..100, got ${discount.value}`);
-    }
-    return divRoundHalfUp(base * discount.value, 100);
-  }
-  assertRupiah(discount.value, "fixed discount");
-  return Math.min(discount.value, base);
 }
 
 /**

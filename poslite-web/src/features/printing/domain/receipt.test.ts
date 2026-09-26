@@ -80,3 +80,45 @@ describe("receipt (58 mm, 32 columns)", () => {
     expect(renderText(buildReceipt({ ...example, order: { ...example.order, status: "voided" } }), 32)).toContain("           ** VOID **");
   });
 });
+
+describe("receipt — dine-in and line discounts (Fase 4)", () => {
+  const dineIn: ReceiptInput = {
+    ...example,
+    order: {
+      ...example.order,
+      tableLabel: "A1",
+      lines: [
+        { productName: "Kopi Susu", quantity: 3, unitPrice: 18_000, notes: "", modifiers: [], discount: { type: "fixed", value: 18_000 }, promotion: { id: "Q1", name: "Beli 2 gratis 1" } },
+        { productName: "Es Teh Manis", quantity: 1, unitPrice: 5_000, notes: "", modifiers: [], discount: { type: "percentage", value: 10 }, promotion: null },
+      ],
+      discount: null,
+      rates: { serviceBps: 0, taxBps: 0 },
+      subtotal: 59_000,
+      discountAmount: 18_500,
+      serviceCharge: 0,
+      tax: 0,
+      total: 40_500,
+      changeAmount: 0,
+    },
+    payments: [{ methodName: "QRIS", amount: 40_500 }],
+  };
+
+  it("shows the table and each line's promotion or discount under it", () => {
+    const text = renderText(buildReceipt(dineIn), 32);
+
+    expect(text).toContain("Meja : A1");
+    expect(text.slice(text.indexOf("3x Kopi Susu              54.000"), text.indexOf("Subtotal                  59.000"))).toEqual([
+      "3x Kopi Susu              54.000",
+      "   Beli 2 gratis 1       -18.000",
+      "1x Es Teh Manis            5.000",
+      "   Diskon 10%               -500",
+      "--------------------------------",
+    ]);
+  });
+
+  it("does not repeat line discounts in the order discount row", () => {
+    const text = renderText(buildReceipt(dineIn), 32);
+
+    expect(text.filter((l) => l.startsWith("Diskon"))).toEqual([]);
+  });
+});

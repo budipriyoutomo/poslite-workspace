@@ -1,3 +1,5 @@
+import { discountAmount } from "@/shared/money";
+
 import type { ReceiptDocument } from "./receipt-document";
 
 export interface ReceiptInput {
@@ -9,7 +11,16 @@ export interface ReceiptInput {
     cashierName: string;
     createdAt: string;
     status: "paid" | "voided";
-    lines: { productName: string; quantity: number; unitPrice: number; notes: string; modifiers: { name: string; price: number }[] }[];
+    tableLabel?: string | null;
+    lines: {
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      notes: string;
+      modifiers: { name: string; price: number }[];
+      discount?: { type: "percentage" | "fixed"; value: number } | null;
+      promotion?: { id: string; name: string } | null;
+    }[];
     discount: { type: "percentage" | "fixed"; value: number } | null;
     rates: { serviceBps: number; taxBps: number };
     subtotal: number;
@@ -48,18 +59,27 @@ export function buildReceipt({ header, footer, timezone, order, payments }: Rece
   doc.push(
     { kind: "text", text: `No   : ${order.receiptNo}` },
     { kind: "row", left: `Kasir: ${order.cashierName}`, right: dateTime(order.createdAt, timezone) },
-    { kind: "rule" },
   );
+  if (order.tableLabel) doc.push({ kind: "text", text: `Meja : ${order.tableLabel}` });
+  doc.push({ kind: "rule" });
+  let itemDiscounts = 0;
   for (const line of order.lines) {
     const unit = line.unitPrice + line.modifiers.reduce((s, m) => s + m.price, 0);
     doc.push({ kind: "row", left: `${line.quantity}x ${line.productName}`, right: amount(unit * line.quantity) });
     for (const m of line.modifiers) doc.push({ kind: "text", text: `   + ${m.name}` });
     if (line.notes) doc.push({ kind: "text", text: `   * ${line.notes}` });
+    const off = discountAmount(unit * line.quantity, line.discount);
+    if (off > 0) {
+      const label = line.promotion?.name ?? (line.discount?.type === "percentage" ? `Diskon ${line.discount.value}%` : "Diskon");
+      doc.push({ kind: "row", left: `   ${label}`, right: amount(-off) });
+      itemDiscounts += off;
+    }
   }
   doc.push({ kind: "rule" }, { kind: "row", left: "Subtotal", right: amount(order.subtotal) });
-  if (order.discountAmount > 0) {
+  const orderDiscount = order.discountAmount - itemDiscounts; // line discounts are shown under their lines
+  if (orderDiscount > 0) {
     const label = order.discount?.type === "percentage" ? `Diskon ${order.discount.value}%` : "Diskon";
-    doc.push({ kind: "row", left: label, right: amount(-order.discountAmount) });
+    doc.push({ kind: "row", left: label, right: amount(-orderDiscount) });
   }
   if (order.rates.serviceBps > 0) doc.push({ kind: "row", left: `Service ${percent(order.rates.serviceBps)}`, right: amount(order.serviceCharge) });
   if (order.rates.taxBps > 0) doc.push({ kind: "row", left: `PB1 ${percent(order.rates.taxBps)}`, right: amount(order.tax) });
