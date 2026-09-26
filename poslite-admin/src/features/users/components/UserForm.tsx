@@ -78,7 +78,7 @@ export function UserForm({ user, onDone }: { user?: User; onDone: () => void }) 
           <FormField id="user-email" label="Email">
             <Input id="user-email" type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} />
           </FormField>
-          <FormField id="user-password" label="Kata sandi">
+          <FormField id="user-password" label="Password">
             <Input id="user-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </FormField>
         </div>

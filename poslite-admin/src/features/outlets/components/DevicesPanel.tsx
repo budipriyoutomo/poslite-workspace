@@ -28,7 +28,7 @@ export function DevicesPanel({ outletId }: { outletId: string }) {
   return (
     <section className="space-y-2 rounded-lg border bg-white p-4">
       <h2 className="font-semibold">Perangkat kasir</h2>
-      <p className="text-xs text-muted-foreground">Tablet diaktifkan dari aplikasi kasir dengan email & kata sandi manajer.</p>
+      <p className="text-xs text-muted-foreground">Tablet diaktifkan dari aplikasi kasir dengan email & password manajer.</p>
       {devices.data?.length === 0 && <p className="text-sm text-muted-foreground">Belum ada perangkat.</p>}
       {devices.data && devices.data.length > 0 && (
         <table aria-label="Perangkat" className="w-full text-sm">

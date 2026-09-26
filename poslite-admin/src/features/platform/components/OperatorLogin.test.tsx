@@ -14,7 +14,7 @@ async function signIn(password: string) {
     return { status: 401, body: { message: "Email or password is wrong", code: "INVALID_CREDENTIALS" } };
   });
   await userEvent.type(screen.getByLabelText("Email"), "ops@poslite.id");
-  await userEvent.type(screen.getByLabelText("Kata sandi"), password);
+  await userEvent.type(screen.getByLabelText("Password"), password);
   await userEvent.click(screen.getByRole("button", { name: "Masuk" }));
   return result;
 }
@@ -30,7 +30,7 @@ describe("OperatorLogin", () => {
   it("shows wrong credentials without signing in", async () => {
     await signIn("salah");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Email atau kata sandi salah");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Email atau password salah");
     expect(useOperatorStore.getState().session).toBeNull();
   });
 });

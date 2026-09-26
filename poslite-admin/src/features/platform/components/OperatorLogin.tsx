@@ -11,7 +11,7 @@ import { Input } from "@/shared/ui/input";
 import { useOperatorLogin } from "../application/use-platform";
 
 const message = (error: unknown) =>
-  error instanceof ApiError ? (error.code === "INVALID_CREDENTIALS" ? "Email atau kata sandi salah" : error.message) : "Tidak dapat terhubung ke server";
+  error instanceof ApiError ? (error.code === "INVALID_CREDENTIALS" ? "Email atau password salah" : error.message) : "Tidak dapat terhubung ke server";
 
 export function OperatorLogin() {
   const login = useOperatorLogin();
@@ -34,7 +34,7 @@ export function OperatorLogin() {
         <FormField id="op-email" label="Email">
           <Input id="op-email" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </FormField>
-        <FormField id="op-password" label="Kata sandi">
+        <FormField id="op-password" label="Password">
           <Input id="op-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </FormField>
         {login.isError && (

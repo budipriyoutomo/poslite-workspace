@@ -1,0 +1,37 @@
+import { defineConfig, devices } from "@playwright/test";
+
+// Back-office against the real API: a fresh poslite_e2e_admin database (created by `make admin-e2e`),
+// the API on :8210 and a production build of the admin on :3310 (dev uses 8000/3001).
+const DB = "localhost:5432/poslite_e2e_admin";
+export const API_ORIGIN = "http://localhost:8210";
+const ADMIN_URL = "http://localhost:3310";
+export const DATABASE_ENV = {
+  DATABASE_URL: `postgresql+asyncpg://poslite_app:poslite@${DB}`,
+  MIGRATION_DATABASE_URL: `postgresql+asyncpg://poslite:poslite@${DB}`,
+  SYSTEM_DATABASE_URL: `postgresql+asyncpg://poslite_system:poslite@${DB}`,
+};
+
+export default defineConfig({
+  testDir: "./tests/e2e",
+  workers: 1,
+  reporter: "list",
+  timeout: 60_000,
+  use: { baseURL: ADMIN_URL, ...devices["Desktop Chrome"], channel: process.env.PW_CHANNEL || undefined },
+  webServer: [
+    {
+      command: "uv run alembic upgrade head && uv run uvicorn poslite.main:app --port 8210",
+      cwd: "../poslite-api",
+      url: `${API_ORIGIN}/api/v1/health`,
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: { ...DATABASE_ENV, CORS_ORIGINS: JSON.stringify([ADMIN_URL]) },
+    },
+    {
+      command: "pnpm build && ./node_modules/.bin/next start -p 3310",
+      url: ADMIN_URL,
+      reuseExistingServer: false,
+      timeout: 240_000,
+      env: { NEXT_PUBLIC_API_ORIGIN: API_ORIGIN },
+    },
+  ],
+});

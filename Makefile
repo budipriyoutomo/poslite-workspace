@@ -22,7 +22,7 @@ UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
 ADMIN := pnpm --dir $(ADMIN_DIR)
 
-.PHONY: help doctor setup install dev check test fmt dev-admin admin-install admin-test admin-check admin-types \
+.PHONY: help doctor setup install dev check test fmt dev-admin admin-install admin-test admin-check admin-types admin-e2e \
 	dev-api worker openapi report-rebuild platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
 	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
 
@@ -177,6 +177,10 @@ admin-check: ## Back-office typecheck, lint, tests
 	$(ADMIN) typecheck
 	$(ADMIN) lint
 	$(ADMIN) test
+
+admin-e2e: ## Back-office e2e vs the real API (fresh poslite_e2e_admin DB; macOS 13: PW_CHANNEL=chrome)
+	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_E2E_NAME)_admin WITH (FORCE)" -c "CREATE DATABASE $(DB_E2E_NAME)_admin OWNER $(DB_USER)"
+	PW_CHANNEL=$(PW_CHANNEL) $(ADMIN) e2e
 
 admin-types: openapi ## Regenerate the back-office API types from poslite-api/openapi.json
 	$(ADMIN) api:types

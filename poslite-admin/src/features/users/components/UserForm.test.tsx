@@ -47,7 +47,7 @@ describe("UserForm", () => {
     expect(screen.getByRole("button", { name: "Simpan" })).toBeDisabled();
 
     await userEvent.type(screen.getByLabelText("Email"), "rina@kopi.id");
-    await userEvent.type(screen.getByLabelText("Kata sandi"), "rahasia123");
+    await userEvent.type(screen.getByLabelText("Password"), "rahasia123");
     await userEvent.click(screen.getByRole("button", { name: "Simpan" }));
 
     await waitFor(() => expect(sent(calls, "POST")).toBeDefined());
