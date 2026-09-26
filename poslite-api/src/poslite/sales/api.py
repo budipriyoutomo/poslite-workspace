@@ -17,6 +17,7 @@ from poslite.sales.infrastructure.queries import (
     daily_product_sales,
     daily_totals,
     list_orders,
+    order_detail,
 )
 from poslite.sales.infrastructure.repository import SqlAlchemyOrderRepository
 
@@ -44,4 +45,5 @@ __all__ = [
     "daily_product_sales",
     "daily_totals",
     "list_orders",
+    "order_detail",
 ]

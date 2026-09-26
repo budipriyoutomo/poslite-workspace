@@ -10,6 +10,24 @@ from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 Subscriber = Callable[[SqlAlchemyUnitOfWork, dict[str, object]], Awaitable[None]]
 
 
+def combine_subscribers(*groups: Mapping[str, Subscriber]) -> dict[str, Subscriber]:
+    """Several modules on one topic: they run in order, in the same transaction, so a failure
+    retries the whole message and every subscriber must be idempotent."""
+    by_topic: dict[str, list[Subscriber]] = {}
+    for group in groups:
+        for topic, subscriber in group.items():
+            by_topic.setdefault(topic, []).append(subscriber)
+
+    def chain(subs: list[Subscriber]) -> Subscriber:
+        async def run(uow: SqlAlchemyUnitOfWork, payload: dict[str, object]) -> None:
+            for sub in subs:
+                await sub(uow, payload)
+
+        return run
+
+    return {topic: chain(subs) for topic, subs in by_topic.items()}
+
+
 @dataclass(frozen=True, slots=True)
 class RelayStats:
     published: int

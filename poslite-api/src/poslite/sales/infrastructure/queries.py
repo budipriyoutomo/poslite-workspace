@@ -4,7 +4,12 @@ from datetime import date, datetime
 
 from sqlalchemy import ColumnElement, and_, func, select
 
-from poslite.sales.infrastructure.models import OrderLineModel, OrderModel, PaymentModel
+from poslite.sales.infrastructure.models import (
+    OrderLineModel,
+    OrderLineModifierModel,
+    OrderModel,
+    PaymentModel,
+)
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -177,3 +182,78 @@ async def daily_cashier_sales(
         .group_by(OrderModel.cashier_id)
     )
     return [CashierSales(cid, int(n), int(net)) for cid, n, net in rows]
+
+
+async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, object] | None:
+    """One order as JSON-ready data (for integrations, ADR-020); None if RLS hides it."""
+    order = await uow.session.get(OrderModel, order_id)
+    if order is None:
+        return None
+    lines = list(
+        await uow.session.scalars(
+            select(OrderLineModel)
+            .where(OrderLineModel.order_id == order_id)
+            .order_by(OrderLineModel.sort_order)
+        )
+    )
+    modifiers = list(
+        await uow.session.scalars(
+            select(OrderLineModifierModel).where(
+                OrderLineModifierModel.order_line_id.in_([line.id for line in lines])
+            )
+        )
+    )
+    payments = list(
+        await uow.session.scalars(select(PaymentModel).where(PaymentModel.order_id == order_id))
+    )
+    return {
+        "id": order.id,
+        "outlet_id": order.outlet_id,
+        "device_id": order.device_id,
+        "shift_id": order.shift_id,
+        "receipt_no": order.receipt_no,
+        "cashier_id": order.cashier_id,
+        "business_date": order.business_date.isoformat(),
+        "order_type": order.order_type,
+        "table_label": order.table_label,
+        "status": order.status,
+        "subtotal": order.subtotal,
+        "discount_amount": order.discount_amount,
+        "service_charge": order.service_charge,
+        "tax": order.tax,
+        "total": order.total,
+        "paid_amount": order.paid_amount,
+        "change_amount": order.change_amount,
+        "flags": list(order.flags),
+        "created_at": order.created_at.isoformat(),
+        "lines": [
+            {
+                "id": line.id,
+                "product_id": line.product_id,
+                "product_name": line.product_name,
+                "category_name": line.category_name,
+                "unit_price": line.unit_price,
+                "quantity": line.quantity,
+                "line_total": line.line_total,
+                "discount_amount": line.discount_amount,
+                "promotion_id": line.promotion_id,
+                "notes": line.notes,
+                "modifiers": [
+                    {"modifier_option_id": m.modifier_option_id, "name": m.name, "price": m.price}
+                    for m in modifiers
+                    if m.order_line_id == line.id
+                ],
+            }
+            for line in lines
+        ],
+        "payments": [
+            {
+                "id": p.id,
+                "payment_method_id": p.payment_method_id,
+                "method_type": p.method_type,
+                "amount": p.amount,
+                "reference": p.reference,
+            }
+            for p in payments
+        ],
+    }

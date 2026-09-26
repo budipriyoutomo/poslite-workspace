@@ -132,6 +132,29 @@
         "title": "ApiResponse[CategoryOut]",
         "type": "object"
       },
+      "ApiResponse_CreatedEndpointOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreatedEndpointOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[CreatedEndpointOut]",
+        "type": "object"
+      },
       "ApiResponse_DeviceMe_": {
         "properties": {
           "data": {
@@ -505,6 +528,33 @@
         "title": "ApiResponse[list[CategoryOut]]",
         "type": "object"
       },
+      "ApiResponse_list_DeliveryOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[DeliveryOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_DeviceListItem__": {
         "properties": {
           "data": {
@@ -530,6 +580,33 @@
           "data"
         ],
         "title": "ApiResponse[list[DeviceListItem]]",
+        "type": "object"
+      },
+      "ApiResponse_list_EndpointOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EndpointOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[EndpointOut]]",
         "type": "object"
       },
       "ApiResponse_list_ModifierGroupOut__": {
@@ -1001,6 +1078,42 @@
         "title": "ChangeOut",
         "type": "object"
       },
+      "CreatedEndpointOut": {
+        "properties": {
+          "event_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Event Types",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "secret": {
+            "title": "Secret",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "event_types",
+          "is_active",
+          "secret"
+        ],
+        "title": "CreatedEndpointOut",
+        "type": "object"
+      },
       "DaySales": {
         "properties": {
           "business_date": {
@@ -1048,6 +1161,83 @@
           "business_date"
         ],
         "title": "DaySales",
+        "type": "object"
+      },
+      "DeliveryOut": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered At"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "last_status_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Status Code"
+          },
+          "next_attempt_at": {
+            "format": "date-time",
+            "title": "Next Attempt At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "event_type",
+          "status",
+          "attempts",
+          "last_status_code",
+          "last_error",
+          "created_at",
+          "next_attempt_at",
+          "delivered_at"
+        ],
+        "title": "DeliveryOut",
         "type": "object"
       },
       "DeviceListItem": {
@@ -1159,6 +1349,66 @@
           "outlet"
         ],
         "title": "DeviceOut",
+        "type": "object"
+      },
+      "EndpointIn": {
+        "properties": {
+          "event_types": {
+            "items": {
+              "enum": [
+                "order.placed",
+                "shift.closed"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Event Types",
+            "type": "array"
+          },
+          "url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "event_types"
+        ],
+        "title": "EndpointIn",
+        "type": "object"
+      },
+      "EndpointOut": {
+        "properties": {
+          "event_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Event Types",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "event_types",
+          "is_active"
+        ],
+        "title": "EndpointOut",
         "type": "object"
       },
       "EventResultOut": {
@@ -5374,6 +5624,218 @@
         "summary": "Change Pin",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/api/v1/webhook-deliveries/{delivery_id}/retry": {
+      "post": {
+        "operationId": "retry_webhook_delivery_api_v1_webhook_deliveries__delivery_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "delivery_id",
+            "required": true,
+            "schema": {
+              "title": "Delivery Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retry Webhook Delivery",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/webhooks": {
+      "get": {
+        "operationId": "list_webhooks_api_v1_webhooks_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_EndpointOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Webhooks",
+        "tags": [
+          "integration"
+        ]
+      },
+      "post": {
+        "description": "The signing secret is returned only here (ADR-020).",
+        "operationId": "create_webhook_api_v1_webhooks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndpointIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_CreatedEndpointOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Webhook",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/webhooks/{endpoint_id}": {
+      "delete": {
+        "operationId": "delete_webhook_api_v1_webhooks__endpoint_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Webhook",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/webhooks/{endpoint_id}/deliveries": {
+      "get": {
+        "operationId": "webhook_deliveries_api_v1_webhooks__endpoint_id__deliveries_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_DeliveryOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Webhook Deliveries",
+        "tags": [
+          "integration"
         ]
       }
     }
