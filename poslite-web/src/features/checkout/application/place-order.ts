@@ -37,6 +37,9 @@ export interface PlaceOrderDeps {
   newId: () => string;
 }
 
+/** Everything placeOrder writes or reads; an outer transaction must cover all of them. */
+export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.orders, db.payments, db.syncState, db.outbox];
+
 const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(), newId });
 
 /**
@@ -47,7 +50,7 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
   const { db } = deps;
   if (input.lines.length === 0) throw new AppError("EMPTY_CART");
 
-  return db.transaction("rw", [db.settings, db.shifts, db.paymentMethods, db.promotions, db.orders, db.payments, db.syncState, db.outbox], async () => {
+  return db.transaction("rw", placeOrderTables(db), async () => {
     const outlet = (await db.settings.get("outlet"))?.value;
     if (!outlet) throw new AppError("DEVICE_NOT_ACTIVATED");
     const shift = await getOpenShift(db);

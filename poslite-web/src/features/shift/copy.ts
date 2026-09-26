@@ -30,6 +30,7 @@ export const copy = {
   errors: {
     SHIFT_ALREADY_OPEN: "Masih ada shift yang terbuka di perangkat ini",
     NO_OPEN_SHIFT: "Tidak ada shift yang terbuka",
+    OPEN_BILLS: "Masih ada bill meja yang belum dibayar — selesaikan atau batalkan dulu di menu Bill",
     DEVICE_NOT_ACTIVATED: "Perangkat belum diaktivasi",
   } as Record<string, string>,
 } as const;

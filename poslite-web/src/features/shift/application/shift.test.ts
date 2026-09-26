@@ -82,3 +82,13 @@ describe("closeShift", () => {
     await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "NO_OPEN_SHIFT" });
   });
 });
+
+describe("closeShift with open bills (ADR-015)", () => {
+  it("refuses while a dine-in bill is still open on this device", async () => {
+    await openShift({ cashierId: IDS.cashier, openingCash: 0 }, testDeps(db));
+    await db.openBills.put({ id: "01J8Z000000000000000000OB1", tableId: null, tableLabel: "A1", lines: [], discount: null, openedBy: IDS.cashier, openedAt: "2026-09-25T03:00:00.000Z", updatedAt: "2026-09-25T03:00:00.000Z" });
+
+    await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "OPEN_BILLS" });
+    expect((await getOpenShift(db))?.status).toBe("open");
+  });
+});
