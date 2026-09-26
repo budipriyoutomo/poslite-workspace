@@ -2,6 +2,7 @@ from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.identity.application.schemas import OutletRole, PinIn, UserIn, UserOut, UserUpdate
 from poslite.identity.infrastructure.passwords import hash_password
@@ -9,13 +10,15 @@ from poslite.identity.infrastructure.service import (
     assign_role,
     create_user,
     delete_user,
+    email_taken,
     list_users,
     set_pin,
     update_user,
 )
 from poslite.identity.infrastructure.tokens import revoke_tokens_of
 from poslite.organization import api as organization
-from poslite.shared.presentation.dependencies import id_factory, open_uow
+from poslite.shared.domain.errors import DomainError
+from poslite.shared.presentation.dependencies import id_factory, open_uow, system_sessions
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 
@@ -49,8 +52,12 @@ async def create(
     request: Request,
     principal: Writer,
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
+    system: Annotated[async_sessionmaker[AsyncSession], Depends(system_sessions)],
 ) -> ApiResponse[UserOut]:
     """Cashiers get only a PIN (no email/password): they never hold an API token."""
+    # Emails are unique across tenants (they are the login), so the check needs BYPASSRLS.
+    if body.email and await email_taken(system, body.email):
+        raise DomainError("EMAIL_TAKEN", "Email is already registered", kind="conflict")
     user_id = new_id()
     async with open_uow(request, principal.tenant_id) as uow:
         password_hash = await hash_password(body.password) if body.password else None

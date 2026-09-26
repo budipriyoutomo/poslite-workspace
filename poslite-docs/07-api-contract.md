@@ -155,7 +155,7 @@ Batas: maks 50 event / request, body maks 1 MB.
 | POST | `/auth/login` · `/auth/logout` | Owner/manager; response memuat `tenant` (id, slug, name, status) |
 | GET/POST/PUT/DELETE | `/outlets`, `/outlets/{id}` | |
 | GET/DELETE | `/outlets/{id}/devices`, `/devices/{id}` (revoke) | |
-| GET/POST/PUT/DELETE | `/users`, `/users/{id}`; `PUT /users/{id}/pin` | |
+| GET/POST/PUT/DELETE | `/users`, `/users/{id}`; `PUT /users/{id}/pin` | Email is global (it is the login): taken → 409 `EMAIL_TAKEN` |
 | GET/POST/PUT/DELETE | `/categories`, `/products`, `/modifier-groups`, `/payment-methods` | |
 | PUT | `/outlets/{id}/products/{productId}` | harga & ketersediaan per outlet |
 | GET | `/orders?outlet_id=&business_date=` → `[{id, receipt_no, business_date, cashier_id, total, status, flags, created_at}]` · `/orders/{id}` (belum) | |

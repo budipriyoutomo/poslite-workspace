@@ -4,7 +4,7 @@ from typing import Any
 
 from httpx import AsyncClient
 
-from ..identity.helpers import bearer, signup
+from ..identity.helpers import SIGNUP, bearer, signup
 
 
 async def _outlet(api: AsyncClient, token: str) -> dict[str, Any]:
@@ -117,3 +117,22 @@ def test_pin_hash_format_matches_webcrypto() -> None:
     ).decode()
 
     assert hash_pin("1234", salt, 1000) == expected
+
+
+async def test_rejects_a_back_office_user_whose_email_is_taken(api: AsyncClient) -> None:
+    owner = await signup(api)
+    outlet = await _outlet(api, owner["token"])
+
+    response = await api.post(
+        "/api/v1/users",
+        json={
+            "name": "Rina",
+            "email": SIGNUP["email"].upper(),
+            "password": "rahasia123",
+            "outlets": [{"outlet_id": outlet["id"], "role": "manager"}],
+        },
+        headers=bearer(owner["token"]),
+    )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "EMAIL_TAKEN"
