@@ -156,6 +156,30 @@ flowchart LR
 - **Kenapa**: kasir harus bisa memberi harga promo tanpa internet; jam device bisa sedikit beda dari server, sehingga menolak order karena "promo sudah lewat" akan merugikan pelanggan yang sudah bayar.
 - **Konsekuensi**: aturan harga ada di dua bahasa → `pricing-cases.json` wajib memuat kasus diskon baris; aturan pemilihan promo diuji di web. Diskon manual menggantikan promo pada baris itu; bila beberapa promo berlaku, diambil diskon terbesar.
 
+### ADR-017 — Payment gateway di balik port, vendor dipilih nanti
+
+- **Keputusan**: QRIS dinamis dan tagihan langganan memakai port `PaymentGateway` (`create_qris`, `create_invoice_payment`, `verify_webhook`). Implementasi awal adalah `FakeGateway` (dev, test, e2e) dengan webhook yang ditandatangani HMAC. Adapter vendor (Midtrans/Xendit) ditambah tanpa mengubah modul lain.
+- **Kenapa**: vendor belum diputuskan; alur bisnis (charge → webhook → lunas) bisa dibangun dan diuji penuh lebih dulu.
+- **Konsekuensi**: `PAYMENT_GATEWAY=fake` adalah default; produksi wajib memilih adapter asli. Webhook masuk selalu diverifikasi tanda tangannya dan idempoten (charge yang sudah `paid` tidak diproses ulang).
+
+### ADR-018 — Langganan per outlet per bulan, trial, suspend otomatis
+
+- **Keputusan**: Tenant baru mendapat trial 14 hari. Setelah trial/periode habis, job harian membuat tagihan bulanan = jumlah outlet aktif × harga per outlet (snapshot di tagihan). Tagihan jatuh tempo 7 hari (grace); lewat grace tanpa bayar → tenant `suspended` (aturan suspend Fase 3: jualan & sync jalan, tulis back-office diblok). Pembayaran (webhook gateway) → tagihan `paid`, periode maju satu bulan, tenant aktif lagi.
+- **Kenapa**: harga naik seiring skala pelanggan; suspend tidak pernah menghentikan kasir berjualan.
+- **Konsekuensi**: suspend karena billing dan suspend manual operator dibedakan (`suspended_reason`); pembayaran hanya mengaktifkan kembali suspend karena billing.
+
+### ADR-019 — QRIS dinamis saat online, QRIS statis saat offline
+
+- **Keputusan**: Saat online, kasir bisa menampilkan QR dinamis sejumlah tagihan (charge di server lewat gateway); lunas dikonfirmasi otomatis (webhook → device polling), nomor referensi terisi sendiri. Saat offline atau gateway bermasalah, alur lama tetap: QRIS statis + kasir mengetik nomor referensi.
+- **Kenapa**: jualan tidak boleh terblok oleh internet (ADR-001), tapi konfirmasi otomatis mengurangi salah input & fraud saat online.
+- **Konsekuensi**: `order.placed` tetap satu-satunya sumber penjualan; payment QRIS dinamis membawa `reference` = id charge. Server memberi flag `QRIS_UNPAID` bila referensi adalah charge dinamis yang belum lunas.
+
+### ADR-020 — Integrasi lewat webhook keluar dari outbox
+
+- **Keputusan**: Tenant mendaftarkan endpoint webhook (URL + tipe event). Subscriber outbox membuat baris `webhook_deliveries` (idempoten per endpoint × event); job worker mengirim `POST` JSON bertanda tangan `X-Poslite-Signature: t=<unix>,v1=<hmac-sha256>` dengan retry backoff sampai 8 kali lalu `dead`, bisa dikirim ulang dari back-office. Event awal: `order.placed` (detail order lengkap), `shift.closed`.
+- **Kenapa**: inventory/ERP/RestaurantOps tetap di sistem lain (Fase 5 roadmap); webhook bertanda tangan adalah kontrak paling sederhana dan tidak butuh sistem lain memanggil kita.
+- **Konsekuensi**: pengiriman at-least-once → penerima wajib idempoten memakai `id` event. Secret endpoint hanya ditampilkan sekali saat dibuat.
+
 ## Non-Functional Requirements
 
 | NFR | Target |

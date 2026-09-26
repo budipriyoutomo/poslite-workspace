@@ -57,10 +57,12 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - **DoD**: pelayan membuka bill meja, menambah pesanan beberapa kali, lalu tamu membayar terpisah per item — semuanya offline; promo happy hour terhitung otomatis dan total server sama dengan device (tanpa `TOTAL_MISMATCH`).
 
 ### Fase 5 — Scale & Integrasi
-- [ ] Billing & subscription tenant (plan, trial, suspend otomatis)
-- [ ] Integrasi QRIS dinamis (payment gateway), e-wallet callback
-- [ ] Integrasi inventory / ERP / RestaurantOps (konsumsi domain event dari `outbox_messages`) — inventory **tidak** dibangun di POSLite
-- [ ] Wrapper native (Capacitor) bila perlu iOS + Bluetooth
+- [ ] Port `PaymentGateway` + `FakeGateway` + webhook masuk bertanda tangan (ADR-017) — *adapter Midtrans/Xendit menunggu pilihan vendor*
+- [ ] Billing: trial 14 hari, tagihan bulanan per outlet aktif, grace 7 hari, suspend/aktif otomatis (ADR-018); halaman Langganan di back-office, status di konsol platform
+- [ ] QRIS dinamis saat online + fallback QRIS statis offline (ADR-019); flag `QRIS_UNPAID`
+- [ ] Webhook keluar dari outbox untuk inventory/ERP/RestaurantOps (ADR-020) — inventory **tidak** dibangun di POSLite; halaman Integrasi di back-office
+- [ ] *Ditunda*: wrapper native (Capacitor) bila perlu iOS + Bluetooth; e-wallet callback langsung
+- **DoD**: tenant trial habis → tagihan terbit → dibayar lewat gateway (fake) → tetap aktif; tidak bayar lewat grace → suspend otomatis, kasir tetap jualan. Order yang dibayar dengan QR dinamis tercatat tanpa flag; order sampai ke endpoint webhook dengan tanda tangan valid.
 
 ## Hasil Spike Fase 0
 
