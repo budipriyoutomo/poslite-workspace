@@ -124,3 +124,63 @@ describe("placeOrder", () => {
     expect(await db.syncState.get("receiptCounter")).toBeUndefined();
   });
 });
+
+describe("placeOrder — line discounts, promotions and dine-in (Fase 4)", () => {
+  const PROMO = {
+    id: "01J8Z000000000000000000PQ1",
+    name: "Pagi hemat",
+    type: "percent_off" as const,
+    percentage: 20,
+    buyQty: null,
+    getQty: null,
+    productIds: [IDS.gudeg],
+    categoryIds: [],
+    daysOfWeek: [5], // the test clock is Friday 10:00 in Jakarta
+    startTime: "09:00",
+    endTime: "11:00",
+    startsOn: null,
+    endsOn: null,
+  };
+  const plain = { ...gudegWithAyam, modifiers: [], quantity: 1 }; // 25.000
+
+  it("applies a running promotion at payment time and sends its snapshot", async () => {
+    await db.promotions.put(PROMO);
+
+    const placed = await placeOrder(order({ lines: [plain], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }), testDeps(db));
+
+    // 25.000 − 20% = 20.000; service 1.000; PB1 2.100 → 23.100
+    expect(placed).toMatchObject({ subtotal: 25_000, discountAmount: 5_000, total: 23_100 });
+    expect(placed.lines[0]).toMatchObject({ discount: { type: "percentage", value: 20 }, promotion: { id: PROMO.id, name: "Pagi hemat" } });
+    const [event] = await nonShiftEvents();
+    expect((event!.payload as { lines: unknown[] }).lines[0]).toMatchObject({ discount: { type: "percentage", value: 20 }, promotion: { id: PROMO.id, name: "Pagi hemat" } });
+  });
+
+  it("does not apply a promotion outside its hours", async () => {
+    await db.promotions.put({ ...PROMO, startTime: "14:00", endTime: "17:00" });
+
+    const placed = await placeOrder(order({ lines: [plain], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }), testDeps(db));
+
+    expect(placed.discountAmount).toBe(0);
+    expect(placed.lines[0]).toMatchObject({ discount: null, promotion: null });
+  });
+
+  it("keeps the cashier's manual line discount instead of the promotion", async () => {
+    await db.promotions.put(PROMO);
+
+    const placed = await placeOrder(
+      order({ lines: [{ ...plain, discount: { type: "fixed", value: 1_000 } }], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }),
+      testDeps(db),
+    );
+
+    expect(placed.discountAmount).toBe(1_000);
+    expect(placed.lines[0]).toMatchObject({ discount: { type: "fixed", value: 1_000 }, promotion: null });
+  });
+
+  it("records a dine-in order with its table", async () => {
+    const placed = await placeOrder(order({ orderType: "dine_in", tableLabel: "A1" }), testDeps(db));
+
+    expect(placed).toMatchObject({ orderType: "dine_in", tableLabel: "A1" });
+    const [event] = await nonShiftEvents();
+    expect(event!.payload).toMatchObject({ order_type: "dine_in", table_label: "A1" });
+  });
+});

@@ -91,6 +91,9 @@ export interface OrderLineRow {
   quantity: number;
   notes: string;
   modifiers: { modifierOptionId: string; name: string; price: number }[];
+  /** Line discount (manual or promotion) and the promotion snapshot — Fase 4, absent on older rows. */
+  discount?: LineDiscount | null;
+  promotion?: { id: string; name: string } | null;
 }
 
 export interface OrderRow {
@@ -101,6 +104,7 @@ export interface OrderRow {
   cashierName: string;
   businessDate: string;
   orderType: "take_away" | "dine_in";
+  tableLabel?: string | null;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
   rates: { serviceBps: number; taxBps: number };

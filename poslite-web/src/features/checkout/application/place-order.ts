@@ -1,4 +1,5 @@
 import { formatReceiptNo, nextReceiptCounter } from "@/features/orders";
+import { applyPromotions, localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
@@ -11,14 +12,19 @@ import { calculate, type Discount } from "../domain/pricing";
 
 export interface PlaceOrderInput {
   cashier: { id: string; name: string };
+  orderType?: "take_away" | "dine_in";
+  tableLabel?: string | null;
   lines: {
     productId: string;
+    categoryId?: string;
     name: string;
     categoryName: string;
     unitPrice: number;
     quantity: number;
     note: string;
     modifiers: { optionId: string; name: string; price: number }[];
+    /** The cashier's manual line discount; otherwise promotions decide (ADR-016). */
+    discount?: Discount | null;
   }[];
   discount: Discount | null;
   payments: { paymentMethodId: string; amount: number; reference?: string | null }[];
@@ -40,15 +46,23 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
   const { db } = deps;
   if (input.lines.length === 0) throw new AppError("EMPTY_CART");
 
-  return db.transaction("rw", [db.settings, db.shifts, db.paymentMethods, db.orders, db.payments, db.syncState, db.outbox], async () => {
+  return db.transaction("rw", [db.settings, db.shifts, db.paymentMethods, db.promotions, db.orders, db.payments, db.syncState, db.outbox], async () => {
     const outlet = (await db.settings.get("outlet"))?.value;
     if (!outlet) throw new AppError("DEVICE_NOT_ACTIVATED");
     const shift = await getOpenShift(db);
     if (!shift) throw new AppError("NO_OPEN_SHIFT");
 
     const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps }; // snapshot (ADR-011)
+    const now = deps.now();
+    const priced = input.lines.map((l) => ({ ...l, modifiersTotal: l.modifiers.reduce((s, m) => s + m.price, 0) }));
+    // Promotions are decided now, at payment, in outlet time (ADR-016).
+    const applied = applyPromotions(
+      priced.map((l) => ({ productId: l.productId, categoryId: l.categoryId, unitPrice: l.unitPrice, modifiersTotal: l.modifiersTotal, quantity: l.quantity, manualDiscount: l.discount ?? null })),
+      await db.promotions.toArray(),
+      localMoment(now, outlet.timezone),
+    );
     const totals = calculate(
-      input.lines.map((l) => ({ unitPrice: l.unitPrice, modifiersTotal: l.modifiers.reduce((s, m) => s + m.price, 0), quantity: l.quantity })),
+      priced.map((l, i) => ({ unitPrice: l.unitPrice, modifiersTotal: l.modifiersTotal, quantity: l.quantity, discount: applied[i]!.discount })),
       input.discount,
       rates,
     );
@@ -62,7 +76,6 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const settlement = settle(totals.total, tendered.map((p) => ({ methodType: p.method.type, amount: p.amount })));
     if (!settlement.ok) throw new AppError(settlement.reason);
 
-    const now = deps.now();
     const createdAt = now.toISOString();
     const date = businessDate(now, outlet.timezone, outlet.businessDayCutoff);
     const counter = nextReceiptCounter(await readState(db, "receiptCounter"), date);
@@ -75,8 +88,9 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       cashierId: input.cashier.id,
       cashierName: input.cashier.name,
       businessDate: date,
-      orderType: "take_away",
-      lines: input.lines.map((l) => ({
+      orderType: input.orderType ?? "take_away",
+      tableLabel: input.tableLabel ?? null,
+      lines: input.lines.map((l, i) => ({
         id: deps.newId(),
         productId: l.productId,
         productName: l.name,
@@ -85,6 +99,8 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
         quantity: l.quantity,
         notes: l.note,
         modifiers: l.modifiers.map((m) => ({ modifierOptionId: m.optionId, name: m.name, price: m.price })),
+        discount: applied[i]!.discount,
+        promotion: applied[i]!.promotion,
       })),
       discount: input.discount,
       rates,
@@ -126,6 +142,7 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
     receipt_no: order.receiptNo,
     cashier_id: order.cashierId,
     order_type: order.orderType,
+    table_label: order.tableLabel ?? null,
     lines: order.lines.map((l) => ({
       id: l.id,
       product_id: l.productId,
@@ -135,6 +152,8 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
       quantity: l.quantity,
       notes: l.notes,
       modifiers: l.modifiers.map((m) => ({ modifier_option_id: m.modifierOptionId, name: m.name, price: m.price })),
+      discount: l.discount ?? null,
+      promotion: l.promotion ?? null,
     })),
     discount: order.discount,
     rates: { service_bps: order.rates.serviceBps, tax_bps: order.rates.taxBps },

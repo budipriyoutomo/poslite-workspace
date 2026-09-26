@@ -36,7 +36,7 @@
 **Promo (ADR-016)**
 1. `percent_off`: `percentage` 1..100 untuk baris yang masuk cakupan. `buy_x_get_y`: per baris, `gratis = floor(qty / (x + y)) × y` unit → diskon nominal `gratis × (unit_price + modifiers_total)`; wajib punya cakupan produk/kategori.
 2. Cakupan: `product_ids` ∪ `category_ids` (keduanya kosong = semua produk, hanya untuk `percent_off`); `outlet_ids` kosong = semua outlet.
-3. Jadwal (zona waktu outlet, saat bayar): `starts_on`/`ends_on` (tanggal, opsional), `days_of_week` (1 = Senin … 7 = Minggu, kosong = setiap hari), `start_time`/`end_time` (HH:MM, opsional; `end < start` = melewati tengah malam).
+3. Jadwal (zona waktu outlet, saat bayar): `starts_on`/`ends_on` (tanggal, opsional), `days_of_week` (1 = Senin … 7 = Minggu, kosong = setiap hari), `start_time`/`end_time` (HH:MM, opsional, `end` eksklusif; `end < start` = melewati tengah malam dan bagian setelah tengah malam dihitung ke hari mulainya, mis. "Jumat 22:00–02:00" masih berlaku Sabtu 01:00).
 4. Satu baris hanya satu diskon: diskon manual menggantikan promo; di antara promo yang berlaku dipilih diskon terbesar (seri → `id` terkecil).
 
 **Open Bill & Split (ADR-015)**
