@@ -159,3 +159,11 @@ async def user_changes(
             )
         )
     return changes
+
+
+async def can_work(uow: SqlAlchemyUnitOfWork, *, user_id: str, outlet_id: str) -> bool:
+    """Active user with a role at the outlet (owners work everywhere); checked per event."""
+    user = await uow.session.get(UserModel, user_id)
+    if user is None or user.deleted_at is not None or not user.is_active:
+        return False
+    return await role_at(uow, user_id=user_id, outlet_id=outlet_id) is not None

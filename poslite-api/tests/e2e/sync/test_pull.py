@@ -23,11 +23,11 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
     changes = _by_entity(data["changes"])
     assert changes["outlet_setting"][0]["data"] | {"receipt_header": ""} == {
         "code": "JKT01",
-        "name": "Outlet Kemang",
+        "name": "Outlet",
         "timezone": "Asia/Jakarta",
         "business_day_cutoff": "04:00",
         "tax_rate_bps": 1000,
-        "service_rate_bps": 0,
+        "service_rate_bps": 500,
         "receipt_header": "",
         "receipt_footer": "",
     }

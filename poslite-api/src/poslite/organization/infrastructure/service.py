@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from poslite.organization.domain.device_code import device_code
 from poslite.organization.infrastructure.models import DeviceModel, OutletModel
+from poslite.shared.application.ports import OutletProfile
 from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.infrastructure.sync_feed import feed
@@ -160,4 +161,17 @@ async def outlet_changes(
             "receipt_header": o.receipt_header,
             "receipt_footer": o.receipt_footer,
         },
+    )
+
+
+async def outlet_profile(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> OutletProfile:
+    """Current rates and business-day settings (sales/shift use this, not the table)."""
+    outlet = await uow.session.get(OutletModel, outlet_id)
+    if outlet is None:
+        raise DomainError("OUTLET_NOT_FOUND", "Outlet not found", kind="not_found")
+    return OutletProfile(
+        service_bps=outlet.service_rate_bps,
+        tax_bps=outlet.tax_rate_bps,
+        timezone=outlet.timezone,
+        business_day_cutoff=outlet.business_day_cutoff,
     )

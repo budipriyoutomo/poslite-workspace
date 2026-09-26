@@ -27,6 +27,16 @@ async def outlet_with_menu_and_device(api: AsyncClient, **signup_overrides: Any)
     owner = await signup(api, **signup_overrides)
     token = owner["token"]
     outlet_id = (await api.get("/api/v1/outlets", headers=bearer(token))).json()["data"][0]["id"]
+    settings = {
+        "name": "Outlet",
+        "timezone": "Asia/Jakarta",
+        "business_day_cutoff": "04:00",
+        "tax_rate_bps": 1000,
+        "service_rate_bps": 500,
+    }
+    assert (
+        await api.put(f"/api/v1/outlets/{outlet_id}", json=settings, headers=bearer(token))
+    ).status_code == 200
     drinks = await post(api, token, "/categories", {"name": "Minuman", "print_role": "bar"})
     sugar = await post(
         api,
