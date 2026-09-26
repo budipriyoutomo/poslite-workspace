@@ -4,7 +4,7 @@ from datetime import datetime, time
 from sqlalchemy import func, select, update
 
 from poslite.organization.domain.device_code import device_code
-from poslite.organization.infrastructure.models import DeviceModel, OutletModel
+from poslite.organization.infrastructure.models import DeviceModel, DiningTableModel, OutletModel
 from poslite.shared.application.ports import OutletProfile
 from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
@@ -241,4 +241,109 @@ async def touch_device(uow: SqlAlchemyUnitOfWork, device_id: str, app_version: s
         values["app_version"] = app_version[:30]
     await uow.session.execute(
         update(DeviceModel).where(DeviceModel.id == device_id).values(**values)
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class DiningTable:
+    id: str
+    label: str
+    area: str
+    seats: int
+    sort_order: int
+
+
+def _table(t: DiningTableModel) -> DiningTable:
+    return DiningTable(id=t.id, label=t.label, area=t.area, seats=t.seats, sort_order=t.sort_order)
+
+
+async def _live_table(uow: SqlAlchemyUnitOfWork, table_id: str) -> DiningTableModel:
+    row = await uow.session.get(DiningTableModel, table_id)
+    if row is None or row.deleted_at is not None:
+        raise DomainError("TABLE_NOT_FOUND", "Table not found", kind="not_found")
+    return row
+
+
+async def _ensure_label_free(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, label: str, *, except_id: str | None = None
+) -> None:
+    query = select(DiningTableModel.id).where(
+        DiningTableModel.outlet_id == outlet_id,
+        func.lower(DiningTableModel.label) == label.lower(),
+        DiningTableModel.deleted_at.is_(None),
+    )
+    if except_id is not None:
+        query = query.where(DiningTableModel.id != except_id)
+    if await uow.session.scalar(query) is not None:
+        raise DomainError("TABLE_LABEL_TAKEN", "Table label is already used", kind="conflict")
+
+
+async def list_tables(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> list[DiningTable]:
+    await get_outlet(uow, outlet_id)
+    rows = await uow.session.scalars(
+        select(DiningTableModel)
+        .where(DiningTableModel.outlet_id == outlet_id, DiningTableModel.deleted_at.is_(None))
+        .order_by(DiningTableModel.sort_order, DiningTableModel.label)
+    )
+    return [_table(t) for t in rows]
+
+
+async def add_table(
+    uow: SqlAlchemyUnitOfWork,
+    *,
+    table_id: str,
+    outlet_id: str,
+    label: str,
+    area: str,
+    seats: int,
+    sort_order: int,
+) -> DiningTable:
+    await get_outlet(uow, outlet_id)
+    await _ensure_label_free(uow, outlet_id, label)
+    row = DiningTableModel(
+        id=table_id,
+        tenant_id=uow.tenant_id,
+        outlet_id=outlet_id,
+        label=label,
+        area=area,
+        seats=seats,
+        sort_order=sort_order,
+    )
+    uow.session.add(row)
+    await uow.session.flush()
+    return _table(row)
+
+
+async def update_table(
+    uow: SqlAlchemyUnitOfWork, table_id: str, *, label: str, area: str, seats: int, sort_order: int
+) -> DiningTable:
+    row = await _live_table(uow, table_id)
+    await _ensure_label_free(uow, row.outlet_id, label, except_id=row.id)
+    row.label, row.area, row.seats, row.sort_order = label, area, seats, sort_order
+    await uow.session.flush()
+    return _table(row)
+
+
+async def delete_table(uow: SqlAlchemyUnitOfWork, table_id: str) -> None:
+    row = await _live_table(uow, table_id)
+    row.deleted_at = func.now()
+    await uow.session.flush()
+
+
+async def dining_table_changes(
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
+) -> list[Change]:
+    return await feed(
+        uow,
+        DiningTableModel,
+        "dining_table",
+        cursor=cursor,
+        limit=limit,
+        where=DiningTableModel.outlet_id == outlet_id,
+        data=lambda t: {
+            "label": t.label,
+            "area": t.area,
+            "seats": t.seats,
+            "sort_order": t.sort_order,
+        },
     )

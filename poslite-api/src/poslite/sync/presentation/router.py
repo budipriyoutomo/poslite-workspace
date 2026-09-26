@@ -8,6 +8,7 @@ from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.payment import api as payment
+from poslite.promotion import api as promotion
 from poslite.shared.application.clock import Clock
 from poslite.shared.application.sync import DeviceContext
 from poslite.shared.presentation.dependencies import clock, open_uow
@@ -55,6 +56,12 @@ async def pull(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
             await payment.payment_method_changes(uow, cursor=cursor, limit=limit),
+            await organization.dining_table_changes(
+                uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
+            ),
+            await promotion.promotion_changes(
+                uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
+            ),
             await identity.user_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),

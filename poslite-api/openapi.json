@@ -340,6 +340,29 @@
         "title": "ApiResponse[ProductOut]",
         "type": "object"
       },
+      "ApiResponse_PromotionOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PromotionOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[PromotionOut]",
+        "type": "object"
+      },
       "ApiResponse_PullResult_": {
         "properties": {
           "data": {
@@ -407,6 +430,29 @@
           "data"
         ],
         "title": "ApiResponse[SalesSummaryOut]",
+        "type": "object"
+      },
+      "ApiResponse_TableOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TableOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[TableOut]",
         "type": "object"
       },
       "ApiResponse_UserOut_": {
@@ -646,6 +692,60 @@
           "data"
         ],
         "title": "ApiResponse[list[ProductOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_PromotionOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PromotionOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[PromotionOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_TableOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TableOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[TableOut]]",
         "type": "object"
       },
       "ApiResponse_list_TenantOut__": {
@@ -2002,6 +2102,320 @@
         "title": "ProductSales",
         "type": "object"
       },
+      "PromotionIn": {
+        "description": "06 \"Promo\" rules: percent_off needs 1..100; buy_x_get_y needs quantities and a scope.",
+        "properties": {
+          "buy_qty": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buy Qty"
+          },
+          "category_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Category Ids",
+            "type": "array"
+          },
+          "days_of_week": {
+            "default": [],
+            "items": {
+              "maximum": 7.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 7,
+            "title": "Days Of Week",
+            "type": "array"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "get_qty": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Get Qty"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "outlet_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Outlet Ids",
+            "type": "array"
+          },
+          "percentage": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentage"
+          },
+          "product_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Product Ids",
+            "type": "array"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts On"
+          },
+          "type": {
+            "enum": [
+              "percent_off",
+              "buy_x_get_y"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "PromotionIn",
+        "type": "object"
+      },
+      "PromotionOut": {
+        "properties": {
+          "buy_qty": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buy Qty"
+          },
+          "category_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Category Ids",
+            "type": "array"
+          },
+          "days_of_week": {
+            "default": [],
+            "items": {
+              "maximum": 7.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 7,
+            "title": "Days Of Week",
+            "type": "array"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "get_qty": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Get Qty"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "outlet_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Outlet Ids",
+            "type": "array"
+          },
+          "percentage": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentage"
+          },
+          "product_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Product Ids",
+            "type": "array"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts On"
+          },
+          "type": {
+            "enum": [
+              "percent_off",
+              "buy_x_get_y"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "id"
+        ],
+        "title": "PromotionOut",
+        "type": "object"
+      },
       "PullResult": {
         "properties": {
           "changes": {
@@ -2164,6 +2578,73 @@
           "outlet"
         ],
         "title": "SignupRequest",
+        "type": "object"
+      },
+      "TableIn": {
+        "properties": {
+          "area": {
+            "default": "",
+            "maxLength": 50,
+            "title": "Area",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "seats": {
+            "default": 0,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Seats",
+            "type": "integer"
+          },
+          "sort_order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "TableIn",
+        "type": "object"
+      },
+      "TableOut": {
+        "properties": {
+          "area": {
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "area",
+          "seats",
+          "sort_order"
+        ],
+        "title": "TableOut",
         "type": "object"
       },
       "Totals": {
@@ -3451,6 +3932,109 @@
         ]
       }
     },
+    "/api/v1/outlets/{outlet_id}/tables": {
+      "get": {
+        "operationId": "tables_api_v1_outlets__outlet_id__tables_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_TableOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tables",
+        "tags": [
+          "organization"
+        ]
+      },
+      "post": {
+        "description": "Tables are outlet master data; devices get them on their next pull (ADR-015).",
+        "operationId": "add_dining_table_api_v1_outlets__outlet_id__tables_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_TableOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Dining Table",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
     "/api/v1/payment-methods": {
       "get": {
         "operationId": "list_payment_methods_api_v1_payment_methods_get",
@@ -3989,6 +4573,179 @@
         ]
       }
     },
+    "/api/v1/promotions": {
+      "get": {
+        "operationId": "list_promotions_api_v1_promotions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_PromotionOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Promotions",
+        "tags": [
+          "promotion"
+        ]
+      },
+      "post": {
+        "description": "Devices evaluate promotions offline at payment time (ADR-016).",
+        "operationId": "create_promotion_api_v1_promotions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PromotionOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Promotion",
+        "tags": [
+          "promotion"
+        ]
+      }
+    },
+    "/api/v1/promotions/{promotion_id}": {
+      "delete": {
+        "operationId": "delete_promotion_api_v1_promotions__promotion_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promotion_id",
+            "required": true,
+            "schema": {
+              "title": "Promotion Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Promotion",
+        "tags": [
+          "promotion"
+        ]
+      },
+      "put": {
+        "operationId": "update_promotion_api_v1_promotions__promotion_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promotion_id",
+            "required": true,
+            "schema": {
+              "title": "Promotion Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PromotionOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Promotion",
+        "tags": [
+          "promotion"
+        ]
+      }
+    },
     "/api/v1/reports/sales-summary": {
       "get": {
         "operationId": "get_sales_summary_api_v1_reports_sales_summary_get",
@@ -4243,6 +5000,108 @@
         "summary": "Push",
         "tags": [
           "sync"
+        ]
+      }
+    },
+    "/api/v1/tables/{table_id}": {
+      "delete": {
+        "operationId": "delete_dining_table_api_v1_tables__table_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "table_id",
+            "required": true,
+            "schema": {
+              "title": "Table Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Dining Table",
+        "tags": [
+          "organization"
+        ]
+      },
+      "put": {
+        "operationId": "update_dining_table_api_v1_tables__table_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "table_id",
+            "required": true,
+            "schema": {
+              "title": "Table Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_TableOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Dining Table",
+        "tags": [
+          "organization"
         ]
       }
     },

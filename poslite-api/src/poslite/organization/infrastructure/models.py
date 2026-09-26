@@ -38,3 +38,15 @@ class DeviceModel(Base):
     activated_by: Mapped[str] = mapped_column(CHAR(26))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DiningTableModel(MasterColumns, Base):
+    __tablename__ = "dining_tables"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26))
+    label: Mapped[str] = mapped_column(String(30))
+    area: Mapped[str] = mapped_column(String(50), server_default="")
+    seats: Mapped[int] = mapped_column(Integer, server_default="0")
+    sort_order: Mapped[int] = mapped_column(Integer, server_default="0")

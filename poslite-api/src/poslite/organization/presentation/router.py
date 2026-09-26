@@ -8,17 +8,22 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from poslite.identity import api as identity
 from poslite.organization.infrastructure.service import (
     DeviceInfo,
+    DiningTable,
     OutletSettings,
+    add_table,
     create_outlet,
+    delete_table,
     get_device,
     get_outlet,
     get_outlet_settings,
     list_devices,
     list_outlets,
+    list_tables,
     outlet_code_taken,
     register_device,
     revoke_device,
     update_outlet_settings,
+    update_table,
 )
 from poslite.organization.presentation.schemas import (
     ActivateRequest,
@@ -30,6 +35,8 @@ from poslite.organization.presentation.schemas import (
     OutletOut,
     OutletSettingsIn,
     OutletSettingsOut,
+    TableIn,
+    TableOut,
 )
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
@@ -196,5 +203,59 @@ async def revoke(
     async with open_uow(request, principal.tenant_id) as uow:
         await revoke_device(uow, device_id)
         await identity.revoke_tokens_of(uow, owner_type="device", owner_id=device_id)
+        await uow.commit()
+    return ok(None)
+
+
+def _table_out(t: DiningTable) -> TableOut:
+    return TableOut(id=t.id, label=t.label, area=t.area, seats=t.seats, sort_order=t.sort_order)
+
+
+@router.get("/outlets/{outlet_id}/tables")
+async def tables(
+    outlet_id: str,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+) -> ApiResponse[list[TableOut]]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        return ok([_table_out(t) for t in await list_tables(uow, outlet_id)])
+
+
+@router.post("/outlets/{outlet_id}/tables", status_code=status.HTTP_201_CREATED)
+async def add_dining_table(
+    outlet_id: str,
+    body: TableIn,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    new_id: Annotated[Callable[[], str], Depends(id_factory)],
+) -> ApiResponse[TableOut]:
+    """Tables are outlet master data; devices get them on their next pull (ADR-015)."""
+    async with open_uow(request, principal.tenant_id) as uow:
+        table = await add_table(uow, table_id=new_id(), outlet_id=outlet_id, **body.model_dump())
+        await uow.commit()
+    return ok(_table_out(table))
+
+
+@router.put("/tables/{table_id}")
+async def update_dining_table(
+    table_id: str,
+    body: TableIn,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+) -> ApiResponse[TableOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        table = await update_table(uow, table_id, **body.model_dump())
+        await uow.commit()
+    return ok(_table_out(table))
+
+
+@router.delete("/tables/{table_id}")
+async def delete_dining_table(
+    table_id: str,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+) -> ApiResponse[None]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await delete_table(uow, table_id)
         await uow.commit()
     return ok(None)

@@ -294,6 +294,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/outlets/{outlet_id}/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tables */
+        get: operations["tables_api_v1_outlets__outlet_id__tables_get"];
+        put?: never;
+        /**
+         * Add Dining Table
+         * @description Tables are outlet master data; devices get them on their next pull (ADR-015).
+         */
+        post: operations["add_dining_table_api_v1_outlets__outlet_id__tables_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payment-methods": {
         parameters: {
             query?: never;
@@ -437,6 +458,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Promotions */
+        get: operations["list_promotions_api_v1_promotions_get"];
+        put?: never;
+        /**
+         * Create Promotion
+         * @description Devices evaluate promotions offline at payment time (ADR-016).
+         */
+        post: operations["create_promotion_api_v1_promotions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotions/{promotion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Promotion */
+        put: operations["update_promotion_api_v1_promotions__promotion_id__put"];
+        post?: never;
+        /** Delete Promotion */
+        delete: operations["delete_promotion_api_v1_promotions__promotion_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/sales-summary": {
         parameters: {
             query?: never;
@@ -506,6 +566,24 @@ export interface paths {
          */
         post: operations["push_api_v1_sync_push_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tables/{table_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Dining Table */
+        put: operations["update_dining_table_api_v1_tables__table_id__put"];
+        post?: never;
+        /** Delete Dining Table */
+        delete: operations["delete_dining_table_api_v1_tables__table_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -811,6 +889,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[PromotionOut] */
+        ApiResponse_PromotionOut_: {
+            data: components["schemas"]["PromotionOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[PullResult] */
         ApiResponse_PullResult_: {
             data: components["schemas"]["PullResult"];
@@ -846,6 +940,22 @@ export interface components {
         /** ApiResponse[SalesSummaryOut] */
         ApiResponse_SalesSummaryOut_: {
             data: components["schemas"]["SalesSummaryOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[TableOut] */
+        ApiResponse_TableOut_: {
+            data: components["schemas"]["TableOut"];
             /**
              * Message
              * @default OK
@@ -998,6 +1108,40 @@ export interface components {
         ApiResponse_list_ProductOut__: {
             /** Data */
             data: components["schemas"]["ProductOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[PromotionOut]] */
+        ApiResponse_list_PromotionOut__: {
+            /** Data */
+            data: components["schemas"]["PromotionOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[TableOut]] */
+        ApiResponse_list_TableOut__: {
+            /** Data */
+            data: components["schemas"]["TableOut"][];
             /**
              * Message
              * @default OK
@@ -1580,6 +1724,109 @@ export interface components {
             /** Quantity */
             quantity: number;
         };
+        /**
+         * PromotionIn
+         * @description 06 "Promo" rules: percent_off needs 1..100; buy_x_get_y needs quantities and a scope.
+         */
+        PromotionIn: {
+            /** Buy Qty */
+            buy_qty?: number | null;
+            /**
+             * Category Ids
+             * @default []
+             */
+            category_ids: string[];
+            /**
+             * Days Of Week
+             * @default []
+             */
+            days_of_week: number[];
+            /** End Time */
+            end_time?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /** Get Qty */
+            get_qty?: number | null;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Outlet Ids
+             * @default []
+             */
+            outlet_ids: string[];
+            /** Percentage */
+            percentage?: number | null;
+            /**
+             * Product Ids
+             * @default []
+             */
+            product_ids: string[];
+            /** Start Time */
+            start_time?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "percent_off" | "buy_x_get_y";
+        };
+        /** PromotionOut */
+        PromotionOut: {
+            /** Buy Qty */
+            buy_qty?: number | null;
+            /**
+             * Category Ids
+             * @default []
+             */
+            category_ids: string[];
+            /**
+             * Days Of Week
+             * @default []
+             */
+            days_of_week: number[];
+            /** End Time */
+            end_time?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /** Get Qty */
+            get_qty?: number | null;
+            /** Id */
+            id: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Outlet Ids
+             * @default []
+             */
+            outlet_ids: string[];
+            /** Percentage */
+            percentage?: number | null;
+            /**
+             * Product Ids
+             * @default []
+             */
+            product_ids: string[];
+            /** Start Time */
+            start_time?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "percent_off" | "buy_x_get_y";
+        };
         /** PullResult */
         PullResult: {
             /** Changes */
@@ -1631,6 +1878,39 @@ export interface components {
             password: string;
             /** Slug */
             slug: string;
+        };
+        /** TableIn */
+        TableIn: {
+            /**
+             * Area
+             * @default
+             */
+            area: string;
+            /** Label */
+            label: string;
+            /**
+             * Seats
+             * @default 0
+             */
+            seats: number;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /** TableOut */
+        TableOut: {
+            /** Area */
+            area: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Seats */
+            seats: number;
+            /** Sort Order */
+            sort_order: number;
         };
         /** Totals */
         Totals: {
@@ -2399,6 +2679,72 @@ export interface operations {
             };
         };
     };
+    tables_api_v1_outlets__outlet_id__tables_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_TableOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_dining_table_api_v1_outlets__outlet_id__tables_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outlet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TableOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_payment_methods_api_v1_payment_methods_get: {
         parameters: {
             query?: never;
@@ -2763,6 +3109,125 @@ export interface operations {
             };
         };
     };
+    list_promotions_api_v1_promotions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_PromotionOut__"];
+                };
+            };
+        };
+    };
+    create_promotion_api_v1_promotions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_PromotionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_promotion_api_v1_promotions__promotion_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_PromotionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_promotion_api_v1_promotions__promotion_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_sales_summary_api_v1_reports_sales_summary_get: {
         parameters: {
             query: {
@@ -2882,6 +3347,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_PushResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_dining_table_api_v1_tables__table_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                table_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TableOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_dining_table_api_v1_tables__table_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                table_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
                 };
             };
             /** @description Validation Error */

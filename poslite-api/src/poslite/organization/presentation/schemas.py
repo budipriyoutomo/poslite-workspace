@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, Field, StringConstraints
 
 from poslite.shared.presentation.schemas import Bps, Email, Name, TimeZone
 
@@ -70,3 +70,18 @@ class DeviceListItem(BaseModel):
     last_seen_at: datetime | None
     revoked_at: datetime | None
     created_at: datetime
+
+
+class TableIn(BaseModel):
+    label: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30)]
+    area: Annotated[str, StringConstraints(strip_whitespace=True, max_length=50)] = ""
+    seats: Annotated[int, Field(ge=0, le=100)] = 0
+    sort_order: Annotated[int, Field(ge=0)] = 0
+
+
+class TableOut(BaseModel):
+    id: str
+    label: str
+    area: str
+    seats: int
+    sort_order: int
