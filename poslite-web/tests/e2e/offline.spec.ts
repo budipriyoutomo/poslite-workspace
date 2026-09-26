@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 // Fase 0 PWA spike (ADR-002): once visited online, the app shell must load with no network.
 test("app shell loads offline after reload", async ({ page, context }) => {
   await page.goto("/");
+  await expect(page).toHaveURL(/\/activate$/);
   const hasController = await page
     .waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15_000 })
     .then(() => true)
@@ -12,7 +13,7 @@ test("app shell loads offline after reload", async ({ page, context }) => {
   await context.setOffline(true);
   await page.reload();
 
-  await expect(page.getByRole("heading", { name: "POSLite" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aktivasi Perangkat" })).toBeVisible();
 });
 
 test("web app manifest is installable (standalone, landscape, 192/512 icons)", async ({ request }) => {

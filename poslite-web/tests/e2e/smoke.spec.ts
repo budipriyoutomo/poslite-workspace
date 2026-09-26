@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("app shell renders", async ({ page }) => {
+test("a new device starts at activation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "POSLite" })).toBeVisible();
+  await expect(page).toHaveURL(/\/activate$/);
+  await expect(page.getByRole("heading", { name: "Aktivasi Perangkat" })).toBeVisible();
 });

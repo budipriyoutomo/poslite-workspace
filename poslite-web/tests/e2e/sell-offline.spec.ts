@@ -10,6 +10,7 @@ async function logIn(page: Page, name: string, pin: string) {
 test("sell and pay offline, then find the order after a reload", async ({ page, context }) => {
   await page.goto("/");
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15_000 });
+  await page.getByRole("button", { name: "Coba mode demo (tanpa server)" }).click();
 
   await logIn(page, "Siti", "1234");
   await expect(page).toHaveURL(/\/shift$/); // no open shift yet → the guard sends the cashier here

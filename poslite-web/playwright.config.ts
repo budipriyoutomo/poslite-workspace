@@ -9,7 +9,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: "http://localhost:3000", trace: "on-first-retry" },
+  // Own port: never reuse a `make dev` server on :3000 (dev mode has no service worker).
+  use: { baseURL: "http://localhost:3200", trace: "on-first-retry" },
   // Primary targets: Chrome on Android tablets and Chrome/Edge on Windows (README assumptions).
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], channel } },
@@ -17,8 +18,8 @@ export default defineConfig({
   ],
   webServer: {
     // Start next directly: via `pnpm start` the server outlives Playwright's teardown.
-    command: "pnpm build && ./node_modules/.bin/next start",
-    url: "http://localhost:3000",
+    command: "pnpm build && ./node_modules/.bin/next start -p 3200",
+    url: "http://localhost:3200",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

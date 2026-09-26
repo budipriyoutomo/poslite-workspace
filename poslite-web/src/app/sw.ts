@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 // Service worker source, bundled by `serwist build` after `next build` (configurator mode, ADR-002).
 import { defaultCache } from "@serwist/next/worker";
-import { type PrecacheEntry, Serwist, type SerwistGlobalConfig } from "serwist";
+import { NetworkOnly, type PrecacheEntry, Serwist, type SerwistGlobalConfig } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -18,7 +18,8 @@ const serwist = new Serwist({
   skipWaiting: false,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  // API responses never come from a cache: sync data lives in IndexedDB (02 "PWA & Service Worker").
+  runtimeCaching: [{ matcher: ({ url }) => url.pathname.startsWith("/api/v1/"), handler: new NetworkOnly() }, ...defaultCache],
 });
 
 serwist.addEventListeners();

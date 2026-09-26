@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useState } from "react";
 
 import { authCopy, useIdleLock, useSession, useSessionHydrated } from "@/features/auth";
 import { getOpenShift, useOpenShift } from "@/features/shift";
+import { SyncBadge } from "@/features/sync";
 import { useOnlineStatus } from "@/shared/hooks";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -17,6 +18,7 @@ const NAV = [
   { href: "/orders", label: "Riwayat" },
   { href: "/shift", label: "Shift" },
   { href: "/reports", label: "Laporan" },
+  { href: "/sync", label: "Sync" },
 ] as const;
 
 // Selling needs an open shift (06-domain-and-database.md, Shift rule 2); history and reports don't.
@@ -71,6 +73,7 @@ export function PosShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3">
+          <SyncBadge />
           <Badge variant="outline" className={cn("gap-1 border-transparent", isOnline ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-300")}>
             {isOnline ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
             {isOnline ? "Online" : "Offline"}

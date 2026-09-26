@@ -2,12 +2,13 @@
 
 import { ShoppingCart, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppError } from "@/shared/errors";
 import type { UserRow } from "@/shared/db";
 
 import { useSession } from "../application/session-store";
+import { useDeviceState } from "../application/use-device-state";
 import { useDeviceUsers } from "../application/use-device-users";
 import { verifyPin } from "../application/verify-pin";
 import { copy } from "../copy";
@@ -26,6 +27,10 @@ export function LockScreen() {
   const router = useRouter();
   const login = useSession((s) => s.login);
   const users = useDeviceUsers();
+  const device = useDeviceState();
+  useEffect(() => {
+    if (device === null) router.replace("/activate");
+  }, [device, router]);
   const [selected, setSelected] = useState<UserRow | null>(null);
   const [error, setError] = useState<string>();
   const [isChecking, setIsChecking] = useState(false);
@@ -79,7 +84,7 @@ export function LockScreen() {
               ))}
             </ul>
           )}
-          <p className="mt-5 text-center text-xs text-slate-500">{copy.demoHint}</p>
+          {device?.mode === "demo" && <p className="mt-5 text-center text-xs text-slate-500">{copy.demoHint}</p>}
         </div>
       </div>
     </main>
