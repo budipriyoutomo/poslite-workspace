@@ -729,6 +729,34 @@
         "title": "AuthResult",
         "type": "object"
       },
+      "CashierSales": {
+        "properties": {
+          "cashier_id": {
+            "title": "Cashier Id",
+            "type": "string"
+          },
+          "cashier_name": {
+            "title": "Cashier Name",
+            "type": "string"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cashier_id",
+          "cashier_name",
+          "order_count",
+          "net"
+        ],
+        "title": "CashierSales",
+        "type": "object"
+      },
       "CategoryIn": {
         "properties": {
           "color": {
@@ -806,6 +834,29 @@
         "title": "CategoryOut",
         "type": "object"
       },
+      "CategorySales": {
+        "properties": {
+          "category_name": {
+            "title": "Category Name",
+            "type": "string"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category_name",
+          "quantity",
+          "gross"
+        ],
+        "title": "CategorySales",
+        "type": "object"
+      },
       "ChangeOut": {
         "properties": {
           "data": {
@@ -848,6 +899,55 @@
           "version"
         ],
         "title": "ChangeOut",
+        "type": "object"
+      },
+      "DaySales": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "discount": {
+            "title": "Discount",
+            "type": "integer"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "service": {
+            "title": "Service",
+            "type": "integer"
+          },
+          "tax": {
+            "title": "Tax",
+            "type": "integer"
+          },
+          "void_count": {
+            "title": "Void Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gross",
+          "discount",
+          "service",
+          "tax",
+          "net",
+          "order_count",
+          "void_count",
+          "business_date"
+        ],
+        "title": "DaySales",
         "type": "object"
       },
       "DeviceListItem": {
@@ -1379,6 +1479,11 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "timezone": {
+            "default": "Asia/Jakarta",
+            "title": "Timezone",
+            "type": "string"
           }
         },
         "required": [
@@ -1702,6 +1807,34 @@
         "title": "PaymentMethodOut",
         "type": "object"
       },
+      "PaymentMethodSales": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "method_type": {
+            "title": "Method Type",
+            "type": "string"
+          },
+          "payment_method_id": {
+            "title": "Payment Method Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_method_id",
+          "method_type",
+          "amount",
+          "count"
+        ],
+        "title": "PaymentMethodSales",
+        "type": "object"
+      },
       "PinIn": {
         "properties": {
           "pin": {
@@ -1841,6 +1974,34 @@
         "title": "ProductOut",
         "type": "object"
       },
+      "ProductSales": {
+        "properties": {
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "product_name",
+          "quantity",
+          "gross"
+        ],
+        "title": "ProductSales",
+        "type": "object"
+      },
       "PullResult": {
         "properties": {
           "changes": {
@@ -1911,50 +2072,41 @@
         "properties": {
           "cashiers": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/CashierSales"
             },
             "title": "Cashiers",
             "type": "array"
           },
           "categories": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/CategorySales"
             },
             "title": "Categories",
             "type": "array"
           },
           "days": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/DaySales"
             },
             "title": "Days",
             "type": "array"
           },
           "payment_methods": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/PaymentMethodSales"
             },
             "title": "Payment Methods",
             "type": "array"
           },
           "products": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ProductSales"
             },
             "title": "Products",
             "type": "array"
           },
           "totals": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "title": "Totals",
-            "type": "object"
+            "$ref": "#/components/schemas/Totals"
           }
         },
         "required": [
@@ -2012,6 +2164,49 @@
           "outlet"
         ],
         "title": "SignupRequest",
+        "type": "object"
+      },
+      "Totals": {
+        "properties": {
+          "discount": {
+            "title": "Discount",
+            "type": "integer"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "service": {
+            "title": "Service",
+            "type": "integer"
+          },
+          "tax": {
+            "title": "Tax",
+            "type": "integer"
+          },
+          "void_count": {
+            "title": "Void Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gross",
+          "discount",
+          "service",
+          "tax",
+          "net",
+          "order_count",
+          "void_count"
+        ],
+        "title": "Totals",
         "type": "object"
       },
       "UserIn": {

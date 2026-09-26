@@ -1056,6 +1056,17 @@ export interface components {
             token: string;
             user: components["schemas"]["poslite__identity__presentation__schemas__UserOut"];
         };
+        /** CashierSales */
+        CashierSales: {
+            /** Cashier Id */
+            cashier_id: string;
+            /** Cashier Name */
+            cashier_name: string;
+            /** Net */
+            net: number;
+            /** Order Count */
+            order_count: number;
+        };
         /** CategoryIn */
         CategoryIn: {
             /**
@@ -1100,6 +1111,15 @@ export interface components {
              */
             sort_order: number;
         };
+        /** CategorySales */
+        CategorySales: {
+            /** Category Name */
+            category_name: string;
+            /** Gross */
+            gross: number;
+            /** Quantity */
+            quantity: number;
+        };
         /** ChangeOut */
         ChangeOut: {
             /** Data */
@@ -1117,6 +1137,28 @@ export interface components {
             op: "upsert" | "delete";
             /** Version */
             version: number;
+        };
+        /** DaySales */
+        DaySales: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Discount */
+            discount: number;
+            /** Gross */
+            gross: number;
+            /** Net */
+            net: number;
+            /** Order Count */
+            order_count: number;
+            /** Service */
+            service: number;
+            /** Tax */
+            tax: number;
+            /** Void Count */
+            void_count: number;
         };
         /** DeviceListItem */
         DeviceListItem: {
@@ -1325,6 +1367,11 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /**
+             * Timezone
+             * @default Asia/Jakarta
+             */
+            timezone: string;
         };
         /** OutletProductIn */
         OutletProductIn: {
@@ -1457,6 +1504,17 @@ export interface components {
              */
             type: "cash" | "debit" | "qris" | "credit_card" | "voucher" | "other";
         };
+        /** PaymentMethodSales */
+        PaymentMethodSales: {
+            /** Amount */
+            amount: number;
+            /** Count */
+            count: number;
+            /** Method Type */
+            method_type: string;
+            /** Payment Method Id */
+            payment_method_id: string;
+        };
         /** PinIn */
         PinIn: {
             /** Pin */
@@ -1510,6 +1568,17 @@ export interface components {
             /** Sku */
             sku: string;
         };
+        /** ProductSales */
+        ProductSales: {
+            /** Gross */
+            gross: number;
+            /** Product Id */
+            product_id: string;
+            /** Product Name */
+            product_name: string;
+            /** Quantity */
+            quantity: number;
+        };
         /** PullResult */
         PullResult: {
             /** Changes */
@@ -1537,29 +1606,16 @@ export interface components {
         /** SalesSummaryOut */
         SalesSummaryOut: {
             /** Cashiers */
-            cashiers: {
-                [key: string]: unknown;
-            }[];
+            cashiers: components["schemas"]["CashierSales"][];
             /** Categories */
-            categories: {
-                [key: string]: unknown;
-            }[];
+            categories: components["schemas"]["CategorySales"][];
             /** Days */
-            days: {
-                [key: string]: unknown;
-            }[];
+            days: components["schemas"]["DaySales"][];
             /** Payment Methods */
-            payment_methods: {
-                [key: string]: unknown;
-            }[];
+            payment_methods: components["schemas"]["PaymentMethodSales"][];
             /** Products */
-            products: {
-                [key: string]: unknown;
-            }[];
-            /** Totals */
-            totals: {
-                [key: string]: number;
-            };
+            products: components["schemas"]["ProductSales"][];
+            totals: components["schemas"]["Totals"];
         };
         /** SignupRequest */
         SignupRequest: {
@@ -1574,6 +1630,23 @@ export interface components {
             password: string;
             /** Slug */
             slug: string;
+        };
+        /** Totals */
+        Totals: {
+            /** Discount */
+            discount: number;
+            /** Gross */
+            gross: number;
+            /** Net */
+            net: number;
+            /** Order Count */
+            order_count: number;
+            /** Service */
+            service: number;
+            /** Tax */
+            tax: number;
+            /** Void Count */
+            void_count: number;
         };
         /** UserIn */
         UserIn: {

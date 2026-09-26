@@ -43,7 +43,9 @@ def _device_out(d: DeviceInfo) -> DeviceOut:
         id=d.id,
         code=d.code,
         name=d.name,
-        outlet=OutletOut(id=d.outlet.id, code=d.outlet.code, name=d.outlet.name),
+        outlet=OutletOut(
+            id=d.outlet.id, code=d.outlet.code, name=d.outlet.name, timezone=d.outlet.timezone
+        ),
     )
 
 
@@ -53,7 +55,7 @@ async def outlets(
 ) -> ApiResponse[list[OutletOut]]:
     async with open_uow(request, principal.tenant_id) as uow:
         rows = await list_outlets(uow)
-    return ok([OutletOut(id=o.id, code=o.code, name=o.name) for o in rows])
+    return ok([OutletOut(id=o.id, code=o.code, name=o.name, timezone=o.timezone) for o in rows])
 
 
 @router.post("/devices/activate", status_code=status.HTTP_201_CREATED)
@@ -155,7 +157,7 @@ async def add_outlet(
             uow, outlet_id=new_id(), code=body.code, name=body.name, timezone=body.timezone
         )
         await uow.commit()
-    return ok(OutletOut(id=outlet.id, code=outlet.code, name=outlet.name))
+    return ok(OutletOut(id=outlet.id, code=outlet.code, name=outlet.name, timezone=outlet.timezone))
 
 
 @router.get("/outlets/{outlet_id}/devices")

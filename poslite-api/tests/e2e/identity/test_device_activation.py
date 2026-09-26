@@ -32,7 +32,12 @@ async def test_activation_gives_the_device_a_code_and_a_token(api: AsyncClient) 
     data = response.json()["data"]
     assert response.status_code == 201
     assert data["device"]["code"] == "A"
-    assert data["device"]["outlet"] == {"id": outlet_id, "code": "JKT01", "name": "Outlet Kemang"}
+    assert data["device"]["outlet"] == {
+        "id": outlet_id,
+        "code": "JKT01",
+        "name": "Outlet Kemang",
+        "timezone": "Asia/Jakarta",
+    }
     assert data["token"]
     assert data["server_time"]
 

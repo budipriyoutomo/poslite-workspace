@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+/* Charts (dataviz reference palette; validated: series-1 on the light surface passes every check). */
+:root {
+  --chart-series-1: #2a78d6;
+  --chart-grid: #e7e5e4;
+}

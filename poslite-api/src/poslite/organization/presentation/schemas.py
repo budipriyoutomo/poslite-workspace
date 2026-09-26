@@ -10,6 +10,7 @@ class OutletOut(BaseModel):
     id: str
     code: str
     name: str
+    timezone: str = "Asia/Jakarta"
 
 
 class DeviceOut(BaseModel):
