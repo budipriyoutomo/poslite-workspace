@@ -61,6 +61,16 @@ class _Modifier(_Strict):
     price: Rupiah
 
 
+class _Discount(_Strict):
+    type: Literal["percentage", "fixed"]
+    value: Rupiah
+
+
+class _Promotion(_Strict):
+    id: Ulid
+    name: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+
+
 class _Line(_Strict):
     id: Ulid
     product_id: Ulid
@@ -70,11 +80,9 @@ class _Line(_Strict):
     quantity: Annotated[StrictInt, Field(gt=0)]
     notes: str
     modifiers: list[_Modifier]
-
-
-class _Discount(_Strict):
-    type: Literal["percentage", "fixed"]
-    value: Rupiah
+    # Optional so devices from before Fase 4 stay valid (07 "Push").
+    discount: _Discount | None = None
+    promotion: _Promotion | None = None
 
 
 class _Rates(_Strict):
@@ -103,6 +111,7 @@ class OrderPlacedPayload(_Strict):
     receipt_no: Annotated[str, StringConstraints(min_length=1, max_length=40)]
     cashier_id: Ulid
     order_type: Literal["take_away", "dine_in"]
+    table_label: Annotated[str, StringConstraints(min_length=1, max_length=30)] | None = None
     lines: Annotated[list[_Line], Field(min_length=1)]
     discount: _Discount | None
     rates: _Rates
@@ -121,6 +130,10 @@ def _parse[P: _Strict](model: type[P], event: IncomingEvent) -> P:
         raise DomainError(
             "SCHEMA_INVALID", f"{event.type}: {err.error_count()} invalid field(s)"
         ) from err
+
+
+def _discount(d: _Discount | None) -> Discount | None:
+    return Discount(d.type, d.value) if d else None
 
 
 def to_command(event: IncomingEvent) -> Command:
@@ -173,10 +186,14 @@ def to_command(event: IncomingEvent) -> Command:
                                 LineModifier(m.modifier_option_id, m.name, m.price)
                                 for m in line.modifiers
                             ),
+                            discount=_discount(line.discount),
+                            promotion=(
+                                (line.promotion.id, line.promotion.name) if line.promotion else None
+                            ),
                         )
                         for line in p.lines
                     ),
-                    discount=Discount(p.discount.type, p.discount.value) if p.discount else None,
+                    discount=_discount(p.discount),
                     rates=Rates(p.rates.service_bps, p.rates.tax_bps),
                     totals=PriceBreakdown(
                         p.totals.subtotal,
@@ -191,6 +208,7 @@ def to_command(event: IncomingEvent) -> Command:
                     ),
                     change_amount=p.change_amount,
                     occurred_at=event.occurred_at,
+                    table_label=p.table_label,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err

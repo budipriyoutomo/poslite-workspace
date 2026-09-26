@@ -26,6 +26,8 @@ class OrderLine:
     quantity: int
     notes: str
     modifiers: tuple[LineModifier, ...]
+    discount: Discount | None = None
+    promotion: tuple[str, str] | None = None  # (id, name) snapshot of the promotion (ADR-016)
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +53,7 @@ class PlaceOrderData:
     payments: tuple[Payment, ...]
     change_amount: int
     occurred_at: datetime
+    table_label: str | None = None
 
 
 @dataclass
@@ -102,7 +105,12 @@ class Order:
 
         expected = PriceCalculator().calculate(
             [
-                PricedLine(line.unit_price, sum(m.price for m in line.modifiers), line.quantity)
+                PricedLine(
+                    line.unit_price,
+                    sum(m.price for m in line.modifiers),
+                    line.quantity,
+                    line.discount,
+                )
                 for line in data.lines
             ],
             data.discount,

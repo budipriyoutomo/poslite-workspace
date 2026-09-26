@@ -4,13 +4,16 @@ from typing import Any
 
 import pytest
 
-from poslite.sales.api import PlaceOrderData
+from poslite.sales.api import Discount, PlaceOrderData
 from poslite.shared.domain.errors import DomainError
 from poslite.shift.api import CloseShift, MoveCash, OpenShift
 from poslite.sync.application.events import IncomingEvent, to_command
 
 EVENTS: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "sync-events.json").read_text()
+)
+VARIANTS: list[dict[str, Any]] = json.loads(
+    (Path(__file__).parents[2] / "fixtures" / "order-placed-variants.json").read_text()
 )
 COMMAND = {
     "shift.opened": OpenShift,
@@ -64,3 +67,26 @@ def test_rejects_an_event_type_it_does_not_handle_yet() -> None:
         to_command(IncomingEvent.model_validate(event))
 
     assert err.value.code == "UNSUPPORTED_EVENT_TYPE"
+
+
+@pytest.mark.parametrize("variant", VARIANTS, ids=[v["name"] for v in VARIANTS])
+def test_accepts_every_order_placed_variant(variant: dict[str, Any]) -> None:
+    """Same fixture as poslite-web: dine-in, line discounts and promotion snapshots."""
+    event = next(e for e in EVENTS if e["type"] == "order.placed")
+
+    command = to_command(IncomingEvent.model_validate({**event, "payload": variant["payload"]}))
+
+    assert isinstance(command, PlaceOrderData)
+
+
+def test_maps_table_label_line_discount_and_promotion() -> None:
+    event = next(e for e in EVENTS if e["type"] == "order.placed")
+    payload = VARIANTS[0]["payload"]
+
+    command = to_command(IncomingEvent.model_validate({**event, "payload": payload}))
+
+    assert isinstance(command, PlaceOrderData)
+    assert command.table_label == "A1"
+    assert command.lines[0].discount == Discount("fixed", 18_000)
+    assert command.lines[0].promotion == ("01K5ZQ00000000000000000001", "Beli 2 gratis 1")
+    assert command.lines[1].promotion is None

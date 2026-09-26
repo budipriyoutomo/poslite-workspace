@@ -16,6 +16,9 @@ from .helpers import Setup, outlet_with_menu_and_device
 FIXTURE: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "sync-events.json").read_text()
 )
+VARIANTS: list[dict[str, Any]] = json.loads(
+    (Path(__file__).parents[2] / "fixtures" / "order-placed-variants.json").read_text()
+)
 
 
 def batch(s: Setup) -> list[dict[str, Any]]:
@@ -225,3 +228,24 @@ async def test_back_office_lists_the_pushed_orders(api: AsyncClient) -> None:
             "created_at": "2026-09-25T04:03:00Z",
         }
     ]
+
+
+async def test_stores_a_dine_in_order_with_line_discounts_without_flags(
+    api: AsyncClient, system_engine: AsyncEngine
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    opened, _, placed, _ = batch(s)
+    variant = json.loads(
+        json.dumps(VARIANTS[0]["payload"]).replace("01K5ZA00000000000000000001", s.ids["siti"])
+    )
+    order = {**placed, "payload": variant}
+
+    response = await push(api, s.device_token, [opened, order])
+
+    assert statuses(response) == ["accepted", "accepted"]
+    assert await scalar(system_engine, "SELECT table_label FROM orders") == "A1"
+    assert await scalar(system_engine, "SELECT sum(discount_amount) FROM order_lines") == 18_500
+    assert (
+        await scalar(system_engine, "SELECT promotion_name FROM order_lines WHERE sort_order = 0")
+        == "Beli 2 gratis 1"
+    )

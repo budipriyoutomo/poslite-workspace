@@ -19,6 +19,7 @@ class OrderModel(Base):
     cashier_id: Mapped[str] = mapped_column(CHAR(26))
     business_date: Mapped[date] = mapped_column(Date)
     order_type: Mapped[str] = mapped_column(String(20))
+    table_label: Mapped[str | None] = mapped_column(String(30))
     subtotal: Mapped[int] = mapped_column(BigInteger)
     discount_type: Mapped[str | None] = mapped_column(String(20))
     discount_value: Mapped[int | None] = mapped_column(BigInteger)
@@ -50,6 +51,11 @@ class OrderLineModel(Base):
     line_total: Mapped[int] = mapped_column(BigInteger)
     notes: Mapped[str] = mapped_column(String(200))
     sort_order: Mapped[int] = mapped_column(Integer)
+    discount_type: Mapped[str | None] = mapped_column(String(20))
+    discount_value: Mapped[int | None] = mapped_column(BigInteger)
+    discount_amount: Mapped[int] = mapped_column(BigInteger, default=0)
+    promotion_id: Mapped[str | None] = mapped_column(CHAR(26))
+    promotion_name: Mapped[str | None] = mapped_column(String(100))
 
 
 class OrderLineModifierModel(Base):

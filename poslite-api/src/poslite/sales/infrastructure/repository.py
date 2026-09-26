@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from poslite.sales.domain.entities import Order
+from poslite.sales.domain.services import PriceCalculator
 from poslite.sales.infrastructure.models import (
     OrderLineModel,
     OrderLineModifierModel,
@@ -35,6 +36,7 @@ class SqlAlchemyOrderRepository:
                 cashier_id=d.cashier_id,
                 business_date=order.business_date,
                 order_type=d.order_type,
+                table_label=d.table_label,
                 subtotal=d.totals.subtotal,
                 discount_type=d.discount.type if d.discount else None,
                 discount_value=d.discount.value if d.discount else None,
@@ -56,6 +58,7 @@ class SqlAlchemyOrderRepository:
         )  # parent rows first: lines/payments reference the order
         for i, line in enumerate(d.lines):
             modifiers_total = sum(m.price for m in line.modifiers)
+            gross = (line.unit_price + modifiers_total) * line.quantity
             self._session.add(
                 OrderLineModel(
                     id=line.id,
@@ -67,9 +70,14 @@ class SqlAlchemyOrderRepository:
                     unit_price=line.unit_price,
                     modifiers_total=modifiers_total,
                     quantity=line.quantity,
-                    line_total=(line.unit_price + modifiers_total) * line.quantity,
+                    line_total=gross,
                     notes=line.notes,
                     sort_order=i,
+                    discount_type=line.discount.type if line.discount else None,
+                    discount_value=line.discount.value if line.discount else None,
+                    discount_amount=PriceCalculator.line_discount(gross, line.discount),
+                    promotion_id=line.promotion[0] if line.promotion else None,
+                    promotion_name=line.promotion[1] if line.promotion else None,
                 )
             )
         for payment in d.payments:

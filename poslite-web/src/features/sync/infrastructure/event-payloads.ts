@@ -30,11 +30,17 @@ const cashMoved = z.strictObject({
   created_by: ulid,
 });
 
+const discount = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("percentage"), value: z.number().int().min(0).max(100) }),
+  z.strictObject({ type: z.literal("fixed"), value: rupiah }),
+]);
+
 export const orderPlaced = z.strictObject({
   shift_id: ulid,
   receipt_no: z.string().min(1),
   cashier_id: ulid,
   order_type: z.enum(["take_away", "dine_in"]),
+  table_label: z.string().min(1).max(30).nullable().optional(),
   lines: z
     .array(
       z.strictObject({
@@ -46,15 +52,13 @@ export const orderPlaced = z.strictObject({
         quantity: z.number().int().positive(),
         notes: z.string(),
         modifiers: z.array(z.strictObject({ modifier_option_id: ulid, name: z.string().min(1), price: rupiah })),
+        // Line discount and the promotion that gave it (ADR-016); optional for pre-Fase 4 events.
+        discount: discount.nullable().optional(),
+        promotion: z.strictObject({ id: ulid, name: z.string().min(1).max(100) }).nullable().optional(),
       }),
     )
     .min(1),
-  discount: z
-    .discriminatedUnion("type", [
-      z.strictObject({ type: z.literal("percentage"), value: z.number().int().min(0).max(100) }),
-      z.strictObject({ type: z.literal("fixed"), value: rupiah }),
-    ])
-    .nullable(),
+  discount: discount.nullable(),
   rates: z.strictObject({ service_bps: bps, tax_bps: bps }),
   totals: z.strictObject({ subtotal: rupiah, discount_amount: rupiah, service_charge: rupiah, tax: rupiah, total: rupiah }),
   payments: z
