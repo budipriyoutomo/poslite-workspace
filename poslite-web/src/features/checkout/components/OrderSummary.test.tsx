@@ -41,4 +41,15 @@ describe("OrderSummary", () => {
     await userEvent.click(screen.getByRole("button", { name: "Hapus diskon" }));
     expect(row("Total")).toHaveTextContent("Rp 80.850");
   });
+
+  it("shows item discounts apart from the order discount taken on what is left", async () => {
+    const key = useCart.getState().lines[0]!.key;
+    useCart.getState().setLineDiscount(key, { type: "fixed", value: 5_000 });
+    useCart.getState().setDiscount({ type: "percentage", value: 10 });
+    render(<OrderSummary rates={{ serviceBps: 0, taxBps: 0 }} />);
+
+    expect(row("Diskon item")).toHaveTextContent("-Rp 5.000");
+    expect(row("Diskon 10%")).toHaveTextContent("-Rp 6.500");
+    expect(row("Total")).toHaveTextContent("Rp 58.500");
+  });
 });

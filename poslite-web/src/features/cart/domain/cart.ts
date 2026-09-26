@@ -8,8 +8,12 @@ export interface LineModifier {
   price: number;
 }
 
+export type LineDiscount = { type: "percentage" | "fixed"; value: number };
+
 export interface NewLine {
   productId: string;
+  /** For category-wide promotions; missing on carts saved before Fase 4. */
+  categoryId?: string;
   name: string;
   categoryName: string;
   unitPrice: number;
@@ -21,6 +25,7 @@ export interface CartLine extends NewLine {
   /** Lines with the same product, modifiers and note share a key and are merged. */
   key: string;
   quantity: number;
+  discount?: LineDiscount | null;
 }
 
 function mergeKey(line: Pick<NewLine, "productId" | "modifiers" | "note">): string {
@@ -70,4 +75,9 @@ export function cartLines(lines: CartLine[]): PricedLine[] {
     modifiersTotal: l.modifiers.reduce((sum, m) => sum + m.price, 0),
     quantity: l.quantity,
   }));
+}
+
+/** The cashier's own discount for one line; it replaces any promotion on that line (ADR-016). */
+export function setLineDiscount(lines: CartLine[], key: string, discount: LineDiscount | null): CartLine[] {
+  return lines.map((l) => (l.key === key ? { ...l, discount } : l));
 }

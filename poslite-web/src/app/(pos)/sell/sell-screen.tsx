@@ -15,6 +15,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet"
 
 type Editing = { product: ProductRow; lineKey?: string };
 
+/** What the cart shows under a line: the promotion's name, or the cashier's discount. */
+function appliedLabel(line: { discount: { type: string; value: number } | null; promotion: { name: string } | null; amount: number }) {
+  if (!line.discount) return null;
+  const label = line.promotion?.name ?? (line.discount.type === "percentage" ? `Diskon ${line.discount.value}%` : "Diskon");
+  return { label, amount: line.amount };
+}
+
 /** Sell screen: composes catalog (left), cart and totals (right; a sheet on narrow screens). */
 export function SellScreen() {
   const catalog = useCatalog();
@@ -31,7 +38,7 @@ export function SellScreen() {
 
   const select = (product: ProductRow) => {
     if (groupsOf(product).length > 0) return setEditing({ product });
-    cart.add({ productId: product.id, name: product.name, categoryName: categoryName(product), unitPrice: product.price, modifiers: [], note: "" });
+    cart.add({ productId: product.id, categoryId: product.categoryId, name: product.name, categoryName: categoryName(product), unitPrice: product.price, modifiers: [], note: "" });
   };
   const editLine = (key: string) => {
     const line = cart.lines.find((l) => l.key === key);
@@ -42,7 +49,7 @@ export function SellScreen() {
     if (!editing) return;
     const { product, lineKey } = editing;
     if (lineKey) cart.update(lineKey, { modifiers, note });
-    else cart.add({ productId: product.id, name: product.name, categoryName: categoryName(product), unitPrice: product.price, modifiers, note });
+    else cart.add({ productId: product.id, categoryId: product.categoryId, name: product.name, categoryName: categoryName(product), unitPrice: product.price, modifiers, note });
     setEditing(null);
   };
   const editingLine = editing?.lineKey ? cart.lines.find((l) => l.key === editing.lineKey) : undefined;
@@ -50,7 +57,7 @@ export function SellScreen() {
 
   const cartPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
-      <CartLines onEdit={editLine} />
+      <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
       <OrderSummary rates={rates}>
         <Button asChild size="lg" className="h-12 w-full bg-emerald-600 text-base hover:bg-emerald-700" disabled={totals.isEmpty}>
           <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>

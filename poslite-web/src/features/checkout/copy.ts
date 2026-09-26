@@ -2,6 +2,7 @@
 export const copy = {
   subtotal: "Subtotal",
   discount: "Diskon",
+  itemDiscount: "Diskon item",
   service: (bps: number) => `Service ${bps / 100}%`,
   tax: (bps: number) => `PB1 ${bps / 100}%`,
   total: "Total",

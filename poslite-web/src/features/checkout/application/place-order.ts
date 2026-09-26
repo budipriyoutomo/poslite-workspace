@@ -1,5 +1,5 @@
 import { formatReceiptNo, nextReceiptCounter } from "@/features/orders";
-import { applyPromotions, localMoment } from "@/features/promotions";
+import { localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
@@ -8,7 +8,8 @@ import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
 import { settle } from "../domain/payment";
-import { calculate, type Discount } from "../domain/pricing";
+import type { Discount } from "../domain/pricing";
+import { priceCart } from "./price-cart";
 
 export interface PlaceOrderInput {
   cashier: { id: string; name: string };
@@ -54,18 +55,8 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
 
     const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps }; // snapshot (ADR-011)
     const now = deps.now();
-    const priced = input.lines.map((l) => ({ ...l, modifiersTotal: l.modifiers.reduce((s, m) => s + m.price, 0) }));
     // Promotions are decided now, at payment, in outlet time (ADR-016).
-    const applied = applyPromotions(
-      priced.map((l) => ({ productId: l.productId, categoryId: l.categoryId, unitPrice: l.unitPrice, modifiersTotal: l.modifiersTotal, quantity: l.quantity, manualDiscount: l.discount ?? null })),
-      await db.promotions.toArray(),
-      localMoment(now, outlet.timezone),
-    );
-    const totals = calculate(
-      priced.map((l, i) => ({ unitPrice: l.unitPrice, modifiersTotal: l.modifiersTotal, quantity: l.quantity, discount: applied[i]!.discount })),
-      input.discount,
-      rates,
-    );
+    const { lines: applied, totals } = priceCart(input.lines, input.discount, rates, await db.promotions.toArray(), localMoment(now, outlet.timezone));
 
     const methods = await db.paymentMethods.bulkGet(input.payments.map((p) => p.paymentMethodId));
     const tendered = input.payments.map((p, i) => {

@@ -35,4 +35,24 @@ describe("CartLines", () => {
     await userEvent.click(screen.getByRole("button", { name: "Kurangi jumlah Nasi Gudeg" }));
     expect(screen.getByText("Keranjang kosong")).toBeInTheDocument();
   });
+
+  it("shows the promotion or discount given to a line", () => {
+    useCart.getState().add(gudeg);
+    render(<CartLines onEdit={() => undefined} applied={[{ label: "Happy hour", amount: 7_000 }]} />);
+
+    expect(within(screen.getByRole("listitem")).getByText("Happy hour")).toBeInTheDocument();
+    expect(within(screen.getByRole("listitem")).getByText("-Rp 7.000")).toBeInTheDocument();
+  });
+
+  it("gives one line a manual discount and removes it", async () => {
+    useCart.getState().add(gudeg);
+    render(<CartLines onEdit={() => undefined} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Diskon item Nasi Gudeg" }));
+    await userEvent.click(await screen.findByRole("button", { name: "10%" }));
+    expect(useCart.getState().lines[0]!.discount).toEqual({ type: "percentage", value: 10 });
+
+    await userEvent.click(screen.getByRole("button", { name: "Hapus diskon Nasi Gudeg" }));
+    expect(useCart.getState().lines[0]!.discount).toBeNull();
+  });
 });

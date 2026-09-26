@@ -3,7 +3,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 
 import { getDb } from "@/shared/db";
 
-import { addLine, type CartLine, changeQuantity, type NewLine, removeLine, updateLine } from "../domain/cart";
+import { addLine, type CartLine, changeQuantity, type LineDiscount, type NewLine, removeLine, setLineDiscount, updateLine } from "../domain/cart";
 import { cartStorage } from "../infrastructure/cart-storage";
 
 /** Same shape as checkout's Discount (features share data shapes, not imports). */
@@ -19,6 +19,7 @@ interface CartState {
   changeQuantity: (key: string, delta: number) => void;
   update: (key: string, change: Pick<NewLine, "modifiers" | "note">) => void;
   remove: (key: string) => void;
+  setLineDiscount: (key: string, discount: LineDiscount | null) => void;
   setDiscount: (discount: CartDiscount | null) => void;
   clear: () => void;
 }
@@ -33,6 +34,7 @@ export function createCartStore(storage: StateStorage) {
         changeQuantity: (key, delta) => set((s) => ({ lines: changeQuantity(s.lines, key, delta) })),
         update: (key, change) => set((s) => ({ lines: updateLine(s.lines, key, change) })),
         remove: (key) => set((s) => ({ lines: removeLine(s.lines, key) })),
+        setLineDiscount: (key, discount) => set((s) => ({ lines: setLineDiscount(s.lines, key, discount) })),
         setDiscount: (discount) => set({ discount }),
         clear: () => set({ lines: [], discount: null }),
       }),

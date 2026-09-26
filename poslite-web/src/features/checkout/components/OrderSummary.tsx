@@ -20,7 +20,8 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
   const discountLabel = totals.discount?.type === "percentage" ? `${copy.discount} ${totals.discount.value}%` : copy.discount;
 
   const rows: [string, number][] = [[copy.subtotal, totals.subtotal]];
-  if (totals.discountAmount > 0) rows.push([discountLabel, -totals.discountAmount]);
+  if (totals.itemDiscounts > 0) rows.push([copy.itemDiscount, -totals.itemDiscounts]);
+  if (totals.orderDiscount > 0) rows.push([discountLabel, -totals.orderDiscount]);
   if (rates.serviceBps > 0) rows.push([copy.service(rates.serviceBps), totals.serviceCharge]);
   if (rates.taxBps > 0) rows.push([copy.tax(rates.taxBps), totals.tax]);
 

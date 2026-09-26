@@ -8,4 +8,8 @@ export const copy = {
   quantity: (name: string) => `Jumlah ${name}`,
   edit: (name: string) => `Ubah ${name}`,
   clear: "Kosongkan",
+  lineDiscount: (name: string) => `Diskon item ${name}`,
+  removeLineDiscount: (name: string) => `Hapus diskon ${name}`,
+  lineDiscountTitle: (name: string) => `Diskon untuk ${name}`,
+  lineDiscountHint: "Diskon item menggantikan promo otomatis pada baris ini.",
 } as const;

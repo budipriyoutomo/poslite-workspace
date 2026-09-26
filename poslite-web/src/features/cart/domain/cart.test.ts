@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addLine, cartLines, changeQuantity, type CartLine, type NewLine, removeLine, updateLine } from "./cart";
+import { addLine, cartLines, changeQuantity, type CartLine, type NewLine, removeLine, setLineDiscount, updateLine } from "./cart";
 
 const gudeg: NewLine = { productId: "P1", name: "Nasi Gudeg", categoryName: "Makanan", unitPrice: 25_000, modifiers: [], note: "" };
 const ayam = { optionId: "M1", groupId: "G1", name: "Tambah Ayam", price: 10_000 };
@@ -74,5 +74,21 @@ describe("cartLines", () => {
   it("prices lines with the per-unit modifiers total", () => {
     const lines = addLine(addLine([], { ...gudeg, modifiers: [ayam, telur] }), { ...gudeg, modifiers: [ayam, telur] });
     expect(cartLines(lines)).toEqual([{ unitPrice: 25_000, modifiersTotal: 15_000, quantity: 2 }]);
+  });
+});
+
+describe("setLineDiscount", () => {
+  const kopi = { productId: "P1", categoryId: "C1", name: "Kopi", categoryName: "Minuman", unitPrice: 18_000, modifiers: [], note: "" };
+
+  it("gives one line its own discount and clears it again", () => {
+    const [line] = addLine([], kopi);
+    const discounted = setLineDiscount([line!], line!.key, { type: "percentage", value: 10 });
+
+    expect(discounted[0]!.discount).toEqual({ type: "percentage", value: 10 });
+    expect(setLineDiscount(discounted, line!.key, null)[0]!.discount).toBeNull();
+  });
+
+  it("keeps the category for promotions", () => {
+    expect(addLine([], kopi)[0]!.categoryId).toBe("C1");
   });
 });
