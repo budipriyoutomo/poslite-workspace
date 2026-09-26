@@ -198,3 +198,11 @@ async def delete_user(uow: SqlAlchemyUnitOfWork, *, user_id: str, actor_id: str)
         raise DomainError("USER_NOT_FOUND", kind="not_found")
     user.deleted_at = func.now()
     await uow.session.flush()
+
+
+async def user_names(uow: SqlAlchemyUnitOfWork, user_ids: list[str]) -> dict[str, str]:
+    """Names for reports; deleted users keep their name (sales history outlives the account)."""
+    rows = await uow.session.execute(
+        select(UserModel.id, UserModel.name).where(UserModel.id.in_(user_ids))
+    )
+    return {user_id: name for user_id, name in rows}

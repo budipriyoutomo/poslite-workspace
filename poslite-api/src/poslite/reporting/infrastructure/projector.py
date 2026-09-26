@@ -5,6 +5,8 @@ from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 
 from poslite.reporting.infrastructure.models import (
+    DailyCashierSalesModel,
+    DailyCategorySalesModel,
     DailyPaymentSalesModel,
     DailyProductSalesModel,
     DailySalesModel,
@@ -26,7 +28,13 @@ async def project_daily_sales(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: da
             set_={**totals, "updated_at": insert(DailySalesModel).excluded.updated_at},
         )
     )
-    for model in (DailyProductSalesModel, DailyPaymentSalesModel):
+    breakdowns = (
+        DailyProductSalesModel,
+        DailyPaymentSalesModel,
+        DailyCategorySalesModel,
+        DailyCashierSalesModel,
+    )
+    for model in breakdowns:
         await uow.session.execute(
             delete(model).where(model.outlet_id == outlet_id, model.business_date == day)
         )
@@ -37,6 +45,14 @@ async def project_daily_sales(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: da
     uow.session.add_all(
         DailyPaymentSalesModel(**key, **asdict(p))
         for p in await sales.daily_payment_sales(uow, outlet_id, day)
+    )
+    uow.session.add_all(
+        DailyCategorySalesModel(**key, **asdict(c))
+        for c in await sales.daily_category_sales(uow, outlet_id, day)
+    )
+    uow.session.add_all(
+        DailyCashierSalesModel(**key, **asdict(c))
+        for c in await sales.daily_cashier_sales(uow, outlet_id, day)
     )
     await uow.session.flush()
 

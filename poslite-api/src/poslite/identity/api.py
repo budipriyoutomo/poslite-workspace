@@ -18,6 +18,7 @@ from poslite.identity.infrastructure.service import (
     role_at,
     roles_of,
     user_changes,
+    user_names,
 )
 from poslite.identity.infrastructure.tokens import (
     SqlTokenResolver,
@@ -53,5 +54,6 @@ __all__ = [
     "roles_of",
     "start_backoffice_session",
     "user_changes",
+    "user_names",
     "verify_password",
 ]

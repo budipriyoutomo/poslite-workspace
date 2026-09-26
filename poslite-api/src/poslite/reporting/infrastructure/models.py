@@ -44,3 +44,25 @@ class DailyPaymentSalesModel(Base):
     method_type: Mapped[str] = mapped_column(String(20))
     amount: Mapped[int] = mapped_column(BigInteger)
     count: Mapped[int] = mapped_column(Integer)
+
+
+class DailyCategorySalesModel(Base):
+    __tablename__ = "rpt_daily_category_sales"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    business_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    category_name: Mapped[str] = mapped_column(String(100), primary_key=True)
+    quantity: Mapped[int] = mapped_column(Integer)
+    gross: Mapped[int] = mapped_column(BigInteger)
+
+
+class DailyCashierSalesModel(Base):
+    __tablename__ = "rpt_daily_cashier_sales"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    business_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    cashier_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    order_count: Mapped[int] = mapped_column(Integer)
+    net: Mapped[int] = mapped_column(BigInteger)

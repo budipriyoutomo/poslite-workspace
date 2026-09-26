@@ -5,10 +5,14 @@ from poslite.sales.domain.entities import LineModifier, OrderLine, Payment, Plac
 from poslite.sales.domain.repository import OrderRepository
 from poslite.sales.domain.value_objects import Discount, PriceBreakdown, Rates
 from poslite.sales.infrastructure.queries import (
+    CashierSales,
+    CategorySales,
     DailyTotals,
     OrderSummary,
     PaymentSales,
     ProductSales,
+    daily_cashier_sales,
+    daily_category_sales,
     daily_payment_sales,
     daily_product_sales,
     daily_totals,
@@ -17,6 +21,8 @@ from poslite.sales.infrastructure.queries import (
 from poslite.sales.infrastructure.repository import SqlAlchemyOrderRepository
 
 __all__ = [
+    "CashierSales",
+    "CategorySales",
     "DailyTotals",
     "Discount",
     "LineModifier",
@@ -32,6 +38,8 @@ __all__ = [
     "Rates",
     "SalesUnitOfWork",
     "SqlAlchemyOrderRepository",
+    "daily_cashier_sales",
+    "daily_category_sales",
     "daily_payment_sales",
     "daily_product_sales",
     "daily_totals",

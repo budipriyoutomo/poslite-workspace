@@ -136,3 +136,44 @@ async def list_orders(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> l
         )
         for o in rows
     ]
+
+
+@dataclass(frozen=True, slots=True)
+class CategorySales:
+    category_name: str
+    quantity: int
+    gross: int
+
+
+@dataclass(frozen=True, slots=True)
+class CashierSales:
+    cashier_id: str
+    order_count: int
+    net: int
+
+
+async def daily_category_sales(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date
+) -> list[CategorySales]:
+    rows = await uow.session.execute(
+        select(
+            OrderLineModel.category_name,
+            func.sum(OrderLineModel.quantity),
+            func.sum(OrderLineModel.line_total),
+        )
+        .join(OrderModel, OrderModel.id == OrderLineModel.order_id)
+        .where(_day(outlet_id, day), OrderModel.status == "paid")
+        .group_by(OrderLineModel.category_name)
+    )
+    return [CategorySales(name, int(qty), int(gross)) for name, qty, gross in rows]
+
+
+async def daily_cashier_sales(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date
+) -> list[CashierSales]:
+    rows = await uow.session.execute(
+        select(OrderModel.cashier_id, func.count(), func.sum(OrderModel.total))
+        .where(_day(outlet_id, day), OrderModel.status == "paid")
+        .group_by(OrderModel.cashier_id)
+    )
+    return [CashierSales(cid, int(n), int(net)) for cid, n, net in rows]
