@@ -14,6 +14,7 @@ describe("ensureDemoData", () => {
     expect(await db.users.count()).toBe(DEMO_USERS.length);
     expect(await db.products.count()).toBeGreaterThanOrEqual(8);
     expect(await db.paymentMethods.where("type").equals("cash").count()).toBe(1);
+    expect((await db.diningTables.orderBy("sortOrder").toArray()).map((t) => t.label)).toEqual(["A1", "A2", "A3", "A4", "B1", "B2"]);
   });
 
   it("does nothing on a device that already has outlet settings", async () => {

@@ -1,10 +1,10 @@
 // Demo master data until device activation + sync pull exist (Fase 2). It only seeds a device that
 // has never been set up, and never overwrites anything. Menu and add-ons come from the v0 prototype.
 import type { PosDb } from "./db";
-import type { CategoryRow, ModifierGroupRow, OutletSetting, PaymentMethodRow, ProductRow, UserRow } from "./rows";
+import type { CategoryRow, DiningTableRow, ModifierGroupRow, OutletSetting, PaymentMethodRow, ProductRow, UserRow } from "./rows";
 
 // Fixed, valid ULIDs: 01K5Z + kind letter + 20 digits.
-const id = (kind: "C" | "P" | "G" | "M" | "Y" | "A" | "T" | "D", n: number) => `01K5Z${kind}${String(n).padStart(20, "0")}`;
+const id = (kind: "C" | "P" | "G" | "M" | "Y" | "A" | "T" | "D" | "N", n: number) => `01K5Z${kind}${String(n).padStart(20, "0")}`;
 
 const OUTLET: OutletSetting = {
   outletId: id("T", 1),
@@ -93,9 +93,18 @@ const PAYMENT_METHODS: PaymentMethodRow[] = [
   method(10, "voucher", "GoFood Voucher", true),
 ];
 
+// Dine-in tables (Fase 4); "N" ids so they never collide with the outlet's "T" id.
+const TABLES: DiningTableRow[] = ["A1", "A2", "A3", "A4", "B1", "B2"].map((label, i) => ({
+  id: id("N", i + 1),
+  label,
+  area: label.startsWith("A") ? "Dalam" : "Teras",
+  seats: 4,
+  sortOrder: i,
+}));
+
 /** Seeds an empty device with demo master data. Returns true when it seeded. */
 export async function ensureDemoData(db: PosDb): Promise<boolean> {
-  return db.transaction("rw", [db.settings, db.users, db.categories, db.modifierGroups, db.products, db.paymentMethods], async () => {
+  return db.transaction("rw", [db.settings, db.users, db.categories, db.modifierGroups, db.products, db.paymentMethods, db.diningTables], async () => {
     if (await db.settings.get("outlet")) return false;
     await db.settings.put({ key: "outlet", value: OUTLET });
     await db.users.bulkPut(USERS);
@@ -103,6 +112,7 @@ export async function ensureDemoData(db: PosDb): Promise<boolean> {
     await db.modifierGroups.bulkPut(GROUPS);
     await db.products.bulkPut(PRODUCTS);
     await db.paymentMethods.bulkPut(PAYMENT_METHODS);
+    await db.diningTables.bulkPut(TABLES);
     return true;
   });
 }
