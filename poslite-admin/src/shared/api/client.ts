@@ -38,8 +38,11 @@ function toApiError(response: Response, error: unknown): ApiError {
 }
 
 /** Await an openapi-fetch call and return the envelope's `data`, or throw an ApiError. */
-export async function unwrap<D>(call: Promise<{ data?: { data: D }; error?: unknown; response: Response }>): Promise<D> {
+type Payload<E> = E extends { data: infer D } ? D : undefined;
+
+export async function unwrap<E extends object>(call: Promise<{ data?: E; error?: unknown; response: Response }>): Promise<Payload<E>> {
   const { data, error, response } = await call;
   if (error !== undefined || !response.ok || data === undefined) throw toApiError(response, error);
-  return data.data;
+  // Endpoints answering { data: null } are typed without `data` by openapi-fetch: they yield undefined.
+  return (data as { data?: unknown }).data as Payload<E>;
 }
