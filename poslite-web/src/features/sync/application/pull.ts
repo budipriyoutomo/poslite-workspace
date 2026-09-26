@@ -39,6 +39,10 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         return void (await db.paymentMethods.delete(change.id));
       case "user":
         return void (await db.users.delete(change.id));
+      case "dining_table":
+        return void (await db.diningTables.delete(change.id));
+      case "promotion":
+        return void (await db.promotions.delete(change.id));
     }
   }
   switch (change.entity) {
@@ -98,6 +102,28 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
       if (!d.pin_hash || !d.pin_salt || !d.pin_iterations) return void (await db.users.delete(change.id));
       return void (await db.users.put({ id: change.id, name: d.name, role: d.role, pinHash: d.pin_hash, pinSalt: d.pin_salt, pinIterations: d.pin_iterations }));
     }
+    case "dining_table": {
+      const d = change.data;
+      return void (await db.diningTables.put({ id: change.id, label: d.label, area: d.area, seats: d.seats, sortOrder: d.sort_order }));
+    }
+    case "promotion": {
+      const d = change.data;
+      return void (await db.promotions.put({
+        id: change.id,
+        name: d.name,
+        type: d.type,
+        percentage: d.percentage,
+        buyQty: d.buy_qty,
+        getQty: d.get_qty,
+        productIds: d.product_ids,
+        categoryIds: d.category_ids,
+        daysOfWeek: d.days_of_week,
+        startTime: d.start_time,
+        endTime: d.end_time,
+        startsOn: d.starts_on,
+        endsOn: d.ends_on,
+      }));
+    }
   }
 }
 
@@ -123,7 +149,7 @@ export async function pullAll(deps: { db: PosDb; api: BaseApi }): Promise<void> 
   while (hasMore) {
     const cursor = (await readState(db, "pullCursor")) ?? 0;
     const page = await apiRequest(api, "GET", `/sync/pull?cursor=${cursor}&limit=${PAGE_SIZE}`, pullPageSchema);
-    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.syncState], async () => {
+    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.diningTables, db.promotions, db.syncState], async () => {
       const touchedGroups = new Set<string>();
       for (const change of page.changes) await applyChange(db, change, device, touchedGroups);
       await embedOptions(db, touchedGroups);

@@ -4,6 +4,8 @@ import { z } from "zod";
 
 const ulid = z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/, "ULID");
 const rupiah = z.number().int().nonnegative();
+const hhmm = z.string().regex(/^\d{2}:\d{2}$/);
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 const upsert = <E extends string, D extends z.ZodType>(entity: E, data: D) =>
   z.object({ entity: z.literal(entity), op: z.literal("upsert"), id: ulid, version: z.number().int(), data });
@@ -15,7 +17,7 @@ export const changeSchema = z.union([
       code: z.string(),
       name: z.string(),
       timezone: z.string(),
-      business_day_cutoff: z.string().regex(/^\d{2}:\d{2}$/),
+      business_day_cutoff: hhmm,
       tax_rate_bps: rupiah,
       service_rate_bps: rupiah,
       receipt_header: z.string(),
@@ -57,8 +59,26 @@ export const changeSchema = z.union([
       pin_iterations: z.number().int().nullable(),
     }),
   ),
+  upsert("dining_table", z.object({ label: z.string().min(1), area: z.string(), seats: z.number().int().nonnegative(), sort_order: z.number().int() })),
+  upsert(
+    "promotion",
+    z.object({
+      name: z.string().min(1),
+      type: z.enum(["percent_off", "buy_x_get_y"]),
+      percentage: z.number().int().min(1).max(100).nullable(),
+      buy_qty: z.number().int().positive().nullable(),
+      get_qty: z.number().int().positive().nullable(),
+      product_ids: z.array(ulid),
+      category_ids: z.array(ulid),
+      days_of_week: z.array(z.number().int().min(1).max(7)),
+      start_time: hhmm.nullable(),
+      end_time: hhmm.nullable(),
+      starts_on: isoDate.nullable(),
+      ends_on: isoDate.nullable(),
+    }),
+  ),
   z.object({
-    entity: z.enum(["outlet_setting", "category", "product", "modifier_group", "modifier_option", "payment_method", "user"]),
+    entity: z.enum(["outlet_setting", "category", "product", "modifier_group", "modifier_option", "payment_method", "user", "dining_table", "promotion"]),
     op: z.literal("delete"),
     id: ulid,
     version: z.number().int(),

@@ -196,3 +196,57 @@ export interface PrintJobRow {
   lastError?: string;
   createdAt: string;
 }
+
+// ── Fase 4: dine-in & promotions (ADR-015, ADR-016) ─────────────────────────────────────────
+
+export interface DiningTableRow {
+  id: string;
+  label: string;
+  area: string;
+  seats: number;
+  sortOrder: number;
+}
+
+export interface PromotionRow {
+  id: string;
+  name: string;
+  type: "percent_off" | "buy_x_get_y";
+  percentage: number | null; // integer 1..100
+  buyQty: number | null;
+  getQty: number | null;
+  productIds: string[];
+  categoryIds: string[];
+  daysOfWeek: number[]; // ISO 1 = Monday … 7 = Sunday; empty = every day
+  startTime: string | null; // HH:MM, outlet time
+  endTime: string | null;
+  startsOn: string | null; // YYYY-MM-DD, outlet date
+  endsOn: string | null;
+}
+
+export type LineDiscount = { type: "percentage" | "fixed"; value: number };
+
+/** A cart line kept on an open bill (same shape as the cart feature's CartLine). */
+export interface OpenBillLine {
+  key: string;
+  productId: string;
+  categoryId?: string;
+  name: string;
+  categoryName: string;
+  unitPrice: number;
+  modifiers: { optionId: string; groupId: string; name: string; price: number }[];
+  note: string;
+  quantity: number;
+  discount?: LineDiscount | null;
+}
+
+/** A dine-in bill not paid yet: lives only on this device, never synced (ADR-015). */
+export interface OpenBillRow {
+  id: string;
+  tableId: string | null;
+  tableLabel: string;
+  lines: OpenBillLine[];
+  discount: LineDiscount | null; // order discount
+  openedBy: string;
+  openedAt: string;
+  updatedAt: string;
+}

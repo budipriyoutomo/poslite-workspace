@@ -86,3 +86,69 @@ describe("pullAll", () => {
     expect(await db.products.count()).toBe(0);
   });
 });
+
+describe("pullAll — Fase 4 master data", () => {
+  const TABLE = { entity: "dining_table", op: "upsert", id: ULID("T", 9), version: 20, data: { label: "A1", area: "Teras", seats: 4, sort_order: 0 } };
+  const PROMO = {
+    entity: "promotion",
+    op: "upsert",
+    id: ULID("Q", 1),
+    version: 21,
+    data: {
+      name: "Happy hour",
+      type: "percent_off",
+      percentage: 20,
+      buy_qty: null,
+      get_qty: null,
+      product_ids: [],
+      category_ids: [ULID("C", 1)],
+      days_of_week: [1, 2, 3, 4, 5],
+      start_time: "14:00",
+      end_time: "17:00",
+      starts_on: null,
+      ends_on: "2026-12-31",
+    },
+  };
+
+  it("stores dining tables and promotions", async () => {
+    await pullAll(deps(vi.fn(async () => page([TABLE, PROMO], 21))));
+
+    expect(await db.diningTables.get(ULID("T", 9))).toEqual({ id: ULID("T", 9), label: "A1", area: "Teras", seats: 4, sortOrder: 0 });
+    expect(await db.promotions.get(ULID("Q", 1))).toEqual({
+      id: ULID("Q", 1),
+      name: "Happy hour",
+      type: "percent_off",
+      percentage: 20,
+      buyQty: null,
+      getQty: null,
+      productIds: [],
+      categoryIds: [ULID("C", 1)],
+      daysOfWeek: [1, 2, 3, 4, 5],
+      startTime: "14:00",
+      endTime: "17:00",
+      startsOn: null,
+      endsOn: "2026-12-31",
+    });
+  });
+
+  it("drops a promotion or table the server deletes", async () => {
+    await pullAll(deps(vi.fn(async () => page([TABLE, PROMO], 21))));
+
+    await pullAll(
+      deps(
+        vi.fn(async () =>
+          page(
+            [
+              { entity: "promotion", op: "delete", id: ULID("Q", 1), version: 22 },
+              { entity: "dining_table", op: "delete", id: ULID("T", 9), version: 23 },
+            ],
+            23,
+          ),
+        ),
+      ),
+    );
+
+    expect(await db.promotions.count()).toBe(0);
+    expect(await db.diningTables.count()).toBe(0);
+  });
+});

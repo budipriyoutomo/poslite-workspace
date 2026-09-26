@@ -3,8 +3,10 @@ import Dexie, { type DexieOptions, type Table } from "dexie";
 import type {
   CashMovementRow,
   CategoryRow,
+  DiningTableRow,
   ModifierGroupRow,
   ModifierOptionRow,
+  OpenBillRow,
   OrderRow,
   OutboxRow,
   PaymentMethodRow,
@@ -12,6 +14,7 @@ import type {
   PrinterConfigRow,
   PrintJobRow,
   ProductRow,
+  PromotionRow,
   SettingRow,
   ShiftRow,
   SyncStateRow,
@@ -28,12 +31,16 @@ export class PosDb extends Dexie {
   modifierOptions!: Table<ModifierOptionRow, string>;
   paymentMethods!: Table<PaymentMethodRow, string>;
   users!: Table<UserRow, string>;
+  diningTables!: Table<DiningTableRow, string>;
+  promotions!: Table<PromotionRow, string>;
 
   // Transactional (created on the device)
   shifts!: Table<ShiftRow, string>;
   orders!: Table<OrderRow, string>;
   payments!: Table<PaymentRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
+  /** Unpaid dine-in bills: device-local, never synced or pushed (ADR-015). */
+  openBills!: Table<OpenBillRow, string>;
 
   // Infrastructure
   outbox!: Table<OutboxRow, number>;
@@ -63,6 +70,8 @@ export class PosDb extends Dexie {
     });
     // v2 (Fase 2 sync): the server sends modifier options as their own entity.
     this.version(2).stores({ modifierOptions: "id, modifierGroupId" });
+    // v3 (Fase 4): tables and promotions from the server, open bills kept on this device only.
+    this.version(3).stores({ diningTables: "id, sortOrder", promotions: "id", openBills: "id, tableId, openedAt" });
   }
 }
 
