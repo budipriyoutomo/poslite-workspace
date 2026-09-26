@@ -5,10 +5,10 @@ import { useState } from "react";
 
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
-
-import { type ModifierGroup, useDeleteModifierGroup, useModifierGroups } from "../application/use-menu";
 import { ConfirmDelete } from "@/shared/ui/confirm-delete";
 import { EditDialog } from "@/shared/ui/edit-dialog";
+
+import { type ModifierGroup, useDeleteModifierGroup, useModifierGroups } from "../application/use-menu";
 import { ModifierGroupForm } from "./ModifierGroupForm";
 
 const rule = (g: ModifierGroup) => (g.min_select === 1 && g.max_select === 1 ? "Wajib pilih 1" : `Opsional, maks ${g.max_select}`);

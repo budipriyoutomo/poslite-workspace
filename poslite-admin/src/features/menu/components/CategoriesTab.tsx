@@ -6,10 +6,10 @@ import { toast } from "sonner";
 
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-
-import { type CategoryIn, useCategories, useDeleteCategory, useSaveCategory } from "../application/use-menu";
 import { ConfirmDelete } from "@/shared/ui/confirm-delete";
 import { selectClass } from "@/shared/ui/form-field";
+
+import { type CategoryIn, useCategories, useDeleteCategory, useSaveCategory } from "../application/use-menu";
 
 const PRINT_ROLES: { value: CategoryIn["print_role"]; label: string }[] = [
   { value: "receipt", label: "Struk" },
