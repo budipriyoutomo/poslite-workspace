@@ -34,7 +34,7 @@ class SqlAlchemySyncEventRepository:
         )
         await self._session.execute(
             statement.on_conflict_do_update(
-                index_elements=[SyncEventModel.id],
+                index_elements=[SyncEventModel.tenant_id, SyncEventModel.id],
                 set_={
                     **values,
                     "attempts": SyncEventModel.attempts + 1,

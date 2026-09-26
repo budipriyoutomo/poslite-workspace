@@ -8,6 +8,7 @@ from poslite.sales.infrastructure.models import (
     OrderModel,
     PaymentModel,
 )
+from poslite.shared.infrastructure.flush import flush_or_conflict
 
 
 class SqlAlchemyOrderRepository:
@@ -50,7 +51,9 @@ class SqlAlchemyOrderRepository:
                 created_at=d.occurred_at,
             )
         )
-        await self._session.flush()  # parent rows first: lines/payments reference the order
+        await flush_or_conflict(
+            self._session
+        )  # parent rows first: lines/payments reference the order
         for i, line in enumerate(d.lines):
             modifiers_total = sum(m.price for m in line.modifiers)
             self._session.add(
@@ -82,7 +85,7 @@ class SqlAlchemyOrderRepository:
                     created_at=d.occurred_at,
                 )
             )
-        await self._session.flush()
+        await flush_or_conflict(self._session)
         self._session.add_all(
             OrderLineModifierModel(
                 tenant_id=tid,
@@ -94,4 +97,4 @@ class SqlAlchemyOrderRepository:
             for line in d.lines
             for m in line.modifiers
         )
-        await self._session.flush()
+        await flush_or_conflict(self._session)

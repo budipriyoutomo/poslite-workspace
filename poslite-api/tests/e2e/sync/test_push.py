@@ -1,11 +1,14 @@
 import asyncio
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
+
+from poslite.shared.domain.ids import new_ulid
 
 from ..identity.helpers import bearer
 from .helpers import Setup, outlet_with_menu_and_device
@@ -22,6 +25,15 @@ def batch(s: Setup) -> list[dict[str, Any]]:
     raw = raw.replace("01K5ZP00000000000000000001", s.ids["product"]).replace(
         "01K5ZY00000000000000000001", s.ids["cash"]
     )
+    events: list[dict[str, Any]] = json.loads(raw)
+    return events
+
+
+def fresh_batch(s: Setup) -> list[dict[str, Any]]:
+    """Like batch(), with new ids for every event and transaction (what another device sends)."""
+    raw = json.dumps(batch(s))
+    for old in sorted(set(re.findall(r'"(01K5Z[0-9A-Z]{21})"', raw))):
+        raw = raw.replace(old, new_ulid())
     events: list[dict[str, Any]] = json.loads(raw)
     return events
 
@@ -172,3 +184,20 @@ async def test_back_office_tokens_cannot_push(api: AsyncClient) -> None:
     s = await outlet_with_menu_and_device(api)
 
     assert (await push(api, s.owner_token, batch(s))).status_code == 403
+
+
+async def test_an_id_already_used_by_another_tenant_rejects_only_that_event(
+    api: AsyncClient,
+) -> None:
+    """RLS hides the other tenant's row, so the insert collides on the primary key: that must be a
+    per-event rejection, not a 500 that blocks the device's whole outbox."""
+    a = await outlet_with_menu_and_device(api)
+    b = await outlet_with_menu_and_device(
+        api, slug="lain", email="b@b.id", outlet={"code": "BDG01", "name": "Bandung"}
+    )
+    await push(api, a.device_token, batch(a)[:1])
+
+    response = await push(api, b.device_token, batch(b)[:1])
+
+    assert response.status_code == 200
+    assert response.json()["data"]["results"][0]["code"] == "ID_CONFLICT"

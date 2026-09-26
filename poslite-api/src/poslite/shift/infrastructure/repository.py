@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from poslite.shared.infrastructure.flush import flush_or_conflict
 from poslite.shift.domain.entities import CashMovement, Shift
 from poslite.shift.infrastructure.models import CashMovementModel, ShiftModel
 
@@ -44,13 +45,13 @@ class SqlAlchemyShiftRepository:
                 status=shift.status,
             )
         )
-        await self._session.flush()
+        await flush_or_conflict(self._session)
 
     async def save(self, shift: Shift) -> None:
         row = await self._session.get_one(ShiftModel, shift.id)
         for name in _FIELDS:
             setattr(row, name, getattr(shift, name))
-        await self._session.flush()
+        await flush_or_conflict(self._session)
 
     async def add_movement(self, movement: CashMovement) -> None:
         self._session.add(
@@ -65,4 +66,4 @@ class SqlAlchemyShiftRepository:
                 created_at=movement.created_at,
             )
         )
-        await self._session.flush()
+        await flush_or_conflict(self._session)

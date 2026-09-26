@@ -11,6 +11,7 @@ from poslite.identity.presentation.router import router as identity_router
 from poslite.identity.presentation.users_router import router as users_router
 from poslite.organization.presentation.router import router as organization_router
 from poslite.payment.presentation.router import router as payment_router
+from poslite.reporting.presentation.router import router as reporting_router
 from poslite.shared.application.clock import SystemClock
 from poslite.shared.config import Settings, get_settings
 from poslite.shared.domain.ids import new_ulid
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         catalog_router,
         payment_router,
         sync_router,
+        reporting_router,
     ):
         api.include_router(module_router)
     app.include_router(api)

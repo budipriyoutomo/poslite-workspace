@@ -11,7 +11,7 @@ class SyncEventModel(Base):
     __tablename__ = "sync_events"
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    tenant_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     device_id: Mapped[str] = mapped_column(CHAR(26))
     type: Mapped[str] = mapped_column(String(30))
     aggregate_id: Mapped[str] = mapped_column(CHAR(26))
