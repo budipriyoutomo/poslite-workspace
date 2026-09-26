@@ -29,7 +29,12 @@ make dev-api / make dev-web  # jalankan salah satu saja
 make check                   # lint, typecheck, test di api & web (api-check / web-check untuk salah satu)
 make test                    # test saja
 make fmt                     # auto-fix lint & format Python
+make worker                  # relay outbox → laporan (butuh Redis lokal)
+make web-e2e PW_CHANNEL=chrome        # Playwright (web saja, mode demo)
+make e2e-fullstack PW_CHANNEL=chrome  # browser + API asli di database poslite_e2e
 ```
+
+Perangkat baru membuka `/activate`: manajer login lalu memilih outlet (butuh API berjalan), atau pilih **Coba mode demo** untuk berjualan offline tanpa server (Siti 1234 · Budi 9999). Buat tenant pertama lewat `POST /api/v1/tenants/signup` (lihat http://localhost:8000/docs).
 
 Database (PostgreSQL lokal):
 

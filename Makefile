@@ -13,6 +13,7 @@ DB_USER ?= poslite
 DB_PASSWORD ?= poslite
 DB_NAME ?= poslite
 DB_TEST_NAME ?= poslite_test
+DB_E2E_NAME ?= poslite_e2e
 # Admin connection as the current OS user (Homebrew Postgres default superuser).
 PSQL_ADMIN ?= psql -h $(DB_HOST) -d postgres -v ON_ERROR_STOP=1 -q
 
@@ -21,7 +22,7 @@ PNPM := pnpm --dir $(WEB_DIR)
 
 .PHONY: help doctor setup install dev check test fmt \
 	dev-api worker api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
-	dev-web web-install web-test web-check web-build web-e2e web-spike-dexie
+	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
 
 help: ## Show available targets
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -139,6 +140,10 @@ web-build: ## Production build
 
 web-e2e: ## Playwright e2e (once: playwright install chromium; macOS 13: make web-e2e PW_CHANNEL=chrome)
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) e2e
+
+e2e-fullstack: ## Browser + real API: activate, sell offline, sync (fresh poslite_e2e DB; needs uv + pnpm)
+	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_E2E_NAME) WITH (FORCE)" -c "CREATE DATABASE $(DB_E2E_NAME) OWNER $(DB_USER)"
+	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config playwright.fullstack.config.ts
 
 web-spike-dexie: ## Fase 0 spike: Dexie with 5,000 orders in real Chrome at 1x and 4x CPU
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config tests/spikes/playwright.config.ts

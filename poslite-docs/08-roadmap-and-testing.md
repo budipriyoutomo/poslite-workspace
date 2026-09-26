@@ -25,13 +25,14 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - **DoD**: kasir bisa buka shift → jual → cetak struk → tutup shift **tanpa internet sama sekali**, data bertahan setelah reboot tablet.
 
 ### Fase 2 — Backend & Sync (MVP-2)
-- [ ] Module **Tenancy** + RLS di semua tabel tenant + test isolasi antar tenant (ADR-013)
-- [ ] Module Identity, Organization, Catalog, Payment (CRUD back-office API)
-- [ ] Aktivasi device + opaque device token (tabel `api_tokens`)
-- [ ] Delta pull (sequence `sync_version_seq` + trigger serial `assign_sync_version`, ADR-009)
-- [ ] Push sync: `sync_events`, handler registry, savepoint per event, PlaceOrder/OpenShift/CloseShift/VoidOrder use case (ADR-010)
-- [ ] Transactional outbox + relay arq (ADR-012)
-- [ ] Sync engine di frontend (outbox, backoff, Web Locks, status badge)
+- [x] Module **Tenancy** + RLS di semua tabel tenant + test isolasi antar tenant (ADR-013) — role `poslite_app`/`poslite_system`, `make db-setup`
+- [x] Module Identity, Organization, Catalog, Payment (CRUD back-office API) — *harga/ketersediaan per outlet & metode bayar per outlet ditunda*
+- [x] Aktivasi device + opaque device token (tabel `api_tokens`), layar `/activate` di web
+- [x] Delta pull (sequence `sync_version_seq` + trigger serial `assign_sync_version`, ADR-009)
+- [x] Push sync: `sync_events` (kunci `(tenant_id, id)`), handler registry, savepoint per event, PlaceOrder/OpenShift/CloseShift/MoveCash — *VoidOrder menunggu fitur void (dijawab `UNSUPPORTED_EVENT_TYPE`)*
+- [x] Transactional outbox + relay (arq, `make worker` — butuh Redis) + read model laporan harian, `GET /reports/sales-summary`
+- [x] Sync engine di frontend (outbox, backoff, Web Locks, status badge, layar Sync + kirim ulang)
+- [x] DoD dibuktikan: `poslite-api/tests/e2e/sync/test_dod_two_devices.py` (2 device × 200 order, push paralel + kirim ulang → 400 order, struk unik) dan `make e2e-fullstack` (browser + API asli: aktivasi → jual offline → online → order di server). Isolasi tenant: test pull/push lintas tenant
 - **DoD**: 2 device offline 1 hari, masing-masing 200 transaksi → online → semua masuk server tanpa duplikat, nomor struk unik. Device tenant B tidak pernah menerima data tenant A.
 
 ### Fase 3 — Back-office & Reporting

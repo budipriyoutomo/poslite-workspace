@@ -128,7 +128,9 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 - `rates` wajib di `order.placed`. Server menghitung ulang `totals` memakai `rates` ini, bukan tarif outlet saat ini (ADR-011).
 - Error non-bisnis (5xx) berarti **seluruh batch** di-rollback → device retry batch yang sama; idempotency menjamin tidak ada duplikat.
 
-Tipe event MVP: `shift.opened`, `shift.closed`, `cash.moved`, `order.placed`, `order.voided`.
+Tipe event MVP: `shift.opened`, `shift.closed`, `cash.moved`, `order.placed`, `order.voided` (belum diproses: dijawab `rejected` `UNSUPPORTED_EVENT_TYPE` sampai fitur void ada).
+
+Kode `rejected` yang dipakai server: `SCHEMA_INVALID` (payload melanggar kontrak — divalidasi per event), `CASHIER_NOT_IN_OUTLET`, `SHIFT_NOT_FOUND` (tidak ada / milik device lain), `SHIFT_ALREADY_EXISTS`, `SHIFT_ALREADY_CLOSED`, `SHIFT_CLOSED`, `VARIANCE_MISMATCH`, `INVALID_AMOUNT`, `ORDER_WITHOUT_LINES`, `ORDER_WITHOUT_PAYMENT`, `PAYMENT_INSUFFICIENT`, `NON_CASH_EXCEEDS_TOTAL`, `ORDER_ALREADY_EXISTS`, `ID_CONFLICT` (id sudah dipakai, termasuk oleh tenant lain), `RECEIPT_NO_TAKEN`. Kontrak payload diuji dua sisi dengan fixture bersama `tests/fixtures/sync-events.json` (Zod di web, Pydantic di API).
 
 Payload event lain (Zod `features/sync/infrastructure/event-payloads.ts`; `aggregate_id` = id shift / cash movement / order):
 
@@ -156,7 +158,7 @@ Batas: maks 50 event / request, body maks 1 MB.
 | GET/POST/PUT/DELETE | `/users`, `/users/{id}`; `PUT /users/{id}/pin` | |
 | GET/POST/PUT/DELETE | `/categories`, `/products`, `/modifier-groups`, `/payment-methods` | |
 | PUT | `/outlets/{id}/products/{productId}` | harga & ketersediaan per outlet |
-| GET | `/orders?outlet_id=&business_date=&status=` · `/orders/{id}` | |
+| GET | `/orders?outlet_id=&business_date=` → `[{id, receipt_no, business_date, cashier_id, total, status, flags, created_at}]` · `/orders/{id}` (belum) | |
 | GET | `/shifts?outlet_id=&business_date=` · `/shifts/{id}` | |
 | GET | `/reports/sales-summary?outlet_id=&from=&to=` | dari read model |
 | GET | `/reports/products`, `/reports/categories`, `/reports/payment-methods`, `/reports/cashiers` | |

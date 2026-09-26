@@ -260,7 +260,7 @@ sequenceDiagram
 ```
 
 Aturan penting:
-- **Idempotency by event id** (ULID dari device) — PK `sync_events.id`. Row `sync_events` + efek event dalam transaksi yang sama. Event `accepted`/`flagged` tidak pernah diproses dua kali; event `rejected` boleh diproses ulang.
+- **Idempotency by event id** (ULID dari device) — PK `sync_events (tenant_id, id)`: dengan RLS, baris tenant lain tidak terlihat, jadi kunci global membuat tabrakan id antar-tenant menggagalkan seluruh batch (diperbaiki di migrasi 0006). Pelanggaran unik lain dari data device (`id`, `receipt_no`) menjadi `rejected` per event (`ID_CONFLICT` / `RECEIPT_NO_TAKEN`), bukan 500. Row `sync_events` + efek event dalam transaksi yang sama. Event `accepted`/`flagged` tidak pernah diproses dua kali; event `rejected` boleh diproses ulang.
 - **SAVEPOINT per event** (`session.begin_nested()`): satu event `rejected` tidak membatalkan event lain di batch. Domain event dari savepoint yang di-rollback ikut dibuang.
 - **Serialisasi per device** dengan `pg_advisory_xact_lock(hashtext(device_id))` — tanpa perlu Redis lock. Karena lock dipegang sampai commit, dua push paralel dari device yang sama tidak bisa saling membaca status `sync_events` yang belum commit.
 - **Server menghitung ulang total dengan tarif snapshot** di payload (ADR-011); bila selisih → `flagged`, bukan ditolak.
