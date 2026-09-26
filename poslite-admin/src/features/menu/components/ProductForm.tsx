@@ -11,7 +11,7 @@ import { RupiahInput } from "@/shared/ui/rupiah-input";
 import { Switch } from "@/shared/ui/switch";
 
 import { type Product, useCategories, useModifierGroups, useSaveProduct } from "../application/use-menu";
-import { FormField, selectClass } from "./FormField";
+import { FormField, selectClass } from "@/shared/ui/form-field";
 
 const ERRORS: Record<string, string> = { SKU_TAKEN: "SKU sudah dipakai produk lain" };
 

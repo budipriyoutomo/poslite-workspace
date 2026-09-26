@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
 
 export function EditDialog({ title, open, onOpenChange, children }: { title: string; open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }) {
   return (

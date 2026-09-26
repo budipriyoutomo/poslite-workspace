@@ -9,7 +9,7 @@ import { Input } from "@/shared/ui/input";
 import { RupiahInput } from "@/shared/ui/rupiah-input";
 
 import { type ModifierGroup, useSaveModifierGroup } from "../application/use-menu";
-import { FormField } from "./FormField";
+import { FormField } from "@/shared/ui/form-field";
 
 type Rule = "required-one" | "optional";
 interface OptionDraft {

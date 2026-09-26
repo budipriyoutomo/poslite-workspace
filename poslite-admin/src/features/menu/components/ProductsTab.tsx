@@ -8,8 +8,8 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 
 import { type Product, useCategories, useDeleteProduct, useProducts } from "../application/use-menu";
-import { ConfirmDelete } from "./ConfirmDelete";
-import { EditDialog } from "./EditDialog";
+import { ConfirmDelete } from "@/shared/ui/confirm-delete";
+import { EditDialog } from "@/shared/ui/edit-dialog";
 import { ProductForm } from "./ProductForm";
 
 export function ProductsTab() {

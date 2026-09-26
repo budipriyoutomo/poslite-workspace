@@ -12,8 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
-import { Button } from "@/shared/ui/button";
+} from "./alert-dialog";
+import { Button } from "./button";
 
 /** Deletes are soft on the server: devices drop the item on their next sync. */
 export function ConfirmDelete({ name, onConfirm }: { name: string; onConfirm: () => void }) {
