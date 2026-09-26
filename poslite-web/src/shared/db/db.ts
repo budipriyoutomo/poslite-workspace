@@ -4,6 +4,7 @@ import type {
   CashMovementRow,
   CategoryRow,
   ModifierGroupRow,
+  ModifierOptionRow,
   OrderRow,
   OutboxRow,
   PaymentMethodRow,
@@ -23,6 +24,8 @@ export class PosDb extends Dexie {
   categories!: Table<CategoryRow, string>;
   products!: Table<ProductRow, string>;
   modifierGroups!: Table<ModifierGroupRow, string>;
+  /** Pulled separately from their group; also embedded in modifierGroups.options for the UI. */
+  modifierOptions!: Table<ModifierOptionRow, string>;
   paymentMethods!: Table<PaymentMethodRow, string>;
   users!: Table<UserRow, string>;
 
@@ -58,6 +61,8 @@ export class PosDb extends Dexie {
       printers: "id, role",
       printJobs: "id, status, createdAt",
     });
+    // v2 (Fase 2 sync): the server sends modifier options as their own entity.
+    this.version(2).stores({ modifierOptions: "id, modifierGroupId" });
   }
 }
 

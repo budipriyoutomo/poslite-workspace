@@ -152,6 +152,8 @@ export interface OutboxRow {
   status: "pending" | "sending" | "failed" | "dead";
   attempts: number;
   lastError?: string;
+  /** Earliest retry after a failed send (exponential backoff). */
+  nextAttemptAt?: string;
   createdAt: string;
 }
 
@@ -160,7 +162,23 @@ export type SyncStateRow =
   | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
   | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } }
   | { key: "cart"; value: string } // serialized by the cart store (survives reload / tablet restart)
-  | { key: "session"; value: string }; // serialized by the session store (logged-in cashier)
+  | { key: "session"; value: string } // serialized by the session store (logged-in cashier)
+  | { key: "device"; value: DeviceState }
+  | { key: "pullCursor"; value: number }
+  | { key: "lastSyncAt"; value: string };
+
+/** How this device talks to the server: an activated device, or the offline demo (no server). */
+export type DeviceState =
+  | { mode: "server"; deviceId: string; deviceCode: string; outletId: string; token: string }
+  | { mode: "demo" };
+
+export interface ModifierOptionRow {
+  id: string;
+  modifierGroupId: string;
+  name: string;
+  price: number;
+  sortOrder: number;
+}
 
 export interface PrinterConfigRow {
   id: string;
