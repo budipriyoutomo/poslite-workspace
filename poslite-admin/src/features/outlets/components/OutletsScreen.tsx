@@ -10,6 +10,7 @@ import { useOutletChoice, useSelectedOutlet } from "../application/use-outlets";
 import { DevicesPanel } from "./DevicesPanel";
 import { NewOutletForm } from "./NewOutletForm";
 import { OutletSettingsForm } from "./OutletSettingsForm";
+import { TablesPanel } from "./TablesPanel";
 
 /** Settings and devices of the outlet chosen in the header; new outlets become the chosen one. */
 export function OutletsScreen() {
@@ -21,7 +22,7 @@ export function OutletsScreen() {
     <div className="max-w-3xl space-y-4">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Outlet & Perangkat</h1>
+          <h1 className="text-2xl font-bold">Outlet, Meja & Perangkat</h1>
           <p className="text-sm text-muted-foreground">Pilih outlet di bagian atas untuk melihat pengaturan dan perangkatnya.</p>
         </div>
         <Button size="sm" onClick={() => setIsAdding(true)}>
@@ -29,6 +30,7 @@ export function OutletsScreen() {
         </Button>
       </div>
       {outlet && <OutletSettingsForm outletId={outlet.id} />}
+      {outlet && <TablesPanel outletId={outlet.id} />}
       {outlet && <DevicesPanel outletId={outlet.id} />}
       <EditDialog title="Outlet baru" open={isAdding} onOpenChange={setIsAdding}>
         <NewOutletForm onCreated={(id) => (choose(id), setIsAdding(false))} />

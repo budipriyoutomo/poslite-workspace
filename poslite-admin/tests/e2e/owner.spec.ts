@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { signUp, uniq } from "./support";
 
 // Fase 3 exit: an owner sets up the business from the back-office against the real API.
-test("owner sets up menu, outlet price, cashier, payment method and outlet rates", async ({ page }) => {
+test("owner sets up menu, outlet price, cashier, payment method, outlet rates, tables and a promotion", async ({ page }) => {
   await signUp(page, uniq());
   const nav = page.getByRole("navigation");
 
@@ -42,11 +42,24 @@ test("owner sets up menu, outlet price, cashier, payment method and outlet rates
   await page.getByRole("button", { name: "Tambah" }).click();
   await expect(page.getByRole("listitem", { name: "QRIS BCA" })).toBeVisible();
 
-  await nav.getByRole("link", { name: "Outlet & Perangkat" }).click();
+  await nav.getByRole("link", { name: "Outlet, Meja & Perangkat" }).click();
   await page.getByLabel("Pajak (%)").fill("11");
   await page.getByRole("button", { name: "Simpan pengaturan" }).click();
   await expect(page.getByText("Pengaturan disimpan")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Pajak (%)")).toHaveValue("11");
   await expect(page.getByText("Belum ada perangkat.")).toBeVisible();
+
+  await page.getByLabel("Label meja").fill("A1");
+  await page.getByRole("button", { name: "Tambah meja" }).click();
+  await expect(page.getByRole("listitem", { name: "Meja A1" })).toBeVisible();
+
+  await nav.getByRole("link", { name: "Promo" }).click();
+  await page.getByRole("button", { name: "Tambah promo" }).click();
+  const promo = page.getByRole("dialog");
+  await promo.getByLabel("Nama promo").fill("Happy hour");
+  await promo.getByLabel("Diskon (%)").fill("20");
+  await promo.getByRole("checkbox", { name: "Kategori Minuman" }).click();
+  await promo.getByRole("button", { name: "Simpan" }).click();
+  await expect(page.getByRole("listitem", { name: "Happy hour" })).toContainText("Diskon 20% · Setiap hari");
 });

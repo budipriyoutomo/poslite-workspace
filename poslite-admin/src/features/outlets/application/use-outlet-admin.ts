@@ -59,3 +59,33 @@ export function useRevokeDevice(outletId: string) {
     onSuccess: () => client.invalidateQueries({ queryKey: ["devices", outletId] }),
   });
 }
+
+export type DiningTable = components["schemas"]["TableOut"];
+export type DiningTableIn = components["schemas"]["TableIn"];
+
+export function useTables(outletId: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["tables", outletId],
+    queryFn: () => unwrap(api.GET("/api/v1/outlets/{outlet_id}/tables", { params: { path: { outlet_id: outletId } } })),
+  });
+}
+
+/** Tables are outlet master data: devices get changes on their next pull (ADR-015). */
+export function useAddTable(outletId: string) {
+  const api = useApi();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: DiningTableIn) => unwrap(api.POST("/api/v1/outlets/{outlet_id}/tables", { params: { path: { outlet_id: outletId } }, body })),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["tables", outletId] }),
+  });
+}
+
+export function useDeleteTable(outletId: string) {
+  const api = useApi();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (tableId: string) => unwrap(api.DELETE("/api/v1/tables/{table_id}", { params: { path: { table_id: tableId } } })),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["tables", outletId] }),
+  });
+}

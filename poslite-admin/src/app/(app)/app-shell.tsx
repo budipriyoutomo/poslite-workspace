@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, CreditCard, LogOut, MonitorSmartphone, Store, Tags, UtensilsCrossed, Users } from "lucide-react";
+import { BadgePercent, BarChart3, CreditCard, LogOut, MonitorSmartphone, Store, Tags, UtensilsCrossed, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -14,9 +14,10 @@ const NAV = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
   { href: "/menu", label: "Menu", icon: UtensilsCrossed },
   { href: "/prices", label: "Harga Outlet", icon: Tags },
+  { href: "/promotions", label: "Promo", icon: BadgePercent },
   { href: "/payment-methods", label: "Metode Bayar", icon: CreditCard },
   { href: "/users", label: "Pengguna", icon: Users },
-  { href: "/outlets", label: "Outlet & Perangkat", icon: MonitorSmartphone },
+  { href: "/outlets", label: "Outlet, Meja & Perangkat", icon: MonitorSmartphone },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
