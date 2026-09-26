@@ -6,7 +6,7 @@ from poslite.identity.domain.roles import (
     Role,
     can_activate_devices,
 )
-from poslite.identity.infrastructure.passwords import hash_password
+from poslite.identity.infrastructure.passwords import hash_password, verify_password
 from poslite.identity.infrastructure.service import (
     Authenticated,
     assign_role,
@@ -21,6 +21,7 @@ from poslite.identity.infrastructure.service import (
 )
 from poslite.identity.infrastructure.tokens import (
     SqlTokenResolver,
+    hash_token,
     issue_token,
     revoke_token,
     revoke_tokens_of,
@@ -43,6 +44,7 @@ __all__ = [
     "create_user",
     "email_taken",
     "hash_password",
+    "hash_token",
     "highest",
     "issue_token",
     "revoke_token",
@@ -51,4 +53,5 @@ __all__ = [
     "roles_of",
     "start_backoffice_session",
     "user_changes",
+    "verify_password",
 ]

@@ -21,7 +21,7 @@ UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
 
 .PHONY: help doctor setup install dev check test fmt \
-	dev-api worker api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
+	dev-api worker platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
 	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
 
 help: ## Show available targets
@@ -65,6 +65,10 @@ dev-api: ## Run only the API with auto-reload (API_PORT, default 8000)
 
 worker: ## Run the arq worker: outbox relay → report projections (needs a local Redis)
 	$(UV) run arq poslite.worker.WorkerSettings
+
+platform-admin: ## Create a SaaS operator account: make platform-admin email=ops@x.id name=Ops
+	@test -n "$(email)" -a -n "$(name)" || { echo 'usage: make platform-admin email=… name=…'; exit 1; }
+	$(UV) run python -m poslite.platform_admin create-admin "$(email)" "$(name)"
 
 api-install: ## Install Python deps (uv)
 	$(UV) sync

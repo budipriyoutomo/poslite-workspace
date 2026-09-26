@@ -96,14 +96,14 @@ layers = [
 [[tool.importlinter.contracts]]
 name = "module layers"
 type = "layers"
-containers = ["poslite.tenancy", "poslite.identity", "poslite.organization", "poslite.catalog", "poslite.payment", "poslite.sales", "poslite.shift", "poslite.sync", "poslite.reporting"]
+containers = ["poslite.tenancy", "poslite.identity", "poslite.organization", "poslite.catalog", "poslite.payment", "poslite.sales", "poslite.shift", "poslite.sync", "poslite.reporting", "poslite.platform_admin"]
 layers = ["api", "presentation", "infrastructure", "application", "domain"]
 exhaustive = false
 
 [[tool.importlinter.contracts]]
 name = "domain is pure Python"
 type = "forbidden"
-source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain", "poslite.catalog.domain", "poslite.payment.domain", "poslite.sales.domain", "poslite.shift.domain", "poslite.sync.domain", "poslite.reporting.domain"]
+source_modules = ["poslite.shared.domain", "poslite.tenancy.domain", "poslite.identity.domain", "poslite.organization.domain", "poslite.catalog.domain", "poslite.payment.domain", "poslite.sales.domain", "poslite.shift.domain", "poslite.sync.domain", "poslite.reporting.domain", "poslite.platform_admin.domain"]
 forbidden_modules = ["fastapi", "pydantic", "pydantic_settings", "sqlalchemy", "redis", "arq", "structlog", "starlette"]
 
 [[tool.importlinter.contracts]]
@@ -143,6 +143,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -183,6 +187,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -223,6 +231,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -263,6 +275,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -303,6 +319,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -343,6 +363,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -383,6 +407,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -423,6 +451,10 @@ forbidden_modules = [
     "poslite.reporting.application",
     "poslite.reporting.infrastructure",
     "poslite.reporting.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
 ]
 allow_indirect_imports = true
 
@@ -463,5 +495,53 @@ forbidden_modules = [
     "poslite.sync.application",
     "poslite.sync.infrastructure",
     "poslite.sync.presentation",
+    "poslite.platform_admin.domain",
+    "poslite.platform_admin.application",
+    "poslite.platform_admin.infrastructure",
+    "poslite.platform_admin.presentation",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "platform_admin uses other modules only through their api.py"
+type = "forbidden"
+source_modules = ["poslite.platform_admin"]
+forbidden_modules = [
+    "poslite.tenancy.domain",
+    "poslite.tenancy.application",
+    "poslite.tenancy.infrastructure",
+    "poslite.tenancy.presentation",
+    "poslite.identity.domain",
+    "poslite.identity.application",
+    "poslite.identity.infrastructure",
+    "poslite.identity.presentation",
+    "poslite.organization.domain",
+    "poslite.organization.application",
+    "poslite.organization.infrastructure",
+    "poslite.organization.presentation",
+    "poslite.catalog.domain",
+    "poslite.catalog.application",
+    "poslite.catalog.infrastructure",
+    "poslite.catalog.presentation",
+    "poslite.payment.domain",
+    "poslite.payment.application",
+    "poslite.payment.infrastructure",
+    "poslite.payment.presentation",
+    "poslite.sales.domain",
+    "poslite.sales.application",
+    "poslite.sales.infrastructure",
+    "poslite.sales.presentation",
+    "poslite.shift.domain",
+    "poslite.shift.application",
+    "poslite.shift.infrastructure",
+    "poslite.shift.presentation",
+    "poslite.sync.domain",
+    "poslite.sync.application",
+    "poslite.sync.infrastructure",
+    "poslite.sync.presentation",
+    "poslite.reporting.domain",
+    "poslite.reporting.application",
+    "poslite.reporting.infrastructure",
+    "poslite.reporting.presentation",
 ]
 allow_indirect_imports = true
