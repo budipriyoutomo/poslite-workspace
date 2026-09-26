@@ -14,12 +14,15 @@ export class PosDb extends Dexie {
   paymentMethods!: Table<PaymentMethodRow, string>;
   users!: Table<UserRow, string>;            // kasir di outlet ini + pin_hash
   settings!: Table<SettingRow, string>;      // outlet profile, tax/service rate, receipt header/footer
+  diningTables!: Table<DiningTableRow, string>; // v3 (Fase 4): meja outlet ini
+  promotions!: Table<PromotionRow, string>;  // v3: promo aktif untuk outlet ini, dievaluasi offline (ADR-016)
 
   // Transaksional (dibuat di device)
   shifts!: Table<ShiftRow, string>;
   orders!: Table<OrderRow, string>;          // termasuk lines & modifiers (embedded snapshot)
   payments!: Table<PaymentRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
+  openBills!: Table<OpenBillRow, string>;    // v3: bill dine-in belum dibayar — lokal, TIDAK masuk outbox (ADR-015)
 
   // Infrastruktur
   outbox!: Table<OutboxRow, number>;

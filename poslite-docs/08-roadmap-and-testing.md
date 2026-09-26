@@ -42,17 +42,18 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [x] Dashboard penjualan (grafik harian + tabel, preset 7/30 hari) + export CSV (`;` + BOM untuk Excel ID) / Excel `.xlsx`
 - [x] Kontrak OpenAPI `poslite-api/openapi.json` (`make openapi`, dicek CI) → tipe TS admin (`make admin-types`)
 - [x] E2E `make admin-e2e`: owner daftar → menu → harga outlet → kasir + PIN → metode bayar → tarif outlet; operator menangguhkan & mengaktifkan tenant (API asli, DB `poslite_e2e_admin`)
-- [ ] `make worker` diverifikasi dengan Redis lokal (Redis via Homebrew di macOS 13 harus dikompilasi dari source)
+- [x] `make worker` diverifikasi dengan Redis lokal (relay jalan tiap 5 detik). Catatan: Homebrew di macOS 13 gagal memasang Redis; dipakai build dari source
 - **DoD**: owner baru bisa daftar dan menyiapkan outlet sampai siap jualan tanpa bantuan developer; laporan penjualan cocok dengan order yang tersinkron; operator bisa menangguhkan tenant.
 
 ### Fase 4 — Restaurant Features
-- [ ] Meja per outlet (back-office + pull `dining_table`)
-- [ ] Dine-in: open bill lokal device (ADR-015), pindah/lanjutkan bill, shift tidak bisa ditutup bila ada bill terbuka
-- [ ] Split bill per item (pilih baris & qty → struk sendiri)
+- [x] Meja per outlet (back-office "Outlet, Meja & Perangkat" + pull `dining_table`; demo seed punya meja A1–B2)
+- [x] Dine-in: open bill lokal device (ADR-015) — pilih meja, simpan, lanjutkan/batalkan di menu **Bill**; shift tidak bisa ditutup bila ada bill terbuka (`OPEN_BILLS`) — *pindah meja belum ada*
+- [x] Split bill per item (pilih qty per baris → order & struk sendiri; diskon order nominal hanya bayar sekaligus)
 - [x] Split payment (beberapa metode per order) — sudah ada sejak Fase 1 (`PaymentPanel`)
-- [ ] Diskon per item (manual) + rumus total baru di `pricing-cases.json` (web & API)
-- [ ] Promo otomatis `percent_off` / `buy_x_get_y` (back-office + pull `promotion` + evaluasi offline, ADR-016)
+- [x] Diskon per item (manual) + rumus total baru di `pricing-cases.json` (web & API); `order.placed` membawa `table_label`, `discount` & `promotion` per baris (fixture `order-placed-variants.json`)
+- [x] Promo otomatis `percent_off` / `buy_x_get_y` (back-office "Promo" + pull `promotion` + evaluasi offline saat bayar, ADR-016); struk menampilkan promo/diskon per baris & meja
 - [ ] *Setelah spike printer*: kitchen ticket per printer role (kitchen/bar), Print Bridge untuk printer LAN + driver HTTP Epson ePOS / Star WebPRNT
+- [x] E2E: `tests/e2e/dine-in-offline.spec.ts` (bill meja → lanjutkan → pisah per item, offline) dan `make e2e-fullstack` (promo & meja dari back-office → jual offline → total server sama, tanpa flag)
 - **DoD**: pelayan membuka bill meja, menambah pesanan beberapa kali, lalu tamu membayar terpisah per item — semuanya offline; promo happy hour terhitung otomatis dan total server sama dengan device (tanpa `TOTAL_MISMATCH`).
 
 ### Fase 5 — Scale & Integrasi
