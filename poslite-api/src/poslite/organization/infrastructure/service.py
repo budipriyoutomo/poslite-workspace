@@ -127,6 +127,17 @@ async def update_outlet_settings(
     outlet.tax_rate_bps, outlet.service_rate_bps = tax_rate_bps, service_rate_bps
     outlet.receipt_header, outlet.receipt_footer = receipt_header, receipt_footer
     await uow.session.flush()
+    return _settings(outlet)
+
+
+async def get_outlet_settings(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> OutletSettings:
+    outlet = await uow.session.get(OutletModel, outlet_id)
+    if outlet is None or outlet.deleted_at is not None:
+        raise DomainError("OUTLET_NOT_FOUND", "Outlet not found", kind="not_found")
+    return _settings(outlet)
+
+
+def _settings(outlet: OutletModel) -> OutletSettings:
     return OutletSettings(
         id=outlet.id,
         code=outlet.code,

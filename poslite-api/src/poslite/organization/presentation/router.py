@@ -8,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from poslite.identity import api as identity
 from poslite.organization.infrastructure.service import (
     DeviceInfo,
+    OutletSettings,
     create_outlet,
     get_device,
     get_outlet,
+    get_outlet_settings,
     list_devices,
     list_outlets,
     outlet_code_taken,
@@ -46,6 +48,20 @@ def _device_out(d: DeviceInfo) -> DeviceOut:
         outlet=OutletOut(
             id=d.outlet.id, code=d.outlet.code, name=d.outlet.name, timezone=d.outlet.timezone
         ),
+    )
+
+
+def _settings_out(s: OutletSettings) -> OutletSettingsOut:
+    return OutletSettingsOut(
+        id=s.id,
+        code=s.code,
+        name=s.name,
+        timezone=s.timezone,
+        business_day_cutoff=s.business_day_cutoff.strftime("%H:%M"),
+        tax_rate_bps=s.tax_rate_bps,
+        service_rate_bps=s.service_rate_bps,
+        receipt_header=s.receipt_header,
+        receipt_footer=s.receipt_footer,
     )
 
 
@@ -107,6 +123,16 @@ async def me(
     return ok(DeviceMe(device=_device_out(device)))
 
 
+@router.get("/outlets/{outlet_id}")
+async def settings(
+    outlet_id: str,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+) -> ApiResponse[OutletSettingsOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        return ok(_settings_out(await get_outlet_settings(uow, outlet_id)))
+
+
 @router.put("/outlets/{outlet_id}")
 async def update_settings(
     outlet_id: str,
@@ -128,19 +154,7 @@ async def update_settings(
             receipt_footer=body.receipt_footer,
         )
         await uow.commit()
-    return ok(
-        OutletSettingsOut(
-            id=saved.id,
-            code=saved.code,
-            name=saved.name,
-            timezone=saved.timezone,
-            business_day_cutoff=saved.business_day_cutoff.strftime("%H:%M"),
-            tax_rate_bps=saved.tax_rate_bps,
-            service_rate_bps=saved.service_rate_bps,
-            receipt_header=saved.receipt_header,
-            receipt_footer=saved.receipt_footer,
-        )
-    )
+    return ok(_settings_out(saved))
 
 
 @router.post("/outlets", status_code=status.HTTP_201_CREATED)

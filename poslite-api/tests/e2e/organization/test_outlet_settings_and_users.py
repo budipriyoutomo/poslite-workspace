@@ -46,6 +46,34 @@ async def test_updates_outlet_rates_and_receipt_text(api: AsyncClient) -> None:
     }
 
 
+async def test_reads_outlet_settings_for_the_back_office_form(api: AsyncClient) -> None:
+    token = (await signup(api))["token"]
+    outlet = await _outlet(api, token)
+
+    response = await api.get(f"/api/v1/outlets/{outlet['id']}", headers=bearer(token))
+
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "id": outlet["id"],
+        "code": "JKT01",
+        "name": "Outlet Kemang",
+        "timezone": "Asia/Jakarta",
+        "business_day_cutoff": "04:00",
+        "tax_rate_bps": 1000,
+        "service_rate_bps": 0,
+        "receipt_header": "",
+        "receipt_footer": "",
+    }
+
+
+async def test_reading_an_unknown_outlet_is_404(api: AsyncClient) -> None:
+    token = (await signup(api))["token"]
+
+    response = await api.get("/api/v1/outlets/01K5ZO00000000000000000009", headers=bearer(token))
+
+    assert response.status_code == 404
+
+
 async def test_creates_a_cashier_with_a_pin_the_device_can_verify(api: AsyncClient) -> None:
     token = (await signup(api))["token"]
     outlet = await _outlet(api, token)
