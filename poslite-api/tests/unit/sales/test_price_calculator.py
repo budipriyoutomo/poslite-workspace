@@ -18,7 +18,15 @@ def test_matches_the_shared_pricing_fixture(case: dict[str, Any]) -> None:
     discount = case["discount"]
     result = PriceCalculator().calculate(
         lines=[
-            PricedLine(x["unit_price"], x["modifiers_total"], x["quantity"]) for x in case["lines"]
+            PricedLine(
+                x["unit_price"],
+                x["modifiers_total"],
+                x["quantity"],
+                Discount(x["discount"]["type"], x["discount"]["value"])
+                if "discount" in x
+                else None,
+            )
+            for x in case["lines"]
         ],
         discount=Discount(discount["type"], discount["value"]) if discount else None,
         rates=Rates(case["rates"]["service_bps"], case["rates"]["tax_bps"]),

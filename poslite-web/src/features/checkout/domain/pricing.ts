@@ -13,6 +13,8 @@ export interface PricedLine {
   unitPrice: number; // Rupiah
   modifiersTotal: number; // Rupiah, per unit
   quantity: number;
+  /** One per line: manual or from a promotion (ADR-016). */
+  discount?: Discount | null;
 }
 
 export interface PriceBreakdown {
@@ -27,6 +29,7 @@ function assertRupiah(value: number, what: string): void {
   if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`${what} must be an integer Rupiah >= 0, got ${value}`);
 }
 
+/** Gross line value, before the line discount. */
 export function lineTotal(line: PricedLine): number {
   assertRupiah(line.unitPrice, "unitPrice");
   assertRupiah(line.modifiersTotal, "modifiersTotal");
@@ -36,25 +39,27 @@ export function lineTotal(line: PricedLine): number {
   return (line.unitPrice + line.modifiersTotal) * line.quantity;
 }
 
-function discountAmount(subtotal: number, discount: Discount | null): number {
+export function discountAmount(base: number, discount: Discount | null | undefined): number {
   if (!discount) return 0;
   if (discount.type === "percentage") {
     if (!Number.isInteger(discount.value) || discount.value < 0 || discount.value > 100) {
       throw new RangeError(`percentage discount must be an integer 0..100, got ${discount.value}`);
     }
-    return divRoundHalfUp(subtotal * discount.value, 100);
+    return divRoundHalfUp(base * discount.value, 100);
   }
   assertRupiah(discount.value, "fixed discount");
-  return Math.min(discount.value, subtotal);
+  return Math.min(discount.value, base);
 }
 
 /**
- * Order totals (06-domain-and-database.md): discount on the subtotal, service on the net,
- * PB1 on net + service. `rates` is the outlet snapshot sent with order.placed (ADR-011).
+ * Order totals (06-domain-and-database.md, Order rules 8–9): line discounts, then the order
+ * discount on what is left, service on the net, PB1 on net + service. `rates` is the outlet
+ * snapshot sent with order.placed (ADR-011).
  */
 export function calculate(lines: PricedLine[], discount: Discount | null, rates: Rates): PriceBreakdown {
   const subtotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
-  const discounted = discountAmount(subtotal, discount);
+  const itemDiscounts = lines.reduce((sum, line) => sum + discountAmount(lineTotal(line), line.discount), 0);
+  const discounted = itemDiscounts + discountAmount(subtotal - itemDiscounts, discount);
   const net = subtotal - discounted;
   const serviceCharge = divRoundHalfUp(net * rates.serviceBps, 10_000);
   const tax = divRoundHalfUp((net + serviceCharge) * rates.taxBps, 10_000);

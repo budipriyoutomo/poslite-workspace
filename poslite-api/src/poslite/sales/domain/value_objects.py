@@ -39,6 +39,7 @@ class PricedLine:
     unit_price: int
     modifiers_total: int  # per unit
     quantity: int
+    discount: Discount | None = None  # one per line: manual or from a promotion (ADR-016)
 
     def __post_init__(self) -> None:
         _rupiah(self.unit_price, "unit_price")
@@ -48,6 +49,7 @@ class PricedLine:
 
     @property
     def total(self) -> int:
+        """Gross line value, before the line discount."""
         return (self.unit_price + self.modifiers_total) * self.quantity
 
 

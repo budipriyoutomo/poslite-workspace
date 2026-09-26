@@ -7,7 +7,12 @@ import { calculate, type Discount } from "./pricing";
 describe("calculate (shared pricing fixture)", () => {
   it.each(cases)("$name", ({ lines, discount, rates, expected }) => {
     const result = calculate(
-      lines.map((l) => ({ unitPrice: l.unit_price, modifiersTotal: l.modifiers_total, quantity: l.quantity })),
+      lines.map((l) => ({
+        unitPrice: l.unit_price,
+        modifiersTotal: l.modifiers_total,
+        quantity: l.quantity,
+        discount: "discount" in l ? (l.discount as Discount) : null,
+      })),
       discount as Discount | null,
       { serviceBps: rates.service_bps, taxBps: rates.tax_bps },
     );
