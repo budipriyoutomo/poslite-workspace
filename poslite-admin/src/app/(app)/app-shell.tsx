@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePercent, BarChart3, CreditCard, LogOut, MonitorSmartphone, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
+import { BadgePercent, BarChart3, CreditCard, LogOut, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -18,6 +18,7 @@ const NAV = [
   { href: "/payment-methods", label: "Metode Bayar", icon: CreditCard },
   { href: "/users", label: "Pengguna", icon: Users },
   { href: "/integrations", label: "Integrasi", icon: Webhook },
+  { href: "/billing", label: "Langganan", icon: Receipt },
   { href: "/outlets", label: "Outlet, Meja & Perangkat", icon: MonitorSmartphone },
 ] as const;
 

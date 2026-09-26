@@ -12,12 +12,18 @@ const tenant = (id: string, name: string, status: string, extra: object = {}) =>
   status,
   created_at: "2026-09-01T03:00:00Z",
   suspended_at: null,
+  suspended_reason: null,
+  subscription_status: "active",
   outlet_count: 2,
   device_count: 3,
   ...extra,
 });
 const KOPI = tenant("01K5ZT00000000000000000001", "Kopi Senja", "active");
-const WARUNG = tenant("01K5ZT00000000000000000002", "Warung Bu Tini", "suspended", { suspended_at: "2026-09-20T03:00:00Z" });
+const WARUNG = tenant("01K5ZT00000000000000000002", "Warung Bu Tini", "suspended", {
+  suspended_at: "2026-09-20T03:00:00Z",
+  suspended_reason: "billing",
+  subscription_status: "past_due",
+});
 
 function server() {
   return renderWithApi(<TenantsScreen />, ({ method, path }) => {
@@ -34,9 +40,9 @@ describe("TenantsScreen", () => {
   it("lists tenants with status and size", async () => {
     server();
     const kopi = await row("Kopi Senja");
-    expect(kopi.getByText("Aktif")).toBeInTheDocument();
+    expect(kopi.getByLabelText("Status")).toHaveTextContent("Aktif");
     expect(kopi.getByText("kopi-senja")).toBeInTheDocument();
-    expect((await row("Warung Bu Tini")).getByText("Ditangguhkan")).toBeInTheDocument();
+    expect((await row("Warung Bu Tini")).getByLabelText("Status")).toHaveTextContent("Ditangguhkan");
   });
 
   it("suspends a tenant after confirmation", async () => {
@@ -57,9 +63,17 @@ describe("TenantsScreen", () => {
   it("filters to suspended tenants", async () => {
     server();
     await row("Kopi Senja");
-    await userEvent.selectOptions(screen.getByLabelText("Status"), "suspended");
+    await userEvent.selectOptions(screen.getByLabelText("Filter status"), "suspended");
 
     await waitFor(() => expect(screen.queryByRole("cell", { name: "Kopi Senja" })).not.toBeInTheDocument());
     expect(screen.getByRole("cell", { name: "Warung Bu Tini" })).toBeInTheDocument();
+  });
+
+  it("shows the subscription and why a tenant is suspended", async () => {
+    server();
+    const warung = await row("Warung Bu Tini");
+    expect(warung.getByLabelText("Langganan")).toHaveTextContent("Menunggak");
+    expect(warung.getByText("Ditangguhkan · tagihan")).toBeInTheDocument();
+    expect((await row("Kopi Senja")).getByLabelText("Langganan")).toHaveTextContent("Aktif");
   });
 });

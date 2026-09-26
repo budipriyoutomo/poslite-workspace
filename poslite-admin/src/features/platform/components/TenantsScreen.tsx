@@ -21,6 +21,7 @@ import { selectClass } from "@/shared/ui/form-field";
 import { type Tenant, type TenantStatus, useSetTenantStatus, useTenants } from "../application/use-platform";
 
 const date = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" });
+const SUBSCRIPTION: Record<string, string> = { trialing: "Masa coba", active: "Aktif", past_due: "Menunggak" };
 
 export function TenantsScreen() {
   const [status, setStatus] = useState<TenantStatus | "">("");
@@ -34,7 +35,7 @@ export function TenantsScreen() {
         <h1 className="text-2xl font-bold">Tenant</h1>
         <label className="flex items-center gap-2 text-sm">
           Status
-          <select aria-label="Status" className={`${selectClass} w-44`} value={status} onChange={(e) => setStatus(e.target.value as TenantStatus | "")}>
+          <select aria-label="Filter status" className={`${selectClass} w-44`} value={status} onChange={(e) => setStatus(e.target.value as TenantStatus | "")}>
             <option value="">Semua</option>
             <option value="active">Aktif</option>
             <option value="suspended">Ditangguhkan</option>
@@ -49,6 +50,7 @@ export function TenantsScreen() {
             <th className="px-3 py-2 text-right font-medium">Outlet</th>
             <th className="px-3 py-2 text-right font-medium">Perangkat</th>
             <th className="px-3 py-2 font-medium">Daftar</th>
+            <th className="px-3 py-2 font-medium">Langganan</th>
             <th className="px-3 py-2 font-medium">Status</th>
             <th />
           </tr>
@@ -61,7 +63,16 @@ export function TenantsScreen() {
               <td className="px-3 py-2 text-right tabular-nums">{t.outlet_count}</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.device_count}</td>
               <td className="px-3 py-2">{date.format(new Date(t.created_at))}</td>
-              <td className="px-3 py-2">{t.status === "suspended" ? <Badge variant="destructive">Ditangguhkan</Badge> : <Badge>Aktif</Badge>}</td>
+              <td className="px-3 py-2" aria-label="Langganan">
+                {SUBSCRIPTION[t.subscription_status ?? ""] ?? "—"}
+              </td>
+              <td className="px-3 py-2" aria-label="Status">
+                {t.status === "suspended" ? (
+                  <Badge variant="destructive">{t.suspended_reason === "billing" ? "Ditangguhkan · tagihan" : "Ditangguhkan"}</Badge>
+                ) : (
+                  <Badge>Aktif</Badge>
+                )}
+              </td>
               <td className="px-3 py-2 text-right">
                 {t.status === "suspended" ? (
                   <Button size="sm" variant="outline" aria-label={`Aktifkan ${t.name}`} onClick={() => change(t.id, "active")}>
