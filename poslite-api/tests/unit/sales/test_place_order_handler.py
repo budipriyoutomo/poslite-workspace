@@ -56,3 +56,47 @@ async def test_rejects_an_order_id_that_already_exists() -> None:
         await handler()(DATA, CTX, uow)
 
     assert err.value.code == "ORDER_ALREADY_EXISTS"
+
+
+class FakeQris:
+    """QrisPort: references that are dynamic QRIS charges not paid yet."""
+
+    def __init__(self, unpaid: set[str]) -> None:
+        self._unpaid = unpaid
+
+    async def unpaid(self, references: list[str]) -> set[str]:
+        return {r for r in references if r in self._unpaid}
+
+
+def with_qris_payment(reference: str) -> object:
+    from dataclasses import replace
+
+    from poslite.sales.domain.entities import Payment
+
+    return replace(
+        DATA,
+        payments=(Payment("Y1", "M1", "qris", DATA.totals.total, reference),),
+        change_amount=0,
+    )
+
+
+async def test_flags_an_order_paid_with_an_unpaid_dynamic_qris() -> None:
+    order = with_qris_payment("01K5ZK00000000000000000001")
+
+    outcome = await PlaceOrderHandler(
+        outlets=FakeOutlets(),
+        cashiers=FakeCashiers({"U1"}),
+        qris=FakeQris({"01K5ZK00000000000000000001"}),
+    )(order, CTX, FakeUnitOfWork())  # type: ignore[arg-type]
+
+    assert outcome == EventOutcome("flagged", ("QRIS_UNPAID",))
+
+
+async def test_a_paid_or_static_qris_is_not_flagged() -> None:
+    order = with_qris_payment("QR-STATIC-123")
+
+    outcome = await PlaceOrderHandler(
+        outlets=FakeOutlets(), cashiers=FakeCashiers({"U1"}), qris=FakeQris(set())
+    )(order, CTX, FakeUnitOfWork())  # type: ignore[arg-type]
+
+    assert outcome == EventOutcome("accepted")

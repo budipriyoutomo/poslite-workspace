@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.billing import api as billing
+from poslite.payment import api as payment
 from poslite.shared.application.payment_gateway import GatewayNotification, PaymentGateway
 from poslite.shared.infrastructure.fake_gateway import FakeGateway
 from poslite.shared.presentation.dependencies import payment_gateway, system_sessions
@@ -21,7 +22,9 @@ async def _dispatch(system: async_sessionmaker[AsyncSession], note: GatewayNotif
     if note.status != "paid":
         return False
     async with system() as session, session.begin():
-        return await billing.mark_invoice_paid(session, note.gateway_ref, note.occurred_at)
+        return await billing.mark_invoice_paid(
+            session, note.gateway_ref, note.occurred_at
+        ) or await payment.mark_qris_paid(session, note.gateway_ref, note.occurred_at)
 
 
 @router.post("/webhook")

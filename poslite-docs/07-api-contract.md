@@ -124,7 +124,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 |---|---|---|
 | `accepted` | Tersimpan | Hapus dari outbox |
 | `duplicate` | Sudah pernah `accepted`/`flagged` sebelumnya | Hapus dari outbox (anggap sukses) |
-| `flagged` | **Tersimpan**, tapi ditandai untuk audit. `flags`: `TOTAL_MISMATCH` (hitungan server dengan tarif snapshot berbeda), `RATES_OUTDATED` (tarif snapshot ≠ tarif outlet saat ini) | Hapus dari outbox |
+| `flagged` | **Tersimpan**, tapi ditandai untuk audit. `flags`: `TOTAL_MISMATCH` (hitungan server dengan tarif snapshot berbeda), `RATES_OUTDATED` (tarif snapshot ≠ tarif outlet saat ini), `QRIS_UNPAID` (referensi pembayaran QRIS adalah charge dinamis yang belum dikonfirmasi gateway, ADR-019) | Hapus dari outbox |
 | `rejected` | Tidak tersimpan (+ `code`, mis. `CASHIER_NOT_IN_OUTLET`, `SHIFT_NOT_FOUND`, `SCHEMA_INVALID`) | Tandai `dead`; manager bisa kirim ulang setelah diperbaiki — server memproses ulang event yang sebelumnya `rejected` |
 
 - Device diidentifikasi dari token (dicocokkan dengan header `X-Device-Id`); body **tidak** membawa `device_id`.
@@ -169,6 +169,23 @@ Batas: maks 50 event / request, body maks 1 MB.
 | GET | `/reports/sales-summary?outlet_id=&from=&to=` | dari read model |
 | GET | `/reports/products`, `/reports/categories`, `/reports/payment-methods`, `/reports/cashiers` | |
 | POST | `/imports/device-export` | import file export darurat dari device |
+
+| GET | `/billing/subscription` | status langganan, trial, tagihan + `payment_url` (ADR-018) |
+| GET/POST/DELETE | `/webhooks`, `/webhooks/{id}`; GET `/webhooks/{id}/deliveries`; POST `/webhook-deliveries/{id}/retry` | webhook keluar (ADR-020); `secret` hanya di respons POST |
+
+## Endpoint — Device (online saja)
+
+| Method | Path | Keterangan |
+|---|---|---|
+| POST | `/payments/qris` `{id, amount}` | QR dinamis (ADR-019); `id` ULID dari device → idempoten. Respons `{id, amount, status, qr_string, expires_at, paid_at}` |
+| GET | `/payments/qris/{id}` | dipolling device sampai `status: paid` |
+
+## Endpoint — Gateway (masuk)
+
+| Method | Path | Keterangan |
+|---|---|---|
+| POST | `/gateway/webhook` | notifikasi gateway, tanda tangan wajib valid (401 `INVALID_SIGNATURE`); idempoten; referensi tak dikenal tetap 200 |
+| GET/POST | `/gateway/fake/pay/{ref}` | hanya `PAYMENT_GATEWAY=fake`: checkout simulasi untuk dev/e2e |
 
 ## Endpoint — Platform Admin (operator SaaS)
 

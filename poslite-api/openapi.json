@@ -432,6 +432,29 @@
         "title": "ApiResponse[PushResult]",
         "type": "object"
       },
+      "ApiResponse_QrisChargeOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QrisChargeOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[QrisChargeOut]",
+        "type": "object"
+      },
       "ApiResponse_SalesSummaryOut_": {
         "properties": {
           "data": {
@@ -2865,6 +2888,74 @@
         "title": "PushResult",
         "type": "object"
       },
+      "QrisChargeIn": {
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "amount"
+        ],
+        "title": "QrisChargeIn",
+        "type": "object"
+      },
+      "QrisChargeOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "qr_string": {
+            "title": "Qr String",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "amount",
+          "status",
+          "qr_string",
+          "expires_at",
+          "paid_at"
+        ],
+        "title": "QrisChargeOut",
+        "type": "object"
+      },
       "SalesSummaryOut": {
         "properties": {
           "cashiers": {
@@ -4698,6 +4789,101 @@
           }
         ],
         "summary": "Update Payment Method",
+        "tags": [
+          "payment"
+        ]
+      }
+    },
+    "/api/v1/payments/qris": {
+      "post": {
+        "description": "Online only: a dynamic QR for the bill; offline the device keeps static QRIS (ADR-019).",
+        "operationId": "create_qris_api_v1_payments_qris_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QrisChargeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_QrisChargeOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Qris",
+        "tags": [
+          "payment"
+        ]
+      }
+    },
+    "/api/v1/payments/qris/{charge_id}": {
+      "get": {
+        "description": "Polled by the device until the charge is paid.",
+        "operationId": "qris_status_api_v1_payments_qris__charge_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "charge_id",
+            "required": true,
+            "schema": {
+              "title": "Charge Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_QrisChargeOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Qris Status",
         "tags": [
           "payment"
         ]

@@ -25,5 +25,12 @@ class CashierPort(Protocol):
     async def can_work(self, user_id: str, outlet_id: str) -> bool: ...
 
 
+class QrisPort(Protocol):
+    """Dynamic QRIS charges (ADR-019), implemented by payment: which references are charges
+    that the gateway has not confirmed as paid. Static QRIS references are never returned."""
+
+    async def unpaid(self, references: list[str]) -> set[str]: ...
+
+
 class EventRecorder(Protocol):
     def record(self, event: DomainEvent) -> None: ...

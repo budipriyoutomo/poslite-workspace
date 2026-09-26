@@ -392,6 +392,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payments/qris": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Qris
+         * @description Online only: a dynamic QR for the bill; offline the device keeps static QRIS (ADR-019).
+         */
+        post: operations["create_qris_api_v1_payments_qris_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/qris/{charge_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Qris Status
+         * @description Polled by the device until the charge is paid.
+         */
+        get: operations["qris_status_api_v1_payments_qris__charge_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/auth/login": {
         parameters: {
             query?: never;
@@ -1053,6 +1093,22 @@ export interface components {
         /** ApiResponse[PushResult] */
         ApiResponse_PushResult_: {
             data: components["schemas"]["PushResult"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[QrisChargeOut] */
+        ApiResponse_QrisChargeOut_: {
+            data: components["schemas"]["QrisChargeOut"];
             /**
              * Message
              * @default OK
@@ -2142,6 +2198,31 @@ export interface components {
             /** Results */
             results: components["schemas"]["EventResultOut"][];
         };
+        /** QrisChargeIn */
+        QrisChargeIn: {
+            /** Amount */
+            amount: number;
+            /** Id */
+            id: string;
+        };
+        /** QrisChargeOut */
+        QrisChargeOut: {
+            /** Amount */
+            amount: number;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Id */
+            id: string;
+            /** Paid At */
+            paid_at: string | null;
+            /** Qr String */
+            qr_string: string;
+            /** Status */
+            status: string;
+        };
         /** SalesSummaryOut */
         SalesSummaryOut: {
             /** Cashiers */
@@ -3200,6 +3281,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_qris_api_v1_payments_qris_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QrisChargeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_QrisChargeOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    qris_status_api_v1_payments_qris__charge_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                charge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_QrisChargeOut_"];
                 };
             };
             /** @description Validation Error */

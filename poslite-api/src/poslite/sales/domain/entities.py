@@ -86,6 +86,7 @@ class Order:
         device_id: str,
         business_date: date,
         current_rates: Rates,
+        qris_unpaid: bool = False,
     ) -> "Order":
         """Accept a sale from a device (06-domain-and-database.md, Order rules).
 
@@ -121,6 +122,8 @@ class Order:
             flags.append("TOTAL_MISMATCH")
         if data.rates != current_rates:
             flags.append("RATES_OUTDATED")
+        if qris_unpaid:  # dynamic QRIS the gateway has not confirmed (ADR-019)
+            flags.append("QRIS_UNPAID")
 
         order = cls(
             id=data.order_id,
