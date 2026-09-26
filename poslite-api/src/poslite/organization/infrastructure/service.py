@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from datetime import time
+from datetime import datetime, time
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from poslite.organization.domain.device_code import device_code
 from poslite.organization.infrastructure.models import DeviceModel, OutletModel
@@ -174,4 +174,60 @@ async def outlet_profile(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> OutletPro
         tax_bps=outlet.tax_rate_bps,
         timezone=outlet.timezone,
         business_day_cutoff=outlet.business_day_cutoff,
+    )
+
+
+async def outlet_code_taken(uow: SqlAlchemyUnitOfWork, code: str) -> bool:
+    return (
+        await uow.session.scalar(select(OutletModel.id).where(OutletModel.code == code))
+    ) is not None
+
+
+@dataclass(frozen=True, slots=True)
+class DeviceRow:
+    id: str
+    code: str
+    name: str
+    platform: str
+    app_version: str | None
+    last_seen_at: datetime | None
+    revoked_at: datetime | None
+    created_at: datetime
+
+
+async def list_devices(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> list[DeviceRow]:
+    rows = await uow.session.scalars(
+        select(DeviceModel).where(DeviceModel.outlet_id == outlet_id).order_by(DeviceModel.code)
+    )
+    return [
+        DeviceRow(
+            d.id,
+            d.code,
+            d.name,
+            d.platform,
+            d.app_version,
+            d.last_seen_at,
+            d.revoked_at,
+            d.created_at,
+        )
+        for d in rows
+    ]
+
+
+async def revoke_device(uow: SqlAlchemyUnitOfWork, device_id: str) -> None:
+    device = await uow.session.get(DeviceModel, device_id)
+    if device is None:
+        raise DomainError("DEVICE_NOT_FOUND", "Device not found", kind="not_found")
+    if device.revoked_at is None:
+        device.revoked_at = func.now()
+    await uow.session.flush()
+
+
+async def touch_device(uow: SqlAlchemyUnitOfWork, device_id: str, app_version: str | None) -> None:
+    """Last seen + app version, shown in device management (05 "Middleware")."""
+    values: dict[str, object] = {"last_seen_at": func.now()}
+    if app_version:
+        values["app_version"] = app_version[:30]
+    await uow.session.execute(
+        update(DeviceModel).where(DeviceModel.id == device_id).values(**values)
     )

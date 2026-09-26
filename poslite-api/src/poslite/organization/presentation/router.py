@@ -8,17 +8,23 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from poslite.identity import api as identity
 from poslite.organization.infrastructure.service import (
     DeviceInfo,
+    create_outlet,
     get_device,
     get_outlet,
+    list_devices,
     list_outlets,
+    outlet_code_taken,
     register_device,
+    revoke_device,
     update_outlet_settings,
 )
 from poslite.organization.presentation.schemas import (
     ActivateRequest,
     ActivationResult,
+    DeviceListItem,
     DeviceMe,
     DeviceOut,
+    NewOutletIn,
     OutletOut,
     OutletSettingsIn,
     OutletSettingsOut,
@@ -133,3 +139,46 @@ async def update_settings(
             receipt_footer=saved.receipt_footer,
         )
     )
+
+
+@router.post("/outlets", status_code=status.HTTP_201_CREATED)
+async def add_outlet(
+    body: NewOutletIn,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    new_id: Annotated[Callable[[], str], Depends(id_factory)],
+) -> ApiResponse[OutletOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        if await outlet_code_taken(uow, body.code):
+            raise DomainError("OUTLET_CODE_TAKEN", "Outlet code is already used", kind="conflict")
+        outlet = await create_outlet(
+            uow, outlet_id=new_id(), code=body.code, name=body.name, timezone=body.timezone
+        )
+        await uow.commit()
+    return ok(OutletOut(id=outlet.id, code=outlet.code, name=outlet.name))
+
+
+@router.get("/outlets/{outlet_id}/devices")
+async def devices(
+    outlet_id: str,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+) -> ApiResponse[list[DeviceListItem]]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await get_outlet(uow, outlet_id)
+        rows = await list_devices(uow, outlet_id)
+    return ok([DeviceListItem.model_validate(d, from_attributes=True) for d in rows])
+
+
+@router.delete("/devices/{device_id}")
+async def revoke(
+    device_id: str,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+) -> ApiResponse[None]:
+    """Lost or stolen tablet: its token stops working at once (opaque tokens, 05 "Auth")."""
+    async with open_uow(request, principal.tenant_id) as uow:
+        await revoke_device(uow, device_id)
+        await identity.revoke_tokens_of(uow, owner_type="device", owner_id=device_id)
+        await uow.commit()
+    return ok(None)

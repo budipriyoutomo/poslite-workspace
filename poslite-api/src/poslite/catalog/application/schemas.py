@@ -55,3 +55,17 @@ class ModifierGroupOut(BaseModel):
     min_select: int
     max_select: int
     options: list[OptionOut]
+
+
+class OutletProductIn(BaseModel):
+    price: Rupiah | None  # None = use the base price
+    is_available: bool = True
+
+
+class OutletProductOut(BaseModel):
+    product_id: str
+    name: str
+    base_price: int
+    price: int | None
+    effective_price: int
+    is_available: bool

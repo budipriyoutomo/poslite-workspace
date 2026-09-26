@@ -19,6 +19,7 @@ from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
 from poslite.shared.presentation.errors import install_error_handlers
 from poslite.sync.presentation.router import router as sync_router
+from poslite.tenancy.api import tenant_status
 from poslite.tenancy.presentation.router import router as tenancy_router
 
 
@@ -31,7 +32,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         system_engine = create_engine(settings.system_database_url)
         app.state.app_sessions = session_factory(app_engine)
         app.state.system_sessions = session_factory(system_engine)
-        app.state.token_resolver = SqlTokenResolver(app.state.system_sessions)
+        app.state.token_resolver = SqlTokenResolver(app.state.system_sessions, tenant_status)
         app.state.clock = SystemClock()
         app.state.new_id = new_ulid
         yield

@@ -17,6 +17,7 @@ class Principal:
     owner_type: str  # "user" | "device"
     owner_id: str
     abilities: frozenset[str]
+    tenant_status: str = "active"
 
     def can(self, ability: str) -> bool:
         scope = ability.split(":", 1)[0]
@@ -47,6 +48,9 @@ def require_ability(ability: str) -> Callable[[Principal], Awaitable[Principal]]
     async def dependency(principal: Annotated[Principal, Depends(current_principal)]) -> Principal:
         if not principal.can(ability):
             raise DomainError("FORBIDDEN", f"Token lacks ability {ability}", kind="forbidden")
+        # A suspended tenant keeps selling (push) and reading, but cannot change master data (05).
+        if ability.endswith(":write") and principal.tenant_status == "suspended":
+            raise DomainError("TENANT_SUSPENDED", "This business is suspended", kind="forbidden")
         return principal
 
     return dependency

@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.identity.domain.pin import PIN_ITERATIONS, hash_pin, new_pin_salt
@@ -167,3 +167,34 @@ async def can_work(uow: SqlAlchemyUnitOfWork, *, user_id: str, outlet_id: str) -
     if user is None or user.deleted_at is not None or not user.is_active:
         return False
     return await role_at(uow, user_id=user_id, outlet_id=outlet_id) is not None
+
+
+async def update_user(
+    uow: SqlAlchemyUnitOfWork,
+    *,
+    user_id: str,
+    name: str,
+    is_active: bool,
+    outlets: list[tuple[str, Role]],
+) -> None:
+    """Replace name, status and outlet roles; the UPDATE re-versions the user (ADR-009)."""
+    user = await uow.session.get(UserModel, user_id)
+    if user is None or user.deleted_at is not None:
+        raise DomainError("USER_NOT_FOUND", kind="not_found")
+    user.name, user.is_active, user.updated_at = name, is_active, func.now()
+    await uow.session.execute(delete(OutletUserModel).where(OutletUserModel.user_id == user_id))
+    await uow.session.flush()
+    for outlet_id, role in outlets:
+        await assign_role(uow, user_id=user_id, outlet_id=outlet_id, role=role)
+
+
+async def delete_user(uow: SqlAlchemyUnitOfWork, *, user_id: str, actor_id: str) -> None:
+    if user_id == actor_id:
+        raise DomainError(
+            "CANNOT_DELETE_SELF", "You cannot delete your own account", kind="conflict"
+        )
+    user = await uow.session.get(UserModel, user_id)
+    if user is None or user.deleted_at is not None:
+        raise DomainError("USER_NOT_FOUND", kind="not_found")
+    user.deleted_at = func.now()
+    await uow.session.flush()

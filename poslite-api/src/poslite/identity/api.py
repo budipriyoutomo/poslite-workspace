@@ -19,7 +19,12 @@ from poslite.identity.infrastructure.service import (
     roles_of,
     user_changes,
 )
-from poslite.identity.infrastructure.tokens import SqlTokenResolver, issue_token, revoke_token
+from poslite.identity.infrastructure.tokens import (
+    SqlTokenResolver,
+    issue_token,
+    revoke_token,
+    revoke_tokens_of,
+)
 from poslite.identity.presentation.schemas import AuthResult, TenantOut
 from poslite.identity.presentation.session import start_backoffice_session
 
@@ -41,6 +46,7 @@ __all__ = [
     "highest",
     "issue_token",
     "revoke_token",
+    "revoke_tokens_of",
     "role_at",
     "roles_of",
     "start_backoffice_session",

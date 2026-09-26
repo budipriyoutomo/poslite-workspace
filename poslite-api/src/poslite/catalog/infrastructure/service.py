@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 from sqlalchemy import delete, func, select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 
 from poslite.catalog.application.schemas import (
@@ -9,6 +10,8 @@ from poslite.catalog.application.schemas import (
     ModifierGroupIn,
     ModifierGroupOut,
     OptionOut,
+    OutletProductIn,
+    OutletProductOut,
     ProductIn,
     ProductOut,
 )
@@ -16,6 +19,7 @@ from poslite.catalog.infrastructure.models import (
     CategoryModel,
     ModifierGroupModel,
     ModifierOptionModel,
+    OutletProductModel,
     ProductModel,
     ProductModifierGroupModel,
 )
@@ -302,7 +306,7 @@ async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str) -> Non
 
 
 async def catalog_changes(
-    uow: SqlAlchemyUnitOfWork, *, cursor: int, limit: int
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
 ) -> list[list[Change]]:
     products = await feed(
         uow,
@@ -319,9 +323,17 @@ async def catalog_changes(
             "is_available": p.is_available,
         },
     )
-    groups = await _group_ids(uow, [c.id for c in products if c.data is not None])
+    live = [c.id for c in products if c.data is not None]
+    groups = await _group_ids(uow, live)
+    overrides = await _overrides(uow, outlet_id, live)
     products = [
-        Change(c.entity, c.op, c.id, c.version, {**c.data, "modifier_group_ids": groups[c.id]})
+        Change(
+            c.entity,
+            c.op,
+            c.id,
+            c.version,
+            _effective(c.data, overrides.get(c.id)) | {"modifier_group_ids": groups[c.id]},
+        )
         if c.data
         else c
         for c in products
@@ -358,3 +370,76 @@ async def catalog_changes(
             },
         ),
     ]
+
+
+# ── Per-outlet price and availability ────────────────────────────────────────────────────────
+
+
+async def _overrides(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, product_ids: list[str]
+) -> dict[str, OutletProductModel]:
+    rows = await uow.session.scalars(
+        select(OutletProductModel).where(
+            OutletProductModel.outlet_id == outlet_id,
+            OutletProductModel.product_id.in_(product_ids),
+        )
+    )
+    return {r.product_id: r for r in rows}
+
+
+def _effective(data: dict[str, object], override: OutletProductModel | None) -> dict[str, object]:
+    """What this outlet sells: its own price if set; available only if both flags agree."""
+    if override is None:
+        return data
+    return data | {
+        "price": override.price if override.price is not None else data["price"],
+        "is_available": bool(data["is_available"]) and override.is_available,
+    }
+
+
+async def set_outlet_product(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, product_id: str, body: OutletProductIn
+) -> OutletProductOut:
+    product = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
+    values = {"price": body.price, "is_available": body.is_available}
+    await uow.session.execute(
+        insert(OutletProductModel)
+        .values(tenant_id=uow.tenant_id, outlet_id=outlet_id, product_id=product_id, **values)
+        .on_conflict_do_update(index_elements=["outlet_id", "product_id"], set_=values)
+    )
+    product.updated_at = func.now()  # link-table change → re-version the product so devices pull it
+    await uow.session.flush()
+    return OutletProductOut(
+        product_id=product.id,
+        name=product.name,
+        base_price=product.price,
+        price=body.price,
+        effective_price=body.price if body.price is not None else product.price,
+        is_available=body.is_available,
+    )
+
+
+async def list_outlet_products(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> list[OutletProductOut]:
+    products = list(
+        await uow.session.scalars(
+            select(ProductModel)
+            .where(ProductModel.deleted_at.is_(None))
+            .order_by(ProductModel.name)
+        )
+    )
+    overrides = await _overrides(uow, outlet_id, [p.id for p in products])
+    result = []
+    for p in products:
+        o = overrides.get(p.id)
+        price = o.price if o else None
+        result.append(
+            OutletProductOut(
+                product_id=p.id,
+                name=p.name,
+                base_price=p.price,
+                price=price,
+                effective_price=price if price is not None else p.price,
+                is_available=p.is_available and (o.is_available if o else True),
+            )
+        )
+    return result

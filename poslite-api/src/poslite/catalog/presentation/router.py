@@ -8,10 +8,13 @@ from poslite.catalog.application.schemas import (
     CategoryOut,
     ModifierGroupIn,
     ModifierGroupOut,
+    OutletProductIn,
+    OutletProductOut,
     ProductIn,
     ProductOut,
 )
 from poslite.catalog.infrastructure import service
+from poslite.organization import api as organization
 from poslite.shared.presentation.dependencies import id_factory, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
@@ -128,3 +131,24 @@ async def delete_modifier_group(
         await service.delete_modifier_group(uow, group_id)
         await uow.commit()
     return ok(None)
+
+
+@router.get("/outlets/{outlet_id}/products")
+async def list_outlet_products(
+    outlet_id: str, request: Request, principal: Reader
+) -> ApiResponse[list[OutletProductOut]]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await organization.get_outlet(uow, outlet_id)
+        return ok(await service.list_outlet_products(uow, outlet_id))
+
+
+@router.put("/outlets/{outlet_id}/products/{product_id}")
+async def set_outlet_product(
+    outlet_id: str, product_id: str, body: OutletProductIn, request: Request, principal: Writer
+) -> ApiResponse[OutletProductOut]:
+    """Price and availability at one outlet (06: outlet_products); price null = base price."""
+    async with open_uow(request, principal.tenant_id) as uow:
+        await organization.get_outlet(uow, outlet_id)
+        result = await service.set_outlet_product(uow, outlet_id, product_id, body)
+        await uow.commit()
+    return ok(result)

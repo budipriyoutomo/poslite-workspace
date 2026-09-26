@@ -46,16 +46,20 @@ async def pull(
     """Delta pull of master data for the device's outlet (ADR-004, ADR-009)."""
     async with open_uow(request, principal.tenant_id) as uow:
         device = await organization.get_device(uow, principal.owner_id)
+        await organization.touch_device(uow, device.id, request.headers.get("X-App-Version"))
         feeds = [
             await organization.outlet_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
-            *await catalog.catalog_changes(uow, cursor=cursor, limit=limit),
+            *await catalog.catalog_changes(
+                uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
+            ),
             await payment.payment_method_changes(uow, cursor=cursor, limit=limit),
             await identity.user_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
         ]
+        await uow.commit()  # keeps last_seen_at / app_version
     page = merge_feeds(feeds, cursor=cursor, limit=limit)
     return ok(
         PullResult(
@@ -95,6 +99,7 @@ async def push(
     """Idempotent push: one transaction per batch, a savepoint per event (ADR-010)."""
     async with open_uow(request, principal.tenant_id) as uow:
         device = await organization.get_device(uow, principal.owner_id)
+        await organization.touch_device(uow, device.id, request.headers.get("X-App-Version"))
         ctx = DeviceContext(
             tenant_id=principal.tenant_id, device_id=device.id, outlet_id=device.outlet.id
         )

@@ -50,3 +50,22 @@ class OutletSettingsIn(BaseModel):
 class OutletSettingsOut(OutletSettingsIn):
     id: str
     code: str
+
+
+class NewOutletIn(BaseModel):
+    code: Annotated[
+        str, StringConstraints(strip_whitespace=True, to_upper=True, pattern=r"^[A-Z0-9]{2,10}$")
+    ]
+    name: Name
+    timezone: TimeZone = "Asia/Jakarta"
+
+
+class DeviceListItem(BaseModel):
+    id: str
+    code: str
+    name: str
+    platform: str
+    app_version: str | None
+    last_seen_at: datetime | None
+    revoked_at: datetime | None
+    created_at: datetime

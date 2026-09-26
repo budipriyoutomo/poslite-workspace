@@ -10,6 +10,7 @@ from poslite.organization.infrastructure.service import (
     outlet_changes,
     outlet_profile,
     register_device,
+    touch_device,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "outlet_changes",
     "outlet_profile",
     "register_device",
+    "touch_device",
 ]

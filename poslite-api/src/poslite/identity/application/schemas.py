@@ -24,9 +24,16 @@ class PinIn(BaseModel):
     pin: Pin
 
 
+class UserUpdate(BaseModel):
+    name: Name
+    is_active: bool = True
+    outlets: list[OutletRole]
+
+
 class UserOut(BaseModel):
     id: str
     name: str
     email: str | None
     has_pin: bool
+    is_active: bool
     outlets: list[OutletRole]

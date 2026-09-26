@@ -58,3 +58,15 @@ class ProductModifierGroupModel(Base):
     product_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     modifier_group_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0")
+
+
+class OutletProductModel(Base):
+    """Per-outlet override (link table): a change touches products.version (ADR-009)."""
+
+    __tablename__ = "outlet_products"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    product_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    price: Mapped[int | None] = mapped_column(BigInteger)
+    is_available: Mapped[bool] = mapped_column(Boolean, server_default="true")

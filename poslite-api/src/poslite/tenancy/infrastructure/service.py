@@ -40,3 +40,8 @@ async def create_tenant(
 async def get_tenant(uow: SqlAlchemyUnitOfWork) -> TenantInfo:
     tenant = await uow.session.get_one(TenantModel, uow.tenant_id)
     return _info(tenant)
+
+
+async def tenant_status(session: AsyncSession, tenant_id: str) -> str | None:
+    """Status lookup for token resolution (runs as poslite_system, before a tenant context)."""
+    return await session.scalar(select(TenantModel.status).where(TenantModel.id == tenant_id))

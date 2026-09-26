@@ -3,9 +3,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
-from poslite.identity.application.schemas import OutletRole, PinIn, UserIn, UserOut
+from poslite.identity.application.schemas import OutletRole, PinIn, UserIn, UserOut, UserUpdate
 from poslite.identity.infrastructure.passwords import hash_password
-from poslite.identity.infrastructure.service import assign_role, create_user, list_users, set_pin
+from poslite.identity.infrastructure.service import (
+    assign_role,
+    create_user,
+    delete_user,
+    list_users,
+    set_pin,
+    update_user,
+)
+from poslite.identity.infrastructure.tokens import revoke_tokens_of
 from poslite.organization import api as organization
 from poslite.shared.presentation.dependencies import id_factory, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
@@ -27,6 +35,7 @@ async def users(
                     name=u.name,
                     email=u.email,
                     has_pin=u.pin_hash is not None,
+                    is_active=u.is_active,
                     outlets=[OutletRole(outlet_id=o, role=r) for o, r in roles.items()],
                 )
                 for u, roles in await list_users(uow)
@@ -62,6 +71,7 @@ async def create(
             name=body.name,
             email=body.email,
             has_pin=body.pin is not None,
+            is_active=True,
             outlets=body.outlets,
         )
     )
@@ -73,5 +83,34 @@ async def change_pin(
 ) -> ApiResponse[None]:
     async with open_uow(request, principal.tenant_id) as uow:
         await set_pin(uow, user_id=user_id, pin=body.pin)
+        await uow.commit()
+    return ok(None)
+
+
+@router.put("/users/{user_id}")
+async def update(
+    user_id: str, body: UserUpdate, request: Request, principal: Writer
+) -> ApiResponse[None]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        for assignment in body.outlets:
+            await organization.get_outlet(uow, assignment.outlet_id)
+        await update_user(
+            uow,
+            user_id=user_id,
+            name=body.name,
+            is_active=body.is_active,
+            outlets=[(o.outlet_id, o.role) for o in body.outlets],
+        )
+        if not body.is_active:
+            await revoke_tokens_of(uow, owner_type="user", owner_id=user_id)
+        await uow.commit()
+    return ok(None)
+
+
+@router.delete("/users/{user_id}")
+async def remove(user_id: str, request: Request, principal: Writer) -> ApiResponse[None]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await delete_user(uow, user_id=user_id, actor_id=principal.owner_id)
+        await revoke_tokens_of(uow, owner_type="user", owner_id=user_id)
         await uow.commit()
     return ok(None)

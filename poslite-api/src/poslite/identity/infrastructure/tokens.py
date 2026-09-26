@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from collections.abc import Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from datetime import datetime
 
 from sqlalchemy import func, select, update
@@ -50,8 +50,13 @@ async def revoke_token(uow: SqlAlchemyUnitOfWork, token_id: str) -> None:
 class SqlTokenResolver:
     """Looks a token up before the tenant is known — the one narrow query run as poslite_system."""
 
-    def __init__(self, system: async_sessionmaker[AsyncSession]) -> None:
-        self._system = system
+    def __init__(
+        self,
+        system: async_sessionmaker[AsyncSession],
+        tenant_status: Callable[[AsyncSession, str], Awaitable[str | None]],
+    ) -> None:
+        # tenant_status is injected (tenancy module) so identity does not depend on tenancy.
+        self._system, self._tenant_status = system, tenant_status
 
     async def resolve(self, token: str) -> Principal | None:
         async with self._system() as session:
@@ -65,6 +70,7 @@ class SqlTokenResolver:
                     )
                 )
             ).scalar_one_or_none()
+            status = await self._tenant_status(session, row.tenant_id) if row else None
         if row is None:
             return None
         return Principal(
@@ -73,4 +79,17 @@ class SqlTokenResolver:
             owner_type=row.owner_type,
             owner_id=row.owner_id,
             abilities=frozenset(row.abilities),
+            tenant_status=status or "active",
         )
+
+
+async def revoke_tokens_of(uow: SqlAlchemyUnitOfWork, *, owner_type: str, owner_id: str) -> None:
+    await uow.session.execute(
+        update(ApiTokenModel)
+        .where(
+            ApiTokenModel.owner_type == owner_type,
+            ApiTokenModel.owner_id == owner_id,
+            ApiTokenModel.revoked_at.is_(None),
+        )
+        .values(revoked_at=func.now())
+    )
