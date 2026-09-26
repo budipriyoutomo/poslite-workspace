@@ -1,0 +1,25 @@
+// UI text for the bills feature (Bahasa Indonesia).
+export const copy = {
+  title: "Bill Terbuka",
+  hint: "Bill meja yang belum dibayar. Hanya tersimpan di perangkat ini.",
+  empty: "Tidak ada bill terbuka",
+  table: (label: string) => `Meja ${label}`,
+  summary: (items: number, value: string) => `${items} item · ${value}`,
+  openedAt: (time: string) => `Dibuka ${time}`,
+  resume: (label: string) => `Lanjutkan ${label}`,
+  cancel: (label: string) => `Batalkan ${label}`,
+  cancelTitle: (label: string) => `Batalkan bill meja ${label}?`,
+  cancelHint: "Pesanan di bill ini dihapus. Belum ada pembayaran, jadi tidak ada transaksi yang dibatalkan.",
+  cancelConfirm: "Batalkan bill",
+  keep: "Kembali",
+  pickTable: "Pilih meja",
+  occupied: "terisi",
+  tableNumber: "Nomor meja",
+  use: "Pakai",
+  noTables: "Outlet belum punya daftar meja — ketik nomor meja.",
+  errors: {
+    TABLE_OCCUPIED: "Meja ini sudah punya bill terbuka",
+    EMPTY_BILL: "Bill masih kosong",
+    CART_BUSY: "Simpan atau kosongkan pesanan yang sedang dibuka dulu",
+  } as Record<string, string>,
+} as const;

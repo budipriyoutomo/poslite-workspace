@@ -15,6 +15,7 @@ import { cn } from "@/shared/ui/utils";
 
 const NAV = [
   { href: "/sell", label: "Jual" },
+  { href: "/bills", label: "Bill" },
   { href: "/orders", label: "Riwayat" },
   { href: "/shift", label: "Shift" },
   { href: "/reports", label: "Laporan" },

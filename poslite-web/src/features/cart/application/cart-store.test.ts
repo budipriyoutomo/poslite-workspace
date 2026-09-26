@@ -29,4 +29,15 @@ describe("cart store", () => {
     await after.persist.rehydrate();
     expect(after.getState().lines).toMatchObject([{ productId: "P1", quantity: 1 }]);
   });
+
+  it("works on a dine-in bill and forgets it on clear", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    const bill = { id: "B1", tableId: "T1", tableLabel: "A1", openedBy: "U1", openedAt: "2026-09-25T02:00:00.000Z" };
+    useCart.getState().loadBill(bill, [{ ...gudeg, key: "g", quantity: 2 }], { type: "percentage", value: 10 });
+
+    expect(useCart.getState()).toMatchObject({ bill, lines: [{ key: "g", quantity: 2 }], discount: { type: "percentage", value: 10 } });
+
+    useCart.getState().clear();
+    expect(useCart.getState().bill).toBeNull();
+  });
 });

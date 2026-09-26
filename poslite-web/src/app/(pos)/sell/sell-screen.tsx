@@ -4,6 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
 import { LineEditorDialog, type LineChoice, ProductGrid, useCatalog } from "@/features/catalog";
 import { OrderSummary, useCartTotals } from "@/features/checkout";
@@ -57,6 +58,7 @@ export function SellScreen() {
 
   const cartPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
+      <DineInBar />
       <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
       <OrderSummary rates={rates}>
         <Button asChild size="lg" className="h-12 w-full bg-emerald-600 text-base hover:bg-emerald-700" disabled={totals.isEmpty}>
