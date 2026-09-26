@@ -69,4 +69,28 @@ describe("PaymentPanel", () => {
       { paymentMethodId: "cash", amount: 50_000, reference: null },
     ]);
   });
+
+  it("pays by dynamic QRIS: the confirmed charge fills in the amount and reference", async () => {
+    const onConfirm = vi.fn();
+    const qris = {
+      create: vi.fn(async (id: string, amount: number) => ({ id, amount, status: "pending" as const, qrString: "FAKEQRIS", expiresAt: "2026-09-27T03:15:00Z" })),
+      status: vi.fn(async (id: string) => ({ id, amount: 72_765, status: "paid" as const, qrString: "FAKEQRIS", expiresAt: "2026-09-27T03:15:00Z" })),
+    };
+    render(<PaymentPanel total={72_765} methods={methods} onConfirm={onConfirm} qris={qris} newId={() => "01K5ZK00000000000000000001"} qrisPollMs={0} />);
+
+    await click("QRIS");
+    await click("QR dinamis");
+    await screen.findByText(/QRIS · 01K5ZK00000000000000000001/);
+    await click(/Selesaikan/);
+
+    expect(onConfirm).toHaveBeenCalledWith([{ paymentMethodId: "qris", amount: 72_765, reference: "01K5ZK00000000000000000001" }]);
+  });
+
+  it("offers only static QRIS when there is no dynamic QRIS client (offline / demo)", async () => {
+    setup(72_765);
+    await click("QRIS");
+
+    expect(screen.queryByRole("button", { name: "QR dinamis" })).not.toBeInTheDocument();
+    expect(screen.getByText(/pakai QRIS statis/)).toBeInTheDocument();
+  });
 });

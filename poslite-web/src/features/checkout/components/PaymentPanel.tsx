@@ -1,9 +1,10 @@
 "use client";
 
-import { X } from "lucide-react";
+import { QrCode as QrCodeIcon, X } from "lucide-react";
 import { useState } from "react";
 
 import type { PaymentMethodRow } from "@/shared/db";
+import { newId } from "@/shared/id";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -11,9 +12,11 @@ import { Label } from "@/shared/ui/label";
 import { MoneyKeypad } from "@/shared/ui/money-keypad";
 import { cn } from "@/shared/ui/utils";
 
+import type { QrisClient } from "../application/dynamic-qris";
 import { copy } from "../copy";
 import { suggestCashAmounts } from "../domain/cash-suggestions";
 import { remainingDue, settle } from "../domain/payment";
+import { DynamicQrisDialog } from "./DynamicQrisDialog";
 
 export interface TenderedInput {
   paymentMethodId: string;
@@ -26,9 +29,14 @@ interface Props {
   methods: PaymentMethodRow[];
   onConfirm: (payments: TenderedInput[]) => void;
   isBusy?: boolean;
+  /** Dynamic QRIS (ADR-019); null/absent when offline or in demo mode → static QRIS only. */
+  qris?: QrisClient | null;
+  newId?: () => string;
+  qrisPollMs?: number;
 }
 
-export function PaymentPanel({ total, methods, onConfirm, isBusy = false }: Props) {
+export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris = null, newId: makeId = newId, qrisPollMs }: Props) {
+  const [isShowingQr, setIsShowingQr] = useState(false);
   const [tendered, setTendered] = useState<TenderedInput[]>([]);
   const [method, setMethod] = useState(() => methods.find((m) => m.type === "cash") ?? methods[0]!);
   const [amount, setAmount] = useState(0);
@@ -72,6 +80,28 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false }: Prop
         </div>
       )}
       <MoneyKeypad label={`${copy.amount} · ${method.name}`} value={amount} onChange={setAmount} />
+      {method.type === "qris" &&
+        (qris ? (
+          <Button variant="outline" className="h-11 w-full" disabled={remaining <= 0} onClick={() => setIsShowingQr(true)}>
+            <QrCodeIcon /> {copy.qrisDynamic}
+          </Button>
+        ) : (
+          <p className="text-xs text-muted-foreground">{copy.qrisOffline}</p>
+        ))}
+      {isShowingQr && qris && (
+        <DynamicQrisDialog
+          amount={remaining}
+          client={qris}
+          newId={makeId}
+          pollMs={qrisPollMs}
+          onClose={() => setIsShowingQr(false)}
+          onPaid={({ reference, amount: paid }) => {
+            setTendered([...tendered, { paymentMethodId: method.id, amount: paid, reference }]);
+            setAmount(0);
+            setIsShowingQr(false);
+          }}
+        />
+      )}
       {method.requiresReference && (
         <div className="space-y-1">
           <Label htmlFor="payment-reference">{copy.reference}</Label>
@@ -84,7 +114,7 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false }: Prop
             const name = methods.find((m) => m.id === p.paymentMethodId)!.name;
             return (
               <li key={i} className="flex items-center justify-between rounded-md bg-slate-100 px-3 py-1.5">
-                <span>{name}</span>
+                <span>{p.reference ? `${name} · ${p.reference}` : name}</span>
                 <span className="ml-auto font-medium">{formatRupiah(p.amount)}</span>
                 <Button size="icon-xs" variant="ghost" aria-label={copy.removePayment(name)} onClick={() => setTendered(tendered.filter((_, j) => j !== i))}>
                   <X />

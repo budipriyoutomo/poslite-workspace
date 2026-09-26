@@ -17,6 +17,7 @@ import { payBill } from "../application/pay-bill";
 import { placeOrder } from "../application/place-order";
 import { usePricing } from "../application/use-cart-totals";
 import { usePaymentMethods } from "../application/use-payment-methods";
+import { useQrisClient } from "../application/use-qris-client";
 import { copy } from "../copy";
 import { canSplit, splitLines } from "../domain/split";
 import { OrderPlacedDialog } from "./OrderPlacedDialog";
@@ -38,6 +39,7 @@ export function CheckoutScreen() {
   const user = useSession((s) => s.user);
   const outlet = useOutletSetting();
   const methods = usePaymentMethods();
+  const qris = useQrisClient();
   const { lines, discount, bill, clear, loadBill } = useCart();
   const rates = {
     serviceBps: outlet?.serviceBps ?? 0,
@@ -117,7 +119,7 @@ export function CheckoutScreen() {
       </section>
       <section className="rounded-xl border bg-white p-4">
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
-        {paying.length > 0 && <PaymentPanel key={totals.total} total={totals.total} methods={methods} onConfirm={confirm} isBusy={isPlacing} />}
+        {paying.length > 0 && <PaymentPanel key={totals.total} total={totals.total} methods={methods} onConfirm={confirm} isBusy={isPlacing} qris={qris} />}
       </section>
       <OrderPlacedDialog order={placed} />
     </div>
