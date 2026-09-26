@@ -138,6 +138,12 @@ flowchart LR
 - **Alternatif ditolak**: schema per tenant (migrasi × N, trigger/sequence per schema) dan database per tenant (biaya ops tinggi). Bisa ditawarkan nanti untuk klien enterprise tanpa mengubah kode domain.
 - **Konsekuensi**: unique constraint & index diawali `tenant_id`; test isolasi antar tenant wajib untuk setiap tabel/endpoint baru; job lintas tenant (relay outbox) memakai role terpisah dan men-set tenant per pesan. Detail di [05](./05-backend-architecture.md#multi-tenancy-adr-013).
 
+
+### ADR-014 — Back-office sebagai app terpisah (`poslite-admin`)
+
+- **Keputusan**: Back-office (pemilik/manajer) dan konsol operator SaaS (`/platform`) adalah app Next.js tersendiri di `poslite-admin` (port dev 3001, deploy ke `admin.<domain>`), bukan route di dalam PWA POS.
+- **Kenapa**: back-office online-only dan boleh SSR, sedangkan POS wajib SPA ter-prerender dengan service worker (ADR-002). Memisahkan app membuat halaman admin tidak ikut di-precache, bundle POS tetap kecil, dan aturan offline tidak berlaku untuk admin.
+- **Konsekuensi**: komponen shadcn/ui dan konfigurasi tooling diduplikasi (belum ada paket bersama). Tipe API admin di-generate dari `poslite-api/openapi.json` (`make admin-types`, dicek CI) dan dipakai lewat `openapi-fetch`. Token back-office disimpan di `localStorage` (12 jam, opaque, bisa dicabut) — cookie httpOnly menyusul bila dibutuhkan.
 ## Non-Functional Requirements
 
 | NFR | Target |

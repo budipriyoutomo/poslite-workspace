@@ -1,0 +1,25 @@
+// UI text for the auth feature (Bahasa Indonesia).
+export const copy = {
+  loginTitle: "Masuk Back-office",
+  loginHint: "Kelola menu, harga, kasir, dan laporan penjualan",
+  signupTitle: "Daftarkan usaha Anda",
+  signupHint: "Gratis untuk mulai. Outlet pertama langsung dibuat.",
+  email: "Email",
+  password: "Password",
+  signIn: "Masuk",
+  signUp: "Buat akun",
+  toSignup: "Belum punya akun? Daftar",
+  toLogin: "Sudah punya akun? Masuk",
+  businessName: "Nama usaha",
+  ownerName: "Nama Anda",
+  outletCode: "Kode outlet",
+  outletCodeHint: "2–10 huruf/angka, muncul di nomor struk (mis. JKT01)",
+  outletName: "Nama outlet",
+  errors: {
+    INVALID_CREDENTIALS: "Email atau password salah",
+    SLUG_TAKEN: "Nama usaha ini sudah dipakai, coba nama lain",
+    EMAIL_TAKEN: "Email ini sudah terdaftar",
+    VALIDATION_ERROR: "Periksa kembali isian Anda",
+    network: "Tidak bisa terhubung ke server",
+  } as Record<string, string>,
+} as const;

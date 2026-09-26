@@ -4,6 +4,7 @@ SHELL := /bin/bash
 
 API_DIR ?= poslite-api
 WEB_DIR ?= poslite-web
+ADMIN_DIR ?= poslite-admin
 DOCS_DIR ?= poslite-docs
 
 API_PORT ?= 8000
@@ -19,8 +20,9 @@ PSQL_ADMIN ?= psql -h $(DB_HOST) -d postgres -v ON_ERROR_STOP=1 -q
 
 UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
+ADMIN := pnpm --dir $(ADMIN_DIR)
 
-.PHONY: help doctor setup install dev check test fmt \
+.PHONY: help doctor setup install dev check test fmt dev-admin admin-install admin-test admin-check admin-types \
 	dev-api worker openapi report-rebuild platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
 	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
 
@@ -36,7 +38,7 @@ doctor: ## Check tools, app folders and local PostgreSQL
 	for tool in uv pnpm psql; do \
 		command -v $$tool >/dev/null && echo "✓ $$tool" || { echo "✗ $$tool not found in PATH"; ok=0; }; \
 	done; \
-	for dir in $(API_DIR) $(WEB_DIR) $(DOCS_DIR); do \
+	for dir in $(API_DIR) $(WEB_DIR) $(ADMIN_DIR) $(DOCS_DIR); do \
 		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing"; ok=0; }; \
 	done; \
 	pg_isready -h $(DB_HOST) -q && echo "✓ PostgreSQL on $(DB_HOST):5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
@@ -44,17 +46,18 @@ doctor: ## Check tools, app folders and local PostgreSQL
 
 setup: doctor install env db-setup migrate ## First-time setup: deps, .env, local DBs, migrations
 
-install: api-install web-install ## Install deps for API and web
+install: api-install web-install admin-install ## Install deps for API, POS web and back-office
 
-dev: ## Run API (:8000) and web (:3000) together — Ctrl-C stops both
+dev: ## Run API (:8000), POS web (:3000) and back-office (:3001) together — Ctrl-C stops all
 	@trap 'kill 0' INT TERM; \
 	$(MAKE) --no-print-directory dev-api 2>&1 | awk '{ print "\033[35m[api]\033[0m " $$0; fflush() }' & \
 	$(MAKE) --no-print-directory dev-web 2>&1 | awk '{ print "\033[36m[web]\033[0m " $$0; fflush() }' & \
+	$(MAKE) --no-print-directory dev-admin 2>&1 | awk '{ print "\033[33m[admin]\033[0m " $$0; fflush() }' & \
 	wait
 
-check: api-check web-check ## Everything required before a commit (API + web)
+check: api-check web-check admin-check ## Everything required before a commit (all apps)
 
-test: api-test web-test ## Run tests for API and web
+test: api-test web-test admin-test ## Run tests for all apps
 
 fmt: api-fmt ## Auto-fix lint and format
 
@@ -158,3 +161,22 @@ e2e-fullstack: ## Browser + real API: activate, sell offline, sync (fresh poslit
 
 web-spike-dexie: ## Fase 0 spike: Dexie with 5,000 orders in real Chrome at 1x and 4x CPU
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config tests/spikes/playwright.config.ts
+
+##@ Back-office (poslite-admin)
+
+dev-admin: ## Run only the back-office dev server (:3001)
+	$(ADMIN) dev
+
+admin-install: ## Install back-office deps (pnpm)
+	$(ADMIN) install
+
+admin-test: ## Back-office unit/component tests
+	$(ADMIN) test
+
+admin-check: ## Back-office typecheck, lint, tests
+	$(ADMIN) typecheck
+	$(ADMIN) lint
+	$(ADMIN) test
+
+admin-types: openapi ## Regenerate the back-office API types from poslite-api/openapi.json
+	$(ADMIN) api:types
