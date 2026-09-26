@@ -21,7 +21,7 @@ UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
 
 .PHONY: help doctor setup install dev check test fmt \
-	dev-api worker report-rebuild platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
+	dev-api worker openapi report-rebuild platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
 	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
 
 help: ## Show available targets
@@ -65,6 +65,9 @@ dev-api: ## Run only the API with auto-reload (API_PORT, default 8000)
 
 worker: ## Run the arq worker: outbox relay → report projections (needs a local Redis)
 	$(UV) run arq poslite.worker.WorkerSettings
+
+openapi: ## Regenerate poslite-api/openapi.json (the contract clients generate types from)
+	$(UV) run python -m poslite.tools.export_openapi
 
 report-rebuild: ## Recompute report tables from orders: make report-rebuild from=2026-09-01 to=2026-09-30
 	@test -n "$(from)" -a -n "$(to)" || { echo 'usage: make report-rebuild from=YYYY-MM-DD to=YYYY-MM-DD'; exit 1; }

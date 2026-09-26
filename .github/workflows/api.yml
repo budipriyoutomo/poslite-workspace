@@ -46,4 +46,6 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run lint-imports
+      - name: openapi.json matches the code
+        run: uv run python -m poslite.tools.export_openapi && git diff --exit-code openapi.json
       - run: uv run pytest --cov --cov-fail-under=85
