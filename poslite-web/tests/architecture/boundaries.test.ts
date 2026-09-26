@@ -42,7 +42,8 @@ async function boundaryErrors(files: Record<string, string>, target: string): Pr
 
 const leaf = "export const x = 1;\n";
 
-describe("frontend layer boundaries", () => {
+// Each case boots ESLint with the TypeScript resolver: slow on a cold or busy machine.
+describe("frontend layer boundaries", { timeout: 60_000 }, () => {
   it("allows a component to use its own feature's application layer", async () => {
     const errors = await boundaryErrors(
       {
