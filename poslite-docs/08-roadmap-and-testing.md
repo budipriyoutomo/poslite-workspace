@@ -46,10 +46,14 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - **DoD**: owner baru bisa daftar dan menyiapkan outlet sampai siap jualan tanpa bantuan developer; laporan penjualan cocok dengan order yang tersinkron; operator bisa menangguhkan tenant.
 
 ### Fase 4 — Restaurant Features
-- [ ] Dine-in: meja, open bill / simpan order, split bill
-- [ ] Kitchen ticket per printer role (kitchen/bar)
-- [ ] Split payment, diskon per item, promo
-- [ ] Print Bridge untuk printer LAN + driver HTTP Epson ePOS / Star WebPRNT
+- [ ] Meja per outlet (back-office + pull `dining_table`)
+- [ ] Dine-in: open bill lokal device (ADR-015), pindah/lanjutkan bill, shift tidak bisa ditutup bila ada bill terbuka
+- [ ] Split bill per item (pilih baris & qty → struk sendiri)
+- [x] Split payment (beberapa metode per order) — sudah ada sejak Fase 1 (`PaymentPanel`)
+- [ ] Diskon per item (manual) + rumus total baru di `pricing-cases.json` (web & API)
+- [ ] Promo otomatis `percent_off` / `buy_x_get_y` (back-office + pull `promotion` + evaluasi offline, ADR-016)
+- [ ] *Setelah spike printer*: kitchen ticket per printer role (kitchen/bar), Print Bridge untuk printer LAN + driver HTTP Epson ePOS / Star WebPRNT
+- **DoD**: pelayan membuka bill meja, menambah pesanan beberapa kali, lalu tamu membayar terpisah per item — semuanya offline; promo happy hour terhitung otomatis dan total server sama dengan device (tanpa `TOTAL_MISMATCH`).
 
 ### Fase 5 — Scale & Integrasi
 - [ ] Billing & subscription tenant (plan, trial, suspend otomatis)

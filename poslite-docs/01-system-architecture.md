@@ -144,6 +144,18 @@ flowchart LR
 - **Keputusan**: Back-office (pemilik/manajer) dan konsol operator SaaS (`/platform`) adalah app Next.js tersendiri di `poslite-admin` (port dev 3001, deploy ke `admin.<domain>`), bukan route di dalam PWA POS.
 - **Kenapa**: back-office online-only dan boleh SSR, sedangkan POS wajib SPA ter-prerender dengan service worker (ADR-002). Memisahkan app membuat halaman admin tidak ikut di-precache, bundle POS tetap kecil, dan aturan offline tidak berlaku untuk admin.
 - **Konsekuensi**: komponen shadcn/ui dan konfigurasi tooling diduplikasi (belum ada paket bersama). Tipe API admin di-generate dari `poslite-api/openapi.json` (`make admin-types`, dicek CI) dan dipakai lewat `openapi-fetch`. Token back-office disimpan di `localStorage` (12 jam, opaque, bisa dicabut) — cookie httpOnly menyusul bila dibutuhkan.
+### ADR-015 — Open bill hanya di device yang membukanya
+
+- **Keputusan**: Bill dine-in yang belum dibayar (open bill) disimpan di IndexedDB tablet yang membukanya (`openBills`), **tidak** disinkronkan dan tidak masuk outbox. Server baru menerima penjualan saat bill dibayar, sebagai `order.placed` biasa (`order_type: dine_in`, `table_label`). Split bill = beberapa `order.placed` dari satu bill.
+- **Kenapa**: order di server tetap immutable (ADR-003) dan tidak ada state mutable yang harus diselesaikan konfliknya antar device; open bill tetap jalan 100% offline.
+- **Konsekuensi**: tablet lain tidak melihat bill terbuka; tablet rusak/hilang = bill terbuka hilang (belum ada uang yang diterima). Shift tidak bisa ditutup selama masih ada bill terbuka. Berbagi bill antar tablet (pelayan ↔ kasir) = keputusan terpisah di masa depan.
+
+### ADR-016 — Diskon per item & promo otomatis dihitung di device
+
+- **Keputusan**: Setiap baris boleh punya **satu** diskon (`percentage` 0..100 atau `fixed` Rupiah, dibatasi nilai baris) — dari kasir (manual) atau dari promo otomatis. Promo (`percent_off`, `buy_x_get_y`) adalah master data dari back-office yang di-pull ke device dan dievaluasi **offline** pada saat bayar, memakai jam & zona waktu outlet. Server tidak mengevaluasi ulang kelayakan promo; ia menyimpan snapshot promo per baris dan menghitung ulang aritmetika total (flag `TOTAL_MISMATCH` bila beda).
+- **Kenapa**: kasir harus bisa memberi harga promo tanpa internet; jam device bisa sedikit beda dari server, sehingga menolak order karena "promo sudah lewat" akan merugikan pelanggan yang sudah bayar.
+- **Konsekuensi**: aturan harga ada di dua bahasa → `pricing-cases.json` wajib memuat kasus diskon baris; aturan pemilihan promo diuji di web. Diskon manual menggantikan promo pada baris itu; bila beberapa promo berlaku, diambil diskon terbesar.
+
 ## Non-Functional Requirements
 
 | NFR | Target |

@@ -8,7 +8,10 @@
 | **Outlet** | Satu cabang/toko fisik milik tenant |
 | **Device** | Satu instalasi POS (tablet/PC) yang sudah diaktivasi untuk outlet |
 | **Shift** | Sesi kasir di satu device: dibuka dengan modal awal, ditutup dengan hitung kas |
-| **Order** | Transaksi penjualan (1 struk). Status MVP: `paid` → (`voided`). Status `open` (open bill / simpan order) baru ada di Fase 4 dine-in |
+| **Order** | Transaksi penjualan (1 struk). Status: `paid` → (`voided`). Tidak ada order `open` di server: bill dine-in yang belum dibayar adalah **Open Bill** lokal device (ADR-015) |
+| **Open Bill** | Pesanan dine-in yang disimpan dan belum dibayar, hanya di tablet yang membukanya; menjadi satu atau beberapa Order saat dibayar (split bill) |
+| **Meja (Dining Table)** | Label meja per outlet (mis. "A1", area "Teras"); master data dari back-office |
+| **Promo** | Aturan diskon otomatis (`percent_off`, `buy_x_get_y`) dengan cakupan produk/kategori/outlet dan jadwal; dievaluasi di device (ADR-016) |
 | **Order Line** | Satu baris item: produk + qty + modifier + catatan (snapshot harga) |
 | **Modifier** | Add-on/opsi (prototype: "add_ons"). Dikelompokkan dalam **Modifier Group** (mis. "Topping", "Level Gula") |
 | **Payment** | Pembayaran untuk order; satu order bisa beberapa payment (split) |
@@ -27,6 +30,20 @@
 5. Diskon persen = integer 0..100; diskon nominal = integer Rupiah. Diskon tidak boleh membuat subtotal < 0. Diskon di atas batas role (mis. > 20% untuk kasir) butuh approval PIN manager.
 6. Qty > 0, integer (MVP; qty desimal untuk produk timbang = fase lanjut).
 7. Total dihitung dengan tarif **snapshot** yang disimpan di order (`service_rate_bps`, `tax_rate_bps`), memakai `divRoundHalfUp` / `div_round_half_up` (ADR-005, ADR-011).
+8. Diskon **per baris**: paling banyak satu per baris (manual atau promo). `line_gross = (unit_price + modifiers_total) × qty`; persen → `divRoundHalfUp(line_gross × pct, 100)`, nominal → `min(value, line_gross)`.
+9. Rumus total: `subtotal = Σ line_gross`; `item_discounts = Σ diskon baris`; diskon order dihitung dari `subtotal − item_discounts` (persen/nominal, dibatasi); `discount_amount = item_discounts + diskon order`; `net = subtotal − discount_amount`; lalu service & PB1 seperti biasa. Tanpa diskon baris, hasilnya sama persis dengan rumus lama.
+
+**Promo (ADR-016)**
+1. `percent_off`: `percentage` 1..100 untuk baris yang masuk cakupan. `buy_x_get_y`: per baris, `gratis = floor(qty / (x + y)) × y` unit → diskon nominal `gratis × (unit_price + modifiers_total)`; wajib punya cakupan produk/kategori.
+2. Cakupan: `product_ids` ∪ `category_ids` (keduanya kosong = semua produk, hanya untuk `percent_off`); `outlet_ids` kosong = semua outlet.
+3. Jadwal (zona waktu outlet, saat bayar): `starts_on`/`ends_on` (tanggal, opsional), `days_of_week` (1 = Senin … 7 = Minggu, kosong = setiap hari), `start_time`/`end_time` (HH:MM, opsional; `end < start` = melewati tengah malam).
+4. Satu baris hanya satu diskon: diskon manual menggantikan promo; di antara promo yang berlaku dipilih diskon terbesar (seri → `id` terkecil).
+
+**Open Bill & Split (ADR-015)**
+1. Hanya dine-in; satu open bill per meja. Bill hidup di tablet pembuka dan tidak disinkronkan.
+2. Bayar bill = `order.placed` (`order_type: dine_in`, `table_label`) lalu bill dihapus, dalam satu transaksi Dexie.
+3. Split per item: pilih baris & qty → dibayar sebagai order sendiri (struk sendiri); sisa tetap di bill. Diskon order persen ikut ke tiap order hasil split; diskon order nominal hanya boleh saat seluruh bill dibayar.
+4. Shift tidak bisa ditutup selama ada open bill.
 
 **Pajak & Service (MVP)**
 1. Tarif per outlet: `service_rate_bps` dan `tax_rate_bps` (PB1), masing-masing boleh 0.
@@ -105,6 +122,10 @@ outlet_products  outlet_id, product_id, price (nullable → pakai base_price), i
 modifier_groups  id, name, min_select, max_select, version, …
 modifier_options id, modifier_group_id, name, price, sort_order, version, …
 product_modifier_group  product_id, modifier_group_id, sort_order         -- ubah → touch products.version
+dining_tables    id, outlet_id, label (unik per outlet), area, seats, sort_order, version, deleted_at
+promotions       id, name, type (percent_off|buy_x_get_y), percentage, buy_qty, get_qty,
+                 product_ids[], category_ids[], outlet_ids[], days_of_week[], start_time, end_time,
+                 starts_on, ends_on, is_active, version, deleted_at
 payment_methods  id, type (cash|debit|qris|credit_card|voucher|other), name, logo_url,
                  requires_reference (bool), sort_order, is_active, version, …
 outlet_payment_method   outlet_id, payment_method_id                      -- ubah → touch payment_methods.version
@@ -119,7 +140,7 @@ shifts           id (ulid dari device), outlet_id, device_id, opened_by, opened_
 cash_movements   id, shift_id, type (in|out), amount, reason, created_by, created_at
 
 orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per outlet),
-                 cashier_id, business_date, order_type (take_away|dine_in), table_label (nullable),
+                 cashier_id, business_date, order_type (take_away|dine_in), table_label (nullable, snapshot),
                  subtotal, discount_type, discount_value, discount_amount,
                  service_rate_bps, tax_rate_bps (snapshot tarif dari device),
                  service_charge, tax, total, paid_amount, change_amount,
@@ -127,7 +148,9 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  created_at (waktu device), synced_at (waktu server)
                  INDEX (outlet_id, business_date), INDEX (shift_id)
 order_lines      id, order_id, product_id, product_name (snapshot), category_name (snapshot),
-                 unit_price (snapshot), modifiers_total, quantity, line_total, notes, sort_order
+                 unit_price (snapshot), modifiers_total, quantity, line_total (gross), notes, sort_order,
+                 discount_type, discount_value, discount_amount (diskon baris, 0 bila tidak ada),
+                 promotion_id, promotion_name (snapshot promo, nullable)
 order_line_modifiers  id, order_line_id, modifier_option_id, name (snapshot), price (snapshot)
 payments         id, order_id, payment_method_id, method_type (snapshot), method_name (snapshot),
                  amount, reference (no. approval EDC / ref QRIS), created_at

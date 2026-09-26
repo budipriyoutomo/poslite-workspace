@@ -63,7 +63,7 @@ Header wajib dari device: `Authorization: Bearer <device_token>`, `X-App-Version
 } }
 ```
 
-Entity: `outlet_setting`, `category`, `product`, `modifier_group`, `modifier_option`, `payment_method`, `user`.
+Entity: `outlet_setting`, `category`, `product`, `modifier_group`, `modifier_option`, `payment_method`, `user`, `dining_table`, `promotion`.
 
 Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 
@@ -75,6 +75,8 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 | `modifier_group` | `name`, `min_select`, `max_select` |
 | `modifier_option` | `modifier_group_id`, `name`, `price`, `sort_order` |
 | `payment_method` | `type`, `name`, `requires_reference`, `sort_order`, `logo_url` |
+| `dining_table` | `label`, `area`, `seats`, `sort_order` — hanya meja outlet device |
+| `promotion` | `name`, `type` (`percent_off`\|`buy_x_get_y`), `percentage`, `buy_qty`, `get_qty`, `product_ids`, `category_ids`, `days_of_week`, `start_time`, `end_time`, `starts_on`, `ends_on` — hanya promo aktif yang berlaku di outlet device; promo nonaktif/dihapus/di luar outlet dikirim sebagai `delete` |
 | `user` | `name`, `role` (di outlet device), `pin_hash`, `pin_salt`, `pin_iterations` — user yang dihapus, nonaktif, atau tidak lagi punya role di outlet device dikirim sebagai `delete` |
 
 `next_cursor` = `version` terakhir di halaman ini. Urutan `version` dijamin sama dengan urutan commit (ADR-009), jadi device cukup menyimpan satu angka.
@@ -91,11 +93,12 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
   { "id": "01J8Z…E2", "type": "order.placed", "aggregate_id": "01J8Z…O1", "occurred_at": "2026-09-25T04:03:00Z",
     "payload": {
       "shift_id": "01J8Z…S1", "receipt_no": "JKT01A-260925-0042", "cashier_id": "01J…U1",
-      "order_type": "take_away",
+      "order_type": "take_away", "table_label": null,
       "lines": [
         { "id": "01J…L1", "product_id": "01J…P1", "product_name": "Nasi Gudeg", "category_name": "Makanan",
           "unit_price": 25000, "quantity": 2, "notes": "tidak pedas",
-          "modifiers": [ { "modifier_option_id": "01J…M1", "name": "Tambah Ayam", "price": 10000 } ] }
+          "modifiers": [ { "modifier_option_id": "01J…M1", "name": "Tambah Ayam", "price": 10000 } ],
+          "discount": null, "promotion": null }
       ],
       "discount": { "type": "percentage", "value": 10 },
       "rates": { "service_bps": 500, "tax_bps": 1000 },
@@ -125,6 +128,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 | `rejected` | Tidak tersimpan (+ `code`, mis. `CASHIER_NOT_IN_OUTLET`, `SHIFT_NOT_FOUND`, `SCHEMA_INVALID`) | Tandai `dead`; manager bisa kirim ulang setelah diperbaiki — server memproses ulang event yang sebelumnya `rejected` |
 
 - Device diidentifikasi dari token (dicocokkan dengan header `X-Device-Id`); body **tidak** membawa `device_id`.
+- `table_label` (string ≤ 30, opsional) diisi untuk `order_type: dine_in`. Per baris, `discount` (`{type, value}` atau `null`) dan `promotion` (`{id, name}` snapshot promo yang memberi diskon itu, atau `null`) bersifat opsional — device lama tanpa field ini tetap valid. Rumus total dengan diskon baris: 06 "Order" aturan 8–9 (ADR-016).
 - `rates` wajib di `order.placed`. Server menghitung ulang `totals` memakai `rates` ini, bukan tarif outlet saat ini (ADR-011).
 - Error non-bisnis (5xx) berarti **seluruh batch** di-rollback → device retry batch yang sama; idempotency menjamin tidak ada duplikat.
 
@@ -158,6 +162,8 @@ Batas: maks 50 event / request, body maks 1 MB.
 | GET/POST/PUT/DELETE | `/users`, `/users/{id}`; `PUT /users/{id}/pin` | Email is global (it is the login): taken → 409 `EMAIL_TAKEN` |
 | GET/POST/PUT/DELETE | `/categories`, `/products`, `/modifier-groups`, `/payment-methods` | |
 | PUT | `/outlets/{id}/products/{productId}` | harga & ketersediaan per outlet |
+| GET/POST · PUT/DELETE | `/outlets/{id}/tables` · `/tables/{id}` | meja per outlet; label unik per outlet → 409 `TABLE_LABEL_TAKEN` |
+| GET/POST/PUT/DELETE | `/promotions`, `/promotions/{id}` | promo otomatis (ADR-016) |
 | GET | `/orders?outlet_id=&business_date=` → `[{id, receipt_no, business_date, cashier_id, total, status, flags, created_at}]` · `/orders/{id}` (belum) | |
 | GET | `/shifts?outlet_id=&business_date=` · `/shifts/{id}` | |
 | GET | `/reports/sales-summary?outlet_id=&from=&to=` | dari read model |
