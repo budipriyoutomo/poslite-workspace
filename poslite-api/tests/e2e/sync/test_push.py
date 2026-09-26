@@ -201,3 +201,27 @@ async def test_an_id_already_used_by_another_tenant_rejects_only_that_event(
 
     assert response.status_code == 200
     assert response.json()["data"]["results"][0]["code"] == "ID_CONFLICT"
+
+
+async def test_back_office_lists_the_pushed_orders(api: AsyncClient) -> None:
+    s = await outlet_with_menu_and_device(api)
+    await push(api, s.device_token, batch(s))
+
+    response = await api.get(
+        f"/api/v1/orders?outlet_id={s.outlet_id}&business_date=2026-09-25",
+        headers=bearer(s.owner_token),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"] == [
+        {
+            "id": batch(s)[2]["aggregate_id"],
+            "receipt_no": "JKT01A-260925-0001",
+            "business_date": "2026-09-25",
+            "cashier_id": s.ids["siti"],
+            "total": 72_765,
+            "status": "paid",
+            "flags": [],
+            "created_at": "2026-09-25T04:03:00Z",
+        }
+    ]

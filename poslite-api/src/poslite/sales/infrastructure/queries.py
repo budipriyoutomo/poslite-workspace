@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy import ColumnElement, and_, func, select
 
@@ -103,3 +103,36 @@ async def daily_payment_sales(
         bucket[0] += kept
         bucket[1] += 1
     return [PaymentSales(m, t, amount, count) for (m, t), (amount, count) in totals.items()]
+
+
+@dataclass(frozen=True, slots=True)
+class OrderSummary:
+    id: str
+    receipt_no: str
+    business_date: date
+    cashier_id: str
+    total: int
+    status: str
+    flags: list[str]
+    created_at: datetime
+
+
+async def list_orders(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> list[OrderSummary]:
+    rows = await uow.session.scalars(
+        select(OrderModel)
+        .where(_day(outlet_id, day))
+        .order_by(OrderModel.created_at, OrderModel.receipt_no)
+    )
+    return [
+        OrderSummary(
+            o.id,
+            o.receipt_no,
+            o.business_date,
+            o.cashier_id,
+            o.total,
+            o.status,
+            list(o.flags),
+            o.created_at,
+        )
+        for o in rows
+    ]

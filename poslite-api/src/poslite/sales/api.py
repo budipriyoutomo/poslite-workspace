@@ -6,11 +6,13 @@ from poslite.sales.domain.repository import OrderRepository
 from poslite.sales.domain.value_objects import Discount, PriceBreakdown, Rates
 from poslite.sales.infrastructure.queries import (
     DailyTotals,
+    OrderSummary,
     PaymentSales,
     ProductSales,
     daily_payment_sales,
     daily_product_sales,
     daily_totals,
+    list_orders,
 )
 from poslite.sales.infrastructure.repository import SqlAlchemyOrderRepository
 
@@ -20,6 +22,7 @@ __all__ = [
     "LineModifier",
     "OrderLine",
     "OrderRepository",
+    "OrderSummary",
     "Payment",
     "PaymentSales",
     "PlaceOrderData",
@@ -32,4 +35,5 @@ __all__ = [
     "daily_payment_sales",
     "daily_product_sales",
     "daily_totals",
+    "list_orders",
 ]
