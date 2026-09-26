@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, time
 
 from sqlalchemy import func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from poslite.organization.domain.device_code import device_code
 from poslite.organization.infrastructure.models import DeviceModel, DiningTableModel, OutletModel
@@ -347,3 +348,13 @@ async def dining_table_changes(
             "sort_order": t.sort_order,
         },
     )
+
+
+async def active_outlet_count(session: AsyncSession, tenant_id: str) -> int:
+    """Outlets billed this period (ADR-018); explicit tenant filter for poslite_system."""
+    count = await session.scalar(
+        select(func.count())
+        .select_from(OutletModel)
+        .where(OutletModel.tenant_id == tenant_id, OutletModel.deleted_at.is_(None))
+    )
+    return int(count or 0)

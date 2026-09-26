@@ -5,7 +5,9 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from poslite.billing.presentation.router import router as billing_router
 from poslite.catalog.presentation.router import router as catalog_router
+from poslite.gateway.presentation.router import router as gateway_router
 from poslite.identity.api import SqlTokenResolver
 from poslite.identity.presentation.router import router as identity_router
 from poslite.identity.presentation.users_router import router as users_router
@@ -20,6 +22,7 @@ from poslite.shared.application.clock import SystemClock
 from poslite.shared.config import Settings, get_settings
 from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
+from poslite.shared.infrastructure.gateways import build_gateway
 from poslite.shared.presentation.errors import install_error_handlers
 from poslite.sync.presentation.router import router as sync_router
 from poslite.tenancy.api import tenant_status
@@ -38,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.token_resolver = SqlTokenResolver(app.state.system_sessions, tenant_status)
         app.state.clock = SystemClock()
         app.state.new_id = new_ulid
+        app.state.gateway = build_gateway(settings)
         yield
         await app_engine.dispose()
         await system_engine.dispose()
@@ -66,6 +70,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         payment_router,
         promotion_router,
         integration_router,
+        billing_router,
+        gateway_router,
         sync_router,
         reporting_router,
         sales_router,

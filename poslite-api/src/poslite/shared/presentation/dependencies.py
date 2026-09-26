@@ -5,6 +5,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.shared.application.clock import Clock
+from poslite.shared.application.payment_gateway import PaymentGateway
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -17,6 +18,11 @@ def system_sessions(request: Request) -> async_sessionmaker[AsyncSession]:
     """BYPASSRLS sessions: only for lookups that happen before a tenant is known."""
     sessions: async_sessionmaker[AsyncSession] = request.app.state.system_sessions
     return sessions
+
+
+def payment_gateway(request: Request) -> PaymentGateway:
+    value: PaymentGateway = request.app.state.gateway
+    return value
 
 
 def clock(request: Request) -> Clock:

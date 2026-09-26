@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     min_app_version: str = "0.0.0"
     cors_origins: list[str] = []
+    # ADR-017/018: payment gateway adapter and subscription price (integer Rupiah per outlet/month).
+    payment_gateway: Literal["fake"] = "fake"
+    gateway_secret: str = "dev-gateway-secret"  # noqa: S105 — dev default; set per environment
+    public_api_url: str = "http://localhost:8000"
+    price_per_outlet: int = 150_000
 
 
 @lru_cache

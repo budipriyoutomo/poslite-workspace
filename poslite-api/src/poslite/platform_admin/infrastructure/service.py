@@ -101,7 +101,8 @@ async def set_tenant_status(
         result = await session.execute(
             text(
                 "UPDATE tenants SET status = :status,"
-                " suspended_at = CASE WHEN :suspend THEN now() ELSE NULL END"
+                " suspended_at = CASE WHEN :suspend THEN now() ELSE NULL END,"
+                " suspended_reason = CASE WHEN :suspend THEN 'manual' ELSE NULL END"
                 " WHERE id = :id"
             ),
             {"status": status, "suspend": status == "suspended", "id": tenant_id},

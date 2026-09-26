@@ -478,6 +478,36 @@
         "title": "ApiResponse[TableOut]",
         "type": "object"
       },
+      "ApiResponse_Union_SubscriptionOut__NoneType__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubscriptionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[Union[SubscriptionOut, NoneType]]",
+        "type": "object"
+      },
       "ApiResponse_UserOut_": {
         "properties": {
           "data": {
@@ -499,6 +529,33 @@
           "data"
         ],
         "title": "ApiResponse[UserOut]",
+        "type": "object"
+      },
+      "ApiResponse_dict_str__bool__": {
+        "properties": {
+          "data": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Data",
+            "type": "object"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[dict[str, bool]]",
         "type": "object"
       },
       "ApiResponse_list_CategoryOut__": {
@@ -1519,6 +1576,82 @@
           "payload"
         ],
         "title": "IncomingEvent",
+        "type": "object"
+      },
+      "InvoiceOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outlet_count": {
+            "title": "Outlet Count",
+            "type": "integer"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "payment_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Url"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "period_start",
+          "period_end",
+          "outlet_count",
+          "unit_price",
+          "amount",
+          "status",
+          "due_at",
+          "paid_at",
+          "payment_url"
+        ],
+        "title": "InvoiceOut",
         "type": "object"
       },
       "LoginIn": {
@@ -2830,6 +2963,46 @@
         "title": "SignupRequest",
         "type": "object"
       },
+      "SubscriptionOut": {
+        "properties": {
+          "current_period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceOut"
+            },
+            "title": "Invoices",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "trial_ends_at": {
+            "format": "date-time",
+            "title": "Trial Ends At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "trial_ends_at",
+          "current_period_end",
+          "invoices"
+        ],
+        "title": "SubscriptionOut",
+        "type": "object"
+      },
       "TableIn": {
         "properties": {
           "area": {
@@ -3307,6 +3480,33 @@
         ]
       }
     },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "description": "Trial, current period and invoices (ADR-018); null until the daily billing job first runs.",
+        "operationId": "subscription_api_v1_billing_subscription_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Union_SubscriptionOut__NoneType__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Subscription",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
     "/api/v1/categories": {
       "get": {
         "operationId": "list_categories_api_v1_categories_get",
@@ -3592,6 +3792,28 @@
         "summary": "Revoke",
         "tags": [
           "organization"
+        ]
+      }
+    },
+    "/api/v1/gateway/webhook": {
+      "post": {
+        "description": "Payment notifications from the gateway (ADR-017). The signature is checked first; an\nunknown reference still answers 200 so the vendor stops retrying.",
+        "operationId": "webhook_api_v1_gateway_webhook_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_dict_str__bool__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Webhook",
+        "tags": [
+          "gateway"
         ]
       }
     },

@@ -3,6 +3,7 @@
 from poslite.organization.infrastructure.service import (
     DeviceInfo,
     OutletInfo,
+    active_outlet_count,
     create_outlet,
     dining_table_changes,
     get_device,
@@ -17,6 +18,7 @@ from poslite.organization.infrastructure.service import (
 __all__ = [
     "DeviceInfo",
     "OutletInfo",
+    "active_outlet_count",
     "create_outlet",
     "dining_table_changes",
     "get_device",

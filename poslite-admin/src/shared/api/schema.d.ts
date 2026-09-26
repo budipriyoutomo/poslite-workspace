@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Subscription
+         * @description Trial, current period and invoices (ADR-018); null until the daily billing job first runs.
+         */
+        get: operations["subscription_api_v1_billing_subscription_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -126,6 +146,27 @@ export interface paths {
          * @description Lost or stolen tablet: its token stops working at once (opaque tokens, 05 "Auth").
          */
         delete: operations["revoke_api_v1_devices__device_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gateway/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Webhook
+         * @description Payment notifications from the gateway (ADR-017). The signature is checked first; an
+         *     unknown reference still answers 200 so the vendor stops retrying.
+         */
+        post: operations["webhook_api_v1_gateway_webhook_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1057,9 +1098,44 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[Union[SubscriptionOut, NoneType]] */
+        ApiResponse_Union_SubscriptionOut__NoneType__: {
+            data: components["schemas"]["SubscriptionOut"] | null;
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[UserOut] */
         ApiResponse_UserOut_: {
             data: components["schemas"]["poslite__identity__application__schemas__UserOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[dict[str, bool]] */
+        ApiResponse_dict_str__bool__: {
+            /** Data */
+            data: {
+                [key: string]: boolean;
+            };
             /**
              * Message
              * @default OK
@@ -1563,6 +1639,38 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** InvoiceOut */
+        InvoiceOut: {
+            /** Amount */
+            amount: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Id */
+            id: string;
+            /** Outlet Count */
+            outlet_count: number;
+            /** Paid At */
+            paid_at: string | null;
+            /** Payment Url */
+            payment_url: string | null;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Status */
+            status: string;
+            /** Unit Price */
+            unit_price: number;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -2062,6 +2170,20 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /** SubscriptionOut */
+        SubscriptionOut: {
+            /** Current Period End */
+            current_period_end: string | null;
+            /** Invoices */
+            invoices: components["schemas"]["InvoiceOut"][];
+            /** Status */
+            status: string;
+            /**
+             * Trial Ends At
+             * Format: date-time
+             */
+            trial_ends_at: string;
+        };
         /** TableIn */
         TableIn: {
             /**
@@ -2269,6 +2391,26 @@ export interface operations {
             };
         };
     };
+    subscription_api_v1_billing_subscription_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_Union_SubscriptionOut__NoneType__"];
+                };
+            };
+        };
+    };
     list_categories_api_v1_categories_get: {
         parameters: {
             query?: never;
@@ -2468,6 +2610,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    webhook_api_v1_gateway_webhook_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_dict_str__bool__"];
                 };
             };
         };

@@ -12,12 +12,14 @@ from arq import cron
 from arq.connections import RedisSettings
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from poslite.billing.api import BillingStats, run_billing
 from poslite.integration.api import DeliveryStats, deliver_webhooks
 from poslite.integration.api import subscribers as webhook_subscribers
 from poslite.reporting.api import subscribers as report_subscribers
 from poslite.shared.config import get_settings
 from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
+from poslite.shared.infrastructure.gateways import build_gateway
 from poslite.shared.infrastructure.outbox_relay import (
     RelayStats,
     combine_subscribers,
@@ -63,11 +65,23 @@ async def shutdown(ctx: dict[str, Any]) -> None:
     await ctx["http"].aclose()
 
 
+async def billing_job(ctx: dict[str, Any]) -> BillingStats:
+    """Daily subscription run (ADR-018): trials, invoices, suspensions."""
+    settings = get_settings()
+    return await run_billing(
+        system=ctx["system_sessions"],
+        gateway=build_gateway(settings),
+        now=datetime.now(UTC),
+        price_per_outlet=settings.price_per_outlet,
+    )
+
+
 class WorkerSettings:
-    functions: ClassVar = [relay_job, webhook_job]
+    functions: ClassVar = [relay_job, webhook_job, billing_job]
     cron_jobs: ClassVar = [
         cron(relay_job, second=set(range(0, 60, 5)), run_at_startup=True),
         cron(webhook_job, second=set(range(2, 60, 10))),
+        cron(billing_job, hour={1}, minute={0}, run_at_startup=True),  # 01:00 UTC = 08:00 WIB
     ]
     on_startup = startup
     on_shutdown = shutdown
