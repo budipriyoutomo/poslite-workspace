@@ -36,10 +36,14 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - **DoD**: 2 device offline 1 hari, masing-masing 200 transaksi → online → semua masuk server tanpa duplikat, nomor struk unik. Device tenant B tidak pernah menerima data tenant A.
 
 ### Fase 3 — Back-office & Reporting
-- [ ] Signup & onboarding tenant (buat bisnis + owner + outlet pertama), platform admin minimal (list/suspend tenant)
-- [ ] Back-office web (Next.js): menu, harga per outlet, user & PIN, payment method, device management
-- [ ] Reporting read model + projector + rebuild command
-- [ ] Dashboard penjualan, export CSV/Excel
+- [x] Signup & onboarding tenant (buat bisnis + owner + outlet pertama), platform admin minimal (list/suspend tenant) — operator dibuat dengan `make platform-admin`, konsol di `/platform`; tenant ditangguhkan = tulis back-office ditolak `TENANT_SUSPENDED`, device tetap bisa push
+- [x] Back-office web **`poslite-admin`** (app terpisah, ADR-014, `:3001`): menu (produk/kategori/pilihan), harga & ketersediaan per outlet, user & PIN, metode bayar, outlet (tarif pajak/service dalam bps, struk, cut-off) & perangkat (cabut akses) — *metode bayar per outlet ditunda*
+- [x] Reporting read model (harian, menu, kategori, metode bayar, kasir) + projector + `make report-rebuild from= to=`
+- [x] Dashboard penjualan (grafik harian + tabel, preset 7/30 hari) + export CSV (`;` + BOM untuk Excel ID) / Excel `.xlsx`
+- [x] Kontrak OpenAPI `poslite-api/openapi.json` (`make openapi`, dicek CI) → tipe TS admin (`make admin-types`)
+- [x] E2E `make admin-e2e`: owner daftar → menu → harga outlet → kasir + PIN → metode bayar → tarif outlet; operator menangguhkan & mengaktifkan tenant (API asli, DB `poslite_e2e_admin`)
+- [ ] `make worker` diverifikasi dengan Redis lokal (Redis via Homebrew di macOS 13 harus dikompilasi dari source)
+- **DoD**: owner baru bisa daftar dan menyiapkan outlet sampai siap jualan tanpa bantuan developer; laporan penjualan cocok dengan order yang tersinkron; operator bisa menangguhkan tenant.
 
 ### Fase 4 — Restaurant Features
 - [ ] Dine-in: meja, open bill / simpan order, split bill

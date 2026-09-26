@@ -42,6 +42,7 @@ doctor: ## Check tools, app folders and local PostgreSQL
 		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing"; ok=0; }; \
 	done; \
 	pg_isready -h $(DB_HOST) -q && echo "✓ PostgreSQL on $(DB_HOST):5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
+	redis-cli ping >/dev/null 2>&1 && echo "✓ Redis (make worker)" || echo "! Redis not reachable — only 'make worker' (report projections) needs it: brew install redis && brew services start redis"; \
 	[ $$ok = 1 ]
 
 setup: doctor install env db-setup migrate ## First-time setup: deps, .env, local DBs, migrations
