@@ -98,3 +98,16 @@ async def test_unknown_tenant_is_not_found(api: AsyncClient, admin_token: str) -
     )
 
     assert (response.status_code, response.json()["code"]) == (404, "TENANT_NOT_FOUND")
+
+
+async def test_shows_why_a_tenant_is_suspended_and_its_subscription(
+    api: AsyncClient, admin_token: str
+) -> None:
+    owner = await signup(api)
+    await api.post(
+        f"/api/v1/platform/tenants/{owner['tenant']['id']}/suspend", headers=bearer(admin_token)
+    )
+
+    [row] = await tenants(api, admin_token)
+
+    assert (row["suspended_reason"], row["subscription_status"]) == ("manual", None)

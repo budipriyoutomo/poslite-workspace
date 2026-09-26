@@ -50,6 +50,10 @@ class TenantOut(BaseModel):
     status: str
     created_at: datetime
     suspended_at: datetime | None
+    suspended_reason: str | None  # manual (operator) | billing (unpaid invoice, ADR-018)
+    subscription_status: (
+        str | None
+    )  # trialing | active | past_due; None before the first billing run
     outlet_count: int
     device_count: int
 

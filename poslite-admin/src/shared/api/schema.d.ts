@@ -2326,8 +2326,12 @@ export interface components {
             slug: string;
             /** Status */
             status: string;
+            /** Subscription Status */
+            subscription_status: string | null;
             /** Suspended At */
             suspended_at: string | null;
+            /** Suspended Reason */
+            suspended_reason: string | null;
         };
     };
     responses: never;

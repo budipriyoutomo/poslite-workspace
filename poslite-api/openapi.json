@@ -3373,6 +3373,17 @@
             "title": "Status",
             "type": "string"
           },
+          "subscription_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Status"
+          },
           "suspended_at": {
             "anyOf": [
               {
@@ -3384,6 +3395,17 @@
               }
             ],
             "title": "Suspended At"
+          },
+          "suspended_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspended Reason"
           }
         },
         "required": [
@@ -3393,6 +3415,8 @@
           "status",
           "created_at",
           "suspended_at",
+          "suspended_reason",
+          "subscription_status",
           "outlet_count",
           "device_count"
         ],

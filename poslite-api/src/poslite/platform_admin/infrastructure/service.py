@@ -72,6 +72,8 @@ class TenantRow:
     status: str
     created_at: datetime
     suspended_at: datetime | None
+    suspended_reason: str | None
+    subscription_status: str | None
     outlet_count: int
     device_count: int
 
@@ -81,6 +83,9 @@ async def list_tenants(
 ) -> list[TenantRow]:
     query = """
         SELECT t.id, t.slug, t.name, t.status, t.created_at, t.suspended_at,
+               t.suspended_reason,
+               (SELECT s.status FROM subscriptions s WHERE s.tenant_id = t.id)
+                 AS subscription_status,
                (SELECT count(*) FROM outlets o
                  WHERE o.tenant_id = t.id AND o.deleted_at IS NULL) AS outlet_count,
                (SELECT count(*) FROM devices d
