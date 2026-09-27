@@ -38,6 +38,7 @@ make admin-e2e PW_CHANNEL=chrome      # back-office + API asli di database posli
 make openapi && make admin-types      # kontrak API → openapi.json → tipe TS back-office
 make report-rebuild from=2026-09-01 to=2026-09-30  # hitung ulang tabel laporan
 make platform-admin email=ops@x.id name=Ops       # akun operator SaaS (konsol /platform)
+make billing-run                                   # job langganan sekali jalan (trial, tagihan, suspend); worker menjalankannya tiap hari
 ```
 
 Perangkat baru membuka `/activate`: manajer login lalu memilih outlet (butuh API berjalan), atau pilih **Coba mode demo** untuk berjualan offline tanpa server (Siti 1234 · Budi 9999). Buat tenant pertama di back-office http://localhost:3001/signup (usaha + owner + outlet pertama), lalu siapkan menu, harga, kasir & PIN di sana.

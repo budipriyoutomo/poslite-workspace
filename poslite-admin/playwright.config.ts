@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 // Back-office against the real API: a fresh poslite_e2e_admin database (created by `make admin-e2e`),
 // the API on :8210 and a production build of the admin on :3310 (dev uses 8000/3001).
 const DB = "localhost:5432/poslite_e2e_admin";
-export const API_ORIGIN = "http://localhost:8210";
+// 127.0.0.1, not localhost: uvicorn binds IPv4 only and Node may resolve localhost to ::1 first.
+export const API_ORIGIN = "http://127.0.0.1:8210";
 const ADMIN_URL = "http://localhost:3310";
 export const DATABASE_ENV = {
   DATABASE_URL: `postgresql+asyncpg://poslite_app:poslite@${DB}`,
@@ -30,7 +31,7 @@ export default defineConfig({
       command: "pnpm build && ./node_modules/.bin/next start -p 3310",
       url: ADMIN_URL,
       reuseExistingServer: false,
-      timeout: 240_000,
+      timeout: 600_000, // next build on a busy 4-core laptop can take minutes
       env: { NEXT_PUBLIC_API_ORIGIN: API_ORIGIN },
     },
   ],

@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 // Full stack: the real API (fresh poslite_e2e database, created by `make e2e-fullstack`) and a
 // production build of the web app pointed at it. Ports differ from dev (8000/3000) and web e2e (3200).
 const DB = "localhost:5432/poslite_e2e";
-export const API_URL = "http://localhost:8200/api/v1";
+// 127.0.0.1, not localhost: uvicorn binds IPv4 only and Node may resolve localhost to ::1 first.
+export const API_URL = "http://127.0.0.1:8200/api/v1";
 const WEB_URL = "http://localhost:3300";
 
 export default defineConfig({
@@ -30,7 +31,7 @@ export default defineConfig({
       command: "pnpm build && ./node_modules/.bin/next start -p 3300",
       url: WEB_URL,
       reuseExistingServer: false,
-      timeout: 240_000,
+      timeout: 600_000, // next build on a busy 4-core laptop can take minutes
       env: { NEXT_PUBLIC_API_URL: API_URL },
     },
   ],

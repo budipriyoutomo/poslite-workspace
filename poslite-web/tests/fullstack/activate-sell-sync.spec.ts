@@ -124,3 +124,45 @@ test("a back-office promotion is applied offline on a dine-in bill and the serve
     )
     .toEqual([[receiptNo, 41_580, []]]);
 });
+
+// Fase 5 DoD (ADR-019): online, the cashier shows a dynamic QR; the gateway confirms it and the
+// order reaches the server without QRIS_UNPAID.
+test("a dynamic QRIS paid through the gateway settles the sale without flags", async ({ page, request }) => {
+  const tenant = await tenantWithMenu(request);
+  await call(request, "post", "/payment-methods", tenant.token, { type: "qris", name: "QRIS", sort_order: 2 });
+
+  await page.goto("/");
+  await page.getByLabel("Email").fill(tenant.owner.email);
+  await page.getByLabel("Password").fill(tenant.owner.password);
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await page.getByRole("button", { name: "Aktifkan" }).click();
+  await page.getByRole("button", { name: /Rina/ }).click();
+  for (const digit of "2468") await page.getByRole("button", { name: digit, exact: true }).click();
+  await page.getByRole("button", { name: "Buka Shift" }).click();
+
+  await page.getByRole("button", { name: /^Kopi Susu E2E/ }).click();
+  await page.getByRole("link", { name: /Bayar · Rp 20\.790/ }).click();
+  await page.getByRole("button", { name: "QRIS", exact: true }).click();
+  const created = page.waitForResponse((r) => r.url().endsWith("/payments/qris") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "QR dinamis" }).click();
+  const chargeId: string = (await (await created).json()).data.id;
+  await expect(page.getByRole("img", { name: /QR pembayaran/ })).toBeVisible();
+
+  // The customer pays: the fake gateway sends its signed notification to the API.
+  const paid = await request.post(`${API_URL}/gateway/fake/pay/fake_${chargeId}`);
+  expect(paid.ok()).toBe(true);
+  await expect(page.getByText(`QRIS · ${chargeId}`)).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Selesaikan" }).click();
+  const receiptNo = (await page.getByRole("dialog").getByText(/^JKT01A-\d{6}-0001$/).textContent())!;
+
+  const businessDate = `20${receiptNo.slice(7, 9)}-${receiptNo.slice(9, 11)}-${receiptNo.slice(11, 13)}`;
+  await expect
+    .poll(
+      async () =>
+        (await call(request, "get", `/orders?outlet_id=${tenant.outletId}&business_date=${businessDate}`, tenant.token)).map(
+          (o: { receipt_no: string; total: number; flags: string[] }) => [o.receipt_no, o.total, o.flags],
+        ),
+      { timeout: 30_000 },
+    )
+    .toEqual([[receiptNo, 20_790, []]]);
+});
