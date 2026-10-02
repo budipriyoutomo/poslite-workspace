@@ -29,6 +29,7 @@ function server() {
         next_cursor: 1,
         has_more: false,
         server_time: "2026-09-26T03:00:00Z",
+        media_base_url: "http://api.test/media",
       });
     }
     return json({ message: "?", code: "NOT_FOUND" }, 404);

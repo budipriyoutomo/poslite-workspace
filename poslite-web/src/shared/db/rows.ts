@@ -32,7 +32,7 @@ export interface ProductRow {
   sku: string;
   name: string;
   price: number;
-  imageUrl: string | null;
+  imageKey: string | null; // object key; URL = mediaBaseUrl + key (ADR-021)
   isAvailable: boolean;
   modifierGroupIds: string[];
 }
@@ -169,7 +169,8 @@ export type SyncStateRow =
   | { key: "session"; value: string } // serialized by the session store (logged-in cashier)
   | { key: "device"; value: DeviceState }
   | { key: "pullCursor"; value: number }
-  | { key: "lastSyncAt"; value: string };
+  | { key: "lastSyncAt"; value: string }
+  | { key: "mediaBaseUrl"; value: string }; // from every pull page: follows an S3 vendor switch
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =

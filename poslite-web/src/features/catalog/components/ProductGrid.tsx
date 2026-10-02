@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 import type { ProductRow } from "@/shared/db";
+import { mediaUrl } from "@/shared/media";
 import { formatRupiah } from "@/shared/money";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/ui/utils";
@@ -49,7 +50,7 @@ export function ProductGrid({ catalog, onSelect }: { catalog: Catalog; onSelect:
             >
               <div className="relative flex aspect-[4/3] items-center justify-center bg-slate-100">
                 {/* unoptimized: the image optimizer needs the server, product photos must load offline. */}
-                {p.imageUrl ? <Image src={p.imageUrl} alt="" fill unoptimized sizes="25vw" className="object-cover" /> : <ImageOff className="size-8 text-slate-300" />}
+                <ProductPhoto src={mediaUrl(catalog.mediaBaseUrl, p.imageKey)} />
               </div>
               <div className="p-3">
                 <p className="line-clamp-2 leading-tight font-semibold">{p.name}</p>
@@ -61,4 +62,8 @@ export function ProductGrid({ catalog, onSelect }: { catalog: Catalog; onSelect:
       </ul>
     </div>
   );
+}
+
+function ProductPhoto({ src }: { src: string | null }) {
+  return src ? <Image src={src} alt="" fill unoptimized sizes="25vw" className="object-cover" /> : <ImageOff className="size-8 text-slate-300" />;
 }

@@ -72,6 +72,16 @@ export class PosDb extends Dexie {
     this.version(2).stores({ modifierOptions: "id, modifierGroupId" });
     // v3 (Fase 4): tables and promotions from the server, open bills kept on this device only.
     this.version(3).stores({ diningTables: "id, sortOrder", promotions: "id", openBills: "id, tableId, openedAt" });
+    // v4 (ADR-021): products keep an object key, the URL is built from the server's media base URL.
+    this.version(4).upgrade((tx) =>
+      tx
+        .table("products")
+        .toCollection()
+        .modify((p: Record<string, unknown>) => {
+          p.imageKey = p.imageUrl ?? null;
+          delete p.imageUrl;
+        }),
+    );
   }
 }
 

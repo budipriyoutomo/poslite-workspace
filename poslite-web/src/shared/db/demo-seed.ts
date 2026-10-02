@@ -1,5 +1,5 @@
-// Demo master data until device activation + sync pull exist (Fase 2). It only seeds a device that
-// has never been set up, and never overwrites anything. Menu and add-ons come from the v0 prototype.
+// Master data for demo mode only ("Coba mode demo", no server). Activating a device wipes it before the
+// first pull, so it never reaches the server. Menu and add-ons come from the v0 prototype.
 import type { PosDb } from "./db";
 import type { CategoryRow, DiningTableRow, ModifierGroupRow, OutletSetting, PaymentMethodRow, ProductRow, UserRow } from "./rows";
 
@@ -56,7 +56,7 @@ const product = (n: number, category: 1 | 2, sku: string, name: string, price: n
   sku,
   name,
   price,
-  imageUrl: image && `/products/${image}.jpg`,
+  imageKey: image && `/products/${image}.jpg`,
   isAvailable: true,
   modifierGroupIds: groups.map((g) => id("G", g)),
 });

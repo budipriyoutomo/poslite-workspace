@@ -16,3 +16,11 @@ describe("order.placed variants (shared fixture)", () => {
     expect(orderPlaced.safeParse(payload).success).toBe(true);
   });
 });
+
+describe("order.placed limits", () => {
+  it("rejects a payment reference longer than the server column (64)", () => {
+    const { payload } = events.find((e) => e.type === "order.placed")!;
+    const payments = (payload as { payments: object[] }).payments.map((p) => ({ ...p, reference: "R".repeat(65) }));
+    expect(orderPlaced.safeParse({ ...payload, payments }).success).toBe(false);
+  });
+});

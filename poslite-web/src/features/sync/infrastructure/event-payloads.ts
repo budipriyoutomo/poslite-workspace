@@ -63,7 +63,7 @@ export const orderPlaced = z.strictObject({
   totals: z.strictObject({ subtotal: rupiah, discount_amount: rupiah, service_charge: rupiah, tax: rupiah, total: rupiah }),
   payments: z
     .array(
-      z.strictObject({ id: ulid, payment_method_id: ulid, method_type: paymentMethodType, amount: rupiah, reference: z.string().nullable() }),
+      z.strictObject({ id: ulid, payment_method_id: ulid, method_type: paymentMethodType, amount: rupiah, reference: z.string().max(64).nullable() }),
     )
     .min(1),
   change_amount: rupiah,

@@ -4,7 +4,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { getDb } from "@/shared/db";
 
-/** Users allowed on this device (pulled from the server; demo data for now), by name. */
+/** Users allowed on this device (pulled from the server, or the demo cashiers in demo mode), by name. */
 export function useDeviceUsers() {
   return useLiveQuery(async () => (await getDb().users.toArray()).sort((a, b) => a.name.localeCompare(b.name)), []);
 }

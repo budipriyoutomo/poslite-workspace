@@ -6,7 +6,7 @@ import type { ModifierGroupRow, ProductRow } from "@/shared/db";
 
 import { LineEditorDialog } from "./LineEditorDialog";
 
-const esTeh: ProductRow = { id: "P5", categoryId: "C2", sku: "MN-001", name: "Es Teh Manis", price: 5_000, imageUrl: null, isAvailable: true, modifierGroupIds: ["G5", "G6"] };
+const esTeh: ProductRow = { id: "P5", categoryId: "C2", sku: "MN-001", name: "Es Teh Manis", price: 5_000, imageKey: null, isAvailable: true, modifierGroupIds: ["G5", "G6"] };
 const groups: ModifierGroupRow[] = [
   { id: "G5", name: "Level Gula", minSelect: 1, maxSelect: 1, options: [{ id: "normal", name: "Normal", price: 0 }, { id: "less", name: "Less Sugar", price: 0 }] },
   { id: "G6", name: "Topping", minSelect: 0, maxSelect: 1, options: [{ id: "boba", name: "Extra Boba", price: 5_000 }] },

@@ -15,7 +15,7 @@ function server() {
       const { events } = JSON.parse(String(init!.body));
       return body({ results: events.map((e: { id: string }) => ({ id: e.id, status: "accepted" })) });
     }
-    return body({ changes: [], next_cursor: 0, has_more: false, server_time: NOW.toISOString() });
+    return body({ changes: [], next_cursor: 0, has_more: false, server_time: NOW.toISOString(), media_base_url: "http://api.test/media" });
   });
 }
 

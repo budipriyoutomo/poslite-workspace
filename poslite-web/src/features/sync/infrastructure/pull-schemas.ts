@@ -32,7 +32,7 @@ export const changeSchema = z.union([
       sku: z.string(),
       name: z.string(),
       price: rupiah,
-      image_url: z.string().nullable(),
+      image_key: z.string().nullable(),
       is_available: z.boolean(),
       modifier_group_ids: z.array(ulid),
     }),
@@ -90,6 +90,7 @@ export const pullPageSchema = z.object({
   next_cursor: z.number().int().nonnegative(),
   has_more: z.boolean(),
   server_time: z.string(),
+  media_base_url: z.string(), // ADR-021: image URL = media_base_url + "/" + image_key
 });
 
 export type Change = z.infer<typeof changeSchema>;

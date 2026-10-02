@@ -75,7 +75,7 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         sku: d.sku,
         name: d.name,
         price: d.price,
-        imageUrl: d.image_url,
+        imageKey: d.image_key,
         isAvailable: d.is_available,
         modifierGroupIds: d.modifier_group_ids,
       }));
@@ -154,6 +154,7 @@ export async function pullAll(deps: { db: PosDb; api: BaseApi }): Promise<void> 
       for (const change of page.changes) await applyChange(db, change, device, touchedGroups);
       await embedOptions(db, touchedGroups);
       await writeState(db, "pullCursor", page.next_cursor);
+      await writeState(db, "mediaBaseUrl", page.media_base_url);
     });
     hasMore = page.has_more;
   }

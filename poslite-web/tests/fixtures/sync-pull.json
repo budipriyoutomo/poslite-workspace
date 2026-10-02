@@ -1,0 +1,147 @@
+{
+  "changes": [
+    {
+      "entity": "outlet_setting",
+      "op": "upsert",
+      "id": "01K5ZT00000000000000000001",
+      "version": 1,
+      "data": {
+        "code": "JKT01",
+        "name": "Kemang",
+        "timezone": "Asia/Jakarta",
+        "business_day_cutoff": "04:00",
+        "tax_rate_bps": 1000,
+        "service_rate_bps": 500,
+        "receipt_header": "POSLite\nJl. Kemang Raya No. 1",
+        "receipt_footer": "Terima kasih"
+      }
+    },
+    {
+      "entity": "category",
+      "op": "upsert",
+      "id": "01K5ZC00000000000000000001",
+      "version": 2,
+      "data": {
+        "name": "Minuman",
+        "sort_order": 0,
+        "print_role": "bar"
+      }
+    },
+    {
+      "entity": "modifier_group",
+      "op": "upsert",
+      "id": "01K5ZG00000000000000000001",
+      "version": 3,
+      "data": {
+        "name": "Level Gula",
+        "min_select": 1,
+        "max_select": 1
+      }
+    },
+    {
+      "entity": "modifier_option",
+      "op": "upsert",
+      "id": "01K5ZM00000000000000000001",
+      "version": 4,
+      "data": {
+        "modifier_group_id": "01K5ZG00000000000000000001",
+        "name": "Normal",
+        "price": 0,
+        "sort_order": 0
+      }
+    },
+    {
+      "entity": "product",
+      "op": "upsert",
+      "id": "01K5ZP00000000000000000001",
+      "version": 5,
+      "data": {
+        "category_id": "01K5ZC00000000000000000001",
+        "sku": "MN-1",
+        "name": "Es Teh",
+        "price": 5000,
+        "image_key": "01K5ZT00000000000000000001/products/01K5ZP00000000000000000001.jpg",
+        "is_available": true,
+        "modifier_group_ids": [
+          "01K5ZG00000000000000000001"
+        ]
+      }
+    },
+    {
+      "entity": "payment_method",
+      "op": "upsert",
+      "id": "01K5ZY00000000000000000001",
+      "version": 6,
+      "data": {
+        "type": "qris",
+        "name": "QRIS",
+        "requires_reference": true,
+        "sort_order": 2,
+        "logo_url": null
+      }
+    },
+    {
+      "entity": "user",
+      "op": "upsert",
+      "id": "01K5ZA00000000000000000001",
+      "version": 7,
+      "data": {
+        "name": "Siti",
+        "role": "cashier",
+        "pin_hash": "PWpXSHzgALwud0m3qudNzC+yuXC58v29K5NDUravPHw=",
+        "pin_salt": "c2l0aS1kZW1vLXNhbHQtMDE=",
+        "pin_iterations": 310000
+      }
+    },
+    {
+      "entity": "dining_table",
+      "op": "upsert",
+      "id": "01K5ZN00000000000000000001",
+      "version": 8,
+      "data": {
+        "label": "T1",
+        "area": "Teras",
+        "seats": 4,
+        "sort_order": 1
+      }
+    },
+    {
+      "entity": "promotion",
+      "op": "upsert",
+      "id": "01K5ZR00000000000000000001",
+      "version": 9,
+      "data": {
+        "name": "Happy Hour",
+        "type": "percent_off",
+        "percentage": 20,
+        "buy_qty": null,
+        "get_qty": null,
+        "product_ids": [],
+        "category_ids": [
+          "01K5ZC00000000000000000001"
+        ],
+        "days_of_week": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start_time": "15:00",
+        "end_time": "17:00",
+        "starts_on": "2026-09-01",
+        "ends_on": "2026-12-31"
+      }
+    },
+    {
+      "entity": "product",
+      "op": "delete",
+      "id": "01K5ZP00000000000000000002",
+      "version": 10
+    }
+  ],
+  "next_cursor": 10,
+  "has_more": false,
+  "server_time": "2026-09-25T01:00:00.000000Z",
+  "media_base_url": "https://is3.cloudhost.id/poslite"
+}
