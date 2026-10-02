@@ -103,7 +103,7 @@ class _Payment(_Strict):
     payment_method_id: Ulid
     method_type: Literal["cash", "debit", "qris", "credit_card", "voucher", "other"]
     amount: Rupiah
-    reference: str | None
+    reference: Annotated[str, StringConstraints(max_length=64)] | None
 
 
 class OrderPlacedPayload(_Strict):

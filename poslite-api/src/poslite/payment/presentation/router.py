@@ -86,8 +86,11 @@ async def create_qris(
 
 @router.get("/payments/qris/{charge_id}")
 async def qris_status(
-    charge_id: str, request: Request, principal: Device
+    charge_id: str,
+    request: Request,
+    principal: Device,
+    now: Annotated[Clock, Depends(clock)],
 ) -> ApiResponse[QrisChargeOut]:
-    """Polled by the device until the charge is paid."""
+    """Polled by the device until the charge is paid or expired."""
     async with open_uow(request, principal.tenant_id) as uow:
-        return ok(await qris.get_qris_charge(uow, charge_id))
+        return ok(await qris.get_qris_charge(uow, charge_id, now=now.now()))

@@ -28,7 +28,7 @@ class QrisChargeIn(BaseModel):
 class QrisChargeOut(BaseModel):
     id: str
     amount: int
-    status: str
+    status: Literal["pending", "paid", "expired"]
     qr_string: str
     expires_at: datetime
     paid_at: datetime | None

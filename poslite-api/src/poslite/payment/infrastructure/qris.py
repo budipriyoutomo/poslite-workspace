@@ -13,8 +13,12 @@ from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 CHARGE_LIFETIME = timedelta(minutes=15)
 
 
-def _out(c: QrisChargeModel) -> QrisChargeOut:
-    return QrisChargeOut.model_validate(c, from_attributes=True)
+def _out(c: QrisChargeModel, now: datetime) -> QrisChargeOut:
+    """An unpaid charge past its expiry reads as expired; a later gateway payment still wins."""
+    out = QrisChargeOut.model_validate(c, from_attributes=True)
+    if out.status == "pending" and now >= out.expires_at:
+        return out.model_copy(update={"status": "expired"})
+    return out
 
 
 async def create_qris_charge(
@@ -32,7 +36,7 @@ async def create_qris_charge(
     if existing is not None:
         if existing.amount != body.amount or existing.device_id != device_id:
             raise DomainError("ID_CONFLICT", "Charge id is already used", kind="conflict")
-        return _out(existing)
+        return _out(existing, now)
     expires_at = now + CHARGE_LIFETIME
     charge = await gateway.create_qris(reference=body.id, amount=body.amount, expires_at=expires_at)
     row = QrisChargeModel(
@@ -47,14 +51,16 @@ async def create_qris_charge(
     )
     uow.session.add(row)
     await flush_or_conflict(uow.session)
-    return _out(row)
+    return _out(row, now)
 
 
-async def get_qris_charge(uow: SqlAlchemyUnitOfWork, charge_id: str) -> QrisChargeOut:
+async def get_qris_charge(
+    uow: SqlAlchemyUnitOfWork, charge_id: str, *, now: datetime
+) -> QrisChargeOut:
     row = await uow.session.get(QrisChargeModel, charge_id)
     if row is None:
         raise DomainError("CHARGE_NOT_FOUND", "QRIS charge not found", kind="not_found")
-    return _out(row)
+    return _out(row, now)
 
 
 async def mark_qris_paid(session: AsyncSession, gateway_ref: str, paid_at: datetime) -> bool:

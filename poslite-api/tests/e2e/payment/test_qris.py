@@ -3,6 +3,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from httpx import AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from poslite.shared.infrastructure.fake_gateway import FakeGateway
 
@@ -70,6 +72,45 @@ async def test_the_charge_turns_paid_when_the_gateway_confirms(api: AsyncClient)
 
     status = await api.get(f"/api/v1/payments/qris/{CHARGE_ID}", headers=bearer(s.device_token))
     assert status.json()["data"]["status"] == "paid"
+
+
+async def expire(system_engine: AsyncEngine, charge_id: str) -> None:
+    async with system_engine.begin() as conn:
+        await conn.execute(
+            text("UPDATE qris_charges SET expires_at = now() - interval '1 minute' WHERE id = :id"),
+            {"id": charge_id},
+        )
+
+
+async def status_of(api: AsyncClient, s: Setup, charge_id: str = CHARGE_ID) -> str:
+    response = await api.get(f"/api/v1/payments/qris/{charge_id}", headers=bearer(s.device_token))
+    assert response.status_code == 200, response.text
+    value: str = response.json()["data"]["status"]
+    return value
+
+
+async def test_an_unpaid_charge_past_its_expiry_reads_as_expired(
+    api: AsyncClient, system_engine: AsyncEngine
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    await create(api, s)
+
+    await expire(system_engine, CHARGE_ID)
+
+    assert await status_of(api, s) == "expired"
+
+
+async def test_a_payment_confirmed_after_expiry_still_counts(
+    api: AsyncClient, system_engine: AsyncEngine
+) -> None:
+    """The customer's money arrived: the gateway's word wins over our expiry (ADR-019)."""
+    s = await outlet_with_menu_and_device(api)
+    await create(api, s)
+    await expire(system_engine, CHARGE_ID)
+
+    await pay(api, CHARGE_ID)
+
+    assert await status_of(api, s) == "paid"
 
 
 async def test_an_order_paid_by_a_confirmed_qris_is_not_flagged(api: AsyncClient) -> None:
