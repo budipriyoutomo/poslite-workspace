@@ -52,16 +52,19 @@ Header wajib dari device: `Authorization: Bearer <device_token>`, `X-App-Version
     "changes": [
       { "entity": "product", "op": "upsert", "id": "01J…", "version": 1042,
         "data": { "category_id": "01J…", "sku": "NG-001", "name": "Nasi Gudeg", "price": 25000,
-                  "image_url": "https://…", "is_available": true, "modifier_group_ids": ["01J…"] } },
+                  "image_key": "01J…T/products/01J….jpg", "is_available": true, "modifier_group_ids": ["01J…"] } },
       { "entity": "user", "op": "upsert", "id": "01J…", "version": 1043,
         "data": { "name": "Siti", "role": "cashier", "pin_hash": "base64…", "pin_salt": "base64…", "pin_iterations": 310000 } },
       { "entity": "product", "op": "delete", "id": "01J…", "version": 1044 }
     ],
     "next_cursor": 1044,
     "has_more": false,
-    "server_time": "2026-09-25T04:03:10Z"
+    "server_time": "2026-09-25T04:03:10Z",
+    "media_base_url": "https://is3.cloudhost.id/poslite-media"
 } }
 ```
+
+URL gambar = `media_base_url` + `/` + `image_key` (ADR-021); `image_key` yang sudah berupa URL penuh (`://`) dipakai apa adanya. `media_base_url` dikirim di setiap halaman, jadi ganti vendor S3 langsung terbawa di pull berikutnya.
 
 Entity: `outlet_setting`, `category`, `product`, `modifier_group`, `modifier_option`, `payment_method`, `user`, `dining_table`, `promotion`.
 
@@ -71,7 +74,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 |---|---|
 | `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` — hanya outlet milik device |
 | `category` | `name`, `sort_order`, `print_role` |
-| `product` | `category_id`, `sku`, `name`, `price`, `image_url`, `is_available`, `modifier_group_ids` |
+| `product` | `category_id`, `sku`, `name`, `price`, `image_key`, `is_available`, `modifier_group_ids` |
 | `modifier_group` | `name`, `min_select`, `max_select` |
 | `modifier_option` | `modifier_group_id`, `name`, `price`, `sort_order` |
 | `payment_method` | `type`, `name`, `requires_reference`, `sort_order`, `logo_url` |
@@ -110,6 +113,8 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
   } }
 ] }
 ```
+
+`payments[].reference` maksimal 64 karakter (atau `null`); lebih panjang → event `rejected` dengan `SCHEMA_INVALID`.
 
 ```json
 // response 200 — hasil per event (contoh ilustrasi semua status)
@@ -162,6 +167,7 @@ Batas: maks 50 event / request, body maks 1 MB.
 | GET/POST/PUT/DELETE | `/users`, `/users/{id}`; `PUT /users/{id}/pin` | Email is global (it is the login): taken → 409 `EMAIL_TAKEN` |
 | GET/POST/PUT/DELETE | `/categories`, `/products`, `/modifier-groups`, `/payment-methods` | |
 | PUT | `/outlets/{id}/products/{productId}` | harga & ketersediaan per outlet |
+| POST | `/media/images` (body = file mentah, `Content-Type: image/jpeg\|png\|webp`) | unggah gambar produk (ADR-021): jenis dari magic bytes, maks 2 MB (`UNSUPPORTED_IMAGE`, `IMAGE_TOO_LARGE`). Respons `{key, url}`; simpan `key` di produk sebagai `image_key`. Produk menjawab `image_key` + `image_url` (dirangkai); `image_key` milik tenant lain → `INVALID_IMAGE_KEY` |
 | GET/POST · PUT/DELETE | `/outlets/{id}/tables` · `/tables/{id}` | meja per outlet; label unik per outlet → 409 `TABLE_LABEL_TAKEN` |
 | GET/POST/PUT/DELETE | `/promotions`, `/promotions/{id}` | promo otomatis (ADR-016) |
 | GET | `/orders?outlet_id=&business_date=` → `[{id, receipt_no, business_date, cashier_id, total, status, flags, created_at}]` · `/orders/{id}` (belum) | |
@@ -178,7 +184,7 @@ Batas: maks 50 event / request, body maks 1 MB.
 | Method | Path | Keterangan |
 |---|---|---|
 | POST | `/payments/qris` `{id, amount}` | QR dinamis (ADR-019); `id` ULID dari device → idempoten. Respons `{id, amount, status, qr_string, expires_at, paid_at}` |
-| GET | `/payments/qris/{id}` | dipolling device sampai `status: paid` |
+| GET | `/payments/qris/{id}` | dipolling device sampai `status` bukan `pending`: `paid`, atau `expired` bila belum dibayar setelah `expires_at` (pembayaran yang dikonfirmasi gateway setelahnya tetap menjadi `paid`) |
 
 ## Endpoint — Gateway (masuk)
 

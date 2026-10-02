@@ -180,6 +180,12 @@ flowchart LR
 - **Kenapa**: inventory/ERP/RestaurantOps tetap di sistem lain (Fase 5 roadmap); webhook bertanda tangan adalah kontrak paling sederhana dan tidak butuh sistem lain memanggil kita.
 - **Konsekuensi**: pengiriman at-least-once → penerima wajib idempoten memakai `id` event. Secret endpoint hanya ditampilkan sekali saat dibuat.
 
+### ADR-021 — Gambar produk di object storage S3; database hanya menyimpan key
+
+- **Keputusan**: Gambar diunggah back-office ke API (`POST /media/images`, body = file gambar mentah), API memvalidasi jenis (JPEG/PNG/WebP dari magic bytes) dan ukuran (≤ 2 MB) lalu menyimpannya lewat port `ObjectStorage` dengan key `<tenant_id>/products/<ulid>.<ext>`. Kolom `products.image_key` menyimpan **key saja**, tanpa host vendor. URL publik = `MEDIA_PUBLIC_BASE_URL` + `/` + key, dirangkai saat respons dibuat: `image_url` di API back-office, dan `media_base_url` di setiap halaman `/sync/pull` sehingga device merangkai sendiri. Adapter: `s3` (S3-compatible, awalnya IDCloudHost `is3.cloudhost.id`) dan `local` (dev/test, file di disk dilayani API di `/media`). Key yang sudah berisi `://` (URL lama/eksternal) dipakai apa adanya.
+- **Kenapa**: ganti vendor S3 cukup dengan menyalin objek dan mengubah `.env` (endpoint, bucket, base URL) — tidak ada migrasi data, dan device ikut berganti di pull berikutnya tanpa perubahan versi produk. Unggah lewat API membuat kredensial S3 tetap di server, validasi di satu tempat, dan tidak perlu konfigurasi CORS bucket.
+- **Konsekuensi**: bandwidth unggah lewat API (gambar kecil, dibatasi 2 MB). Bucket harus bisa dibaca publik (objek diunggah dengan ACL `public-read`, bisa diatur `S3_OBJECT_ACL`). Gambar yang tidak jadi dipakai (form dibatalkan) tetap tersimpan sebagai objek yatim — boleh dibersihkan berkala. Di kasir, gambar butuh internet saat pertama tampil; tanpa gambar POS tetap jalan.
+
 ## Non-Functional Requirements
 
 | NFR | Target |

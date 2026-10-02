@@ -61,6 +61,7 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [x] Billing: trial 14 hari, tagihan bulanan per outlet aktif (`PRICE_PER_OUTLET`), grace 7 hari, suspend/aktif otomatis (ADR-018) — job harian di worker + `make billing-run`; halaman **Langganan** di back-office; konsol platform menampilkan status langganan & alasan suspend (`manual`/`billing`)
 - [x] QRIS dinamis saat online + fallback QRIS statis offline (ADR-019); `POST/GET /payments/qris`, flag `QRIS_UNPAID`; QR dirender di kasir (`qrcode-generator`, dimuat saat dibutuhkan)
 - [x] Webhook keluar dari outbox untuk inventory/ERP/RestaurantOps (ADR-020): `order.placed` (detail lengkap) & `shift.closed`, HMAC-SHA256, retry 8× lalu `dead`, kirim ulang — halaman **Integrasi** di back-office. Inventory **tidak** dibangun di POSLite
+- [x] Gambar produk di object storage S3 (ADR-021): `POST /media/images`, DB menyimpan `image_key` saja, URL dirangkai dari `MEDIA_PUBLIC_BASE_URL` (IDCloudHost `is3.cloudhost.id`; `local` untuk dev) — unggah + preview di form produk back-office, POS merangkai URL dari `media_base_url` di pull
 - [ ] *Ditunda*: wrapper native (Capacitor) bila perlu iOS + Bluetooth; e-wallet callback langsung
 - **DoD**: tenant trial habis → tagihan terbit → dibayar lewat gateway (fake) → tetap aktif; tidak bayar lewat grace → suspend otomatis, kasir tetap jualan. Order yang dibayar dengan QR dinamis tercatat tanpa flag; order sampai ke endpoint webhook dengan tanda tangan valid.
 
