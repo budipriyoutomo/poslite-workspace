@@ -132,14 +132,15 @@ def system_engine(_system_engine: AsyncEngine, _clean_db: None) -> AsyncEngine:
 
 @pytest.fixture
 async def api(
-    app_engine: AsyncEngine, db_settings: TestDatabaseSettings
+    app_engine: AsyncEngine, db_settings: TestDatabaseSettings, tmp_path: Path
 ) -> AsyncIterator[AsyncClient]:
-    """HTTP client for the real app wired to the test database."""
+    """HTTP client for the real app wired to the test database (media in a temp folder)."""
     settings = Settings(
         _env_file=None,
         database_url=db_settings.database_url,
         system_database_url=db_settings.system_database_url,
         migration_database_url=db_settings.migration_database_url,
+        media_local_dir=str(tmp_path / "media"),
     )
     app = create_app(settings)
     async with (

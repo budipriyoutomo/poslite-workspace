@@ -21,13 +21,15 @@ class ProductIn(BaseModel):
     sku: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
     name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=150)]
     price: Rupiah
-    image_url: str | None = None
+    # Key from POST /media/images (ADR-021), never a vendor URL.
+    image_key: Annotated[str, StringConstraints(max_length=300)] | None = None
     is_available: bool = True
     modifier_group_ids: list[Ulid] = []
 
 
 class ProductOut(ProductIn):
     id: str
+    image_url: str | None  # image_key on the current media base URL
 
 
 class OptionIn(BaseModel):
@@ -69,3 +71,8 @@ class OutletProductOut(BaseModel):
     price: int | None
     effective_price: int
     is_available: bool
+
+
+class ImageOut(BaseModel):
+    key: str  # what products.image_key stores (ADR-021)
+    url: str  # for a preview; built from the current media base URL

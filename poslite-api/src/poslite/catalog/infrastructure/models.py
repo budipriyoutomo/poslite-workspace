@@ -25,7 +25,7 @@ class ProductModel(MasterColumns, Base):
     sku: Mapped[str] = mapped_column(String(50))
     name: Mapped[str] = mapped_column(String(150))
     description: Mapped[str] = mapped_column(Text, server_default="")
-    image_url: Mapped[str | None] = mapped_column(Text)
+    image_key: Mapped[str | None] = mapped_column(Text)  # object key (ADR-021)
     price: Mapped[int] = mapped_column(BigInteger)
     is_available: Mapped[bool] = mapped_column(Boolean, server_default="true")
 

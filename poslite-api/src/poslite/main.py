@@ -1,9 +1,11 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from poslite.billing.presentation.router import router as billing_router
 from poslite.catalog.presentation.router import router as catalog_router
@@ -23,6 +25,7 @@ from poslite.shared.config import Settings, get_settings
 from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
 from poslite.shared.infrastructure.gateways import build_gateway
+from poslite.shared.infrastructure.object_storage import build_storage
 from poslite.shared.presentation.errors import install_error_handlers
 from poslite.sync.presentation.router import router as sync_router
 from poslite.tenancy.api import tenant_status
@@ -42,6 +45,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.clock = SystemClock()
         app.state.new_id = new_ulid
         app.state.gateway = build_gateway(settings)
+        app.state.storage = build_storage(settings)
+        app.state.media_base_url = settings.media_base_url
         yield
         await app_engine.dispose()
         await system_engine.dispose()
@@ -79,6 +84,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ):
         api.include_router(module_router)
     app.include_router(api)
+    if settings.media_storage == "local":  # dev/test stand-in for the S3 bucket (ADR-021)
+        media_dir = Path(settings.media_local_dir)
+        media_dir.mkdir(parents=True, exist_ok=True)
+        app.mount("/media", StaticFiles(directory=media_dir), name="media")
     return app
 
 

@@ -3,9 +3,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
+from poslite.catalog.application.images import upload_product_image
 from poslite.catalog.application.schemas import (
     CategoryIn,
     CategoryOut,
+    ImageOut,
     ModifierGroupIn,
     ModifierGroupOut,
     OutletProductIn,
@@ -15,7 +17,14 @@ from poslite.catalog.application.schemas import (
 )
 from poslite.catalog.infrastructure import service
 from poslite.organization import api as organization
-from poslite.shared.presentation.dependencies import id_factory, open_uow
+from poslite.shared.application.object_storage import ObjectStorage
+from poslite.shared.domain.media import MAX_IMAGE_BYTES
+from poslite.shared.presentation.dependencies import (
+    id_factory,
+    media_base_url,
+    object_storage,
+    open_uow,
+)
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 
@@ -23,6 +32,7 @@ router = APIRouter(tags=["catalog"])
 Reader = Annotated[Principal, Depends(require_ability("backoffice:read"))]
 Writer = Annotated[Principal, Depends(require_ability("backoffice:write"))]
 NewId = Annotated[Callable[[], str], Depends(id_factory)]
+MediaBase = Annotated[str, Depends(media_base_url)]
 
 
 @router.get("/categories")
@@ -61,28 +71,69 @@ async def delete_category(
     return ok(None)
 
 
+async def _read_body(request: Request, limit: int) -> bytes:
+    """The raw body, cut off one byte past the limit so an oversized upload is not buffered."""
+    data = bytearray()
+    async for chunk in request.stream():
+        data += chunk
+        if len(data) > limit:
+            break
+    return bytes(data)
+
+
+@router.post(
+    "/media/images",
+    status_code=status.HTTP_201_CREATED,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                t: {"schema": {"type": "string", "format": "binary"}}
+                for t in ("image/jpeg", "image/png", "image/webp")
+            },
+        }
+    },
+)
+async def upload_image(
+    request: Request,
+    principal: Writer,
+    new_id: NewId,
+    storage: Annotated[ObjectStorage, Depends(object_storage)],
+    base_url: MediaBase,
+) -> ApiResponse[ImageOut]:
+    """Product image as the raw request body (JPEG/PNG/WebP, max 2 MB, ADR-021)."""
+    data = await _read_body(request, MAX_IMAGE_BYTES)
+    return ok(
+        await upload_product_image(
+            storage, data, tenant_id=principal.tenant_id, new_id=new_id, base_url=base_url
+        )
+    )
+
+
 @router.get("/products")
-async def list_products(request: Request, principal: Reader) -> ApiResponse[list[ProductOut]]:
+async def list_products(
+    request: Request, principal: Reader, base_url: MediaBase
+) -> ApiResponse[list[ProductOut]]:
     async with open_uow(request, principal.tenant_id) as uow:
-        return ok(await service.list_products(uow))
+        return ok(await service.list_products(uow, base_url))
 
 
 @router.post("/products", status_code=status.HTTP_201_CREATED)
 async def create_product(
-    body: ProductIn, request: Request, principal: Writer, new_id: NewId
+    body: ProductIn, request: Request, principal: Writer, new_id: NewId, base_url: MediaBase
 ) -> ApiResponse[ProductOut]:
     async with open_uow(request, principal.tenant_id) as uow:
-        result = await service.create_product(uow, new_id, body)
+        result = await service.create_product(uow, new_id, body, base_url)
         await uow.commit()
     return ok(result)
 
 
 @router.put("/products/{product_id}")
 async def update_product(
-    product_id: str, body: ProductIn, request: Request, principal: Writer
+    product_id: str, body: ProductIn, request: Request, principal: Writer, base_url: MediaBase
 ) -> ApiResponse[ProductOut]:
     async with open_uow(request, principal.tenant_id) as uow:
-        result = await service.update_product(uow, product_id, body)
+        result = await service.update_product(uow, product_id, body, base_url)
         await uow.commit()
     return ok(result)
 

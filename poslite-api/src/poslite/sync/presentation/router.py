@@ -11,7 +11,7 @@ from poslite.payment import api as payment
 from poslite.promotion import api as promotion
 from poslite.shared.application.clock import Clock
 from poslite.shared.application.sync import DeviceContext
-from poslite.shared.presentation.dependencies import clock, open_uow
+from poslite.shared.presentation.dependencies import clock, media_base_url, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 from poslite.sync.application.events import IncomingEvent
@@ -34,6 +34,7 @@ class PullResult(BaseModel):
     next_cursor: int
     has_more: bool
     server_time: datetime
+    media_base_url: str  # device builds image URLs from it (ADR-021)
 
 
 @router.get("/sync/pull", response_model_exclude_none=True)
@@ -41,6 +42,7 @@ async def pull(
     request: Request,
     principal: Annotated[Principal, Depends(require_ability("device:read"))],
     now: Annotated[Clock, Depends(clock)],
+    base_url: Annotated[str, Depends(media_base_url)],
     cursor: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=500)] = 500,
 ) -> ApiResponse[PullResult]:
@@ -77,6 +79,7 @@ async def pull(
             next_cursor=page.next_cursor,
             has_more=page.has_more,
             server_time=now.now(),
+            media_base_url=base_url,
         )
     )
 

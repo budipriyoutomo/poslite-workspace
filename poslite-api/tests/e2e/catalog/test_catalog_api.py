@@ -84,6 +84,7 @@ async def test_updates_a_product(api: AsyncClient) -> None:
         "sku": "MK-1",
         "name": "Nasi Gudeg",
         "price": 27000,
+        "image_key": None,
         "image_url": None,
         "is_available": False,
         "modifier_group_ids": [],

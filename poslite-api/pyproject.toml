@@ -9,6 +9,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "arq>=0.28.0",
     "asyncpg>=0.31.0",
+    "boto3>=1.43.104",
     "fastapi>=0.141.1",
     "gunicorn>=26.2.0",
     "httpx>=0.28.1",
@@ -31,6 +32,7 @@ packages = ["src/poslite"]
 
 [dependency-groups]
 dev = [
+    "boto3-stubs[s3]>=1.43.104",
     "httpx>=0.28.1",
     "import-linter>=2.15",
     "mypy>=2.3.1",

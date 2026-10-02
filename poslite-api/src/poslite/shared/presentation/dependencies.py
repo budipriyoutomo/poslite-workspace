@@ -5,6 +5,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.shared.application.clock import Clock
+from poslite.shared.application.object_storage import ObjectStorage
 from poslite.shared.application.payment_gateway import PaymentGateway
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -22,6 +23,17 @@ def system_sessions(request: Request) -> async_sessionmaker[AsyncSession]:
 
 def payment_gateway(request: Request) -> PaymentGateway:
     value: PaymentGateway = request.app.state.gateway
+    return value
+
+
+def object_storage(request: Request) -> ObjectStorage:
+    value: ObjectStorage = request.app.state.storage
+    return value
+
+
+def media_base_url(request: Request) -> str:
+    """Where stored objects are served from (ADR-021); keys are joined to it on the way out."""
+    value: str = request.app.state.media_base_url
     return value
 
 

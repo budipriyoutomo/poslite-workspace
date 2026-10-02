@@ -11,3 +11,4 @@ htmlcov/
 .import_linter_cache/
 dist/
 .DS_Store
+var/

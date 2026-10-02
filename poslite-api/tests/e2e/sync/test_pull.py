@@ -36,7 +36,7 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
         "sku": "MN-1",
         "name": "Es Teh",
         "price": 5000,
-        "image_url": None,
+        "image_key": None,
         "is_available": True,
         "modifier_group_ids": [s.ids["group"]],
     }
@@ -61,6 +61,7 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
     assert data["has_more"] is False
     assert data["next_cursor"] == max(c["version"] for c in data["changes"])
     assert data["server_time"]
+    assert data["media_base_url"] == "http://localhost:8000/media"
 
 
 async def test_changes_come_in_version_order(api: AsyncClient) -> None:

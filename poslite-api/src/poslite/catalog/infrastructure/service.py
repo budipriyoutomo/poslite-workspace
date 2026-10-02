@@ -25,6 +25,7 @@ from poslite.catalog.infrastructure.models import (
 )
 from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.domain.media import media_url
 from poslite.shared.infrastructure.sync_feed import feed
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -99,20 +100,21 @@ async def _group_ids(uow: SqlAlchemyUnitOfWork, product_ids: list[str]) -> dict[
     return result
 
 
-def _product(p: ProductModel, group_ids: list[str]) -> ProductOut:
+def _product(p: ProductModel, group_ids: list[str], base_url: str) -> ProductOut:
     return ProductOut(
         id=p.id,
         category_id=p.category_id,
         sku=p.sku,
         name=p.name,
         price=p.price,
-        image_url=p.image_url,
+        image_key=p.image_key,
+        image_url=media_url(base_url, p.image_key),
         is_available=p.is_available,
         modifier_group_ids=group_ids,
     )
 
 
-async def list_products(uow: SqlAlchemyUnitOfWork) -> list[ProductOut]:
+async def list_products(uow: SqlAlchemyUnitOfWork, base_url: str) -> list[ProductOut]:
     rows = list(
         await uow.session.scalars(
             select(ProductModel)
@@ -121,11 +123,16 @@ async def list_products(uow: SqlAlchemyUnitOfWork) -> list[ProductOut]:
         )
     )
     groups = await _group_ids(uow, [p.id for p in rows])
-    return [_product(p, groups[p.id]) for p in rows]
+    return [_product(p, groups[p.id], base_url) for p in rows]
 
 
-async def _check_references(uow: SqlAlchemyUnitOfWork, body: ProductIn) -> None:
+async def _check_references(
+    uow: SqlAlchemyUnitOfWork, body: ProductIn, current_image: str | None = None
+) -> None:
     await _live(uow, CategoryModel, body.category_id, "CATEGORY_NOT_FOUND")
+    own = f"{uow.tenant_id}/products/"
+    if body.image_key not in (None, current_image) and not body.image_key.startswith(own):
+        raise DomainError("INVALID_IMAGE_KEY", "Upload the image with POST /media/images first")
     for group_id in body.modifier_group_ids:
         await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
 
@@ -153,7 +160,7 @@ async def _flush_unique_sku(uow: SqlAlchemyUnitOfWork) -> None:
 
 
 async def create_product(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ProductIn
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ProductIn, base_url: str
 ) -> ProductOut:
     await _check_references(uow, body)
     row = ProductModel(
@@ -163,20 +170,22 @@ async def create_product(
     await _flush_unique_sku(uow)
     await _set_groups(uow, row.id, body.modifier_group_ids)
     await uow.session.flush()
-    return _product(row, list(dict.fromkeys(body.modifier_group_ids)))
+    return _product(row, list(dict.fromkeys(body.modifier_group_ids)), base_url)
 
 
-async def update_product(uow: SqlAlchemyUnitOfWork, product_id: str, body: ProductIn) -> ProductOut:
+async def update_product(
+    uow: SqlAlchemyUnitOfWork, product_id: str, body: ProductIn, base_url: str
+) -> ProductOut:
     """Full replace. The UPDATE re-versions the product, which carries its modifier group links."""
     row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
-    await _check_references(uow, body)
+    await _check_references(uow, body, current_image=row.image_key)
     for key, value in body.model_dump(exclude={"modifier_group_ids"}).items():
         setattr(row, key, value)
     row.updated_at = func.now()
     await _flush_unique_sku(uow)
     await _set_groups(uow, row.id, body.modifier_group_ids)
     await uow.session.flush()
-    return _product(row, list(dict.fromkeys(body.modifier_group_ids)))
+    return _product(row, list(dict.fromkeys(body.modifier_group_ids)), base_url)
 
 
 async def delete_product(uow: SqlAlchemyUnitOfWork, product_id: str) -> None:
@@ -319,7 +328,7 @@ async def catalog_changes(
             "sku": p.sku,
             "name": p.name,
             "price": p.price,
-            "image_url": p.image_url,
+            "image_key": p.image_key,
             "is_available": p.is_available,
         },
     )

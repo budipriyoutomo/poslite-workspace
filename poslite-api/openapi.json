@@ -178,6 +178,29 @@
         "title": "ApiResponse[DeviceMe]",
         "type": "object"
       },
+      "ApiResponse_ImageOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ImageOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[ImageOut]",
+        "type": "object"
+      },
       "ApiResponse_LoginOut_": {
         "properties": {
           "data": {
@@ -1564,6 +1587,24 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImageOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "url"
+        ],
+        "title": "ImageOut",
+        "type": "object"
+      },
       "IncomingEvent": {
         "properties": {
           "aggregate_id": {
@@ -2362,16 +2403,17 @@
             "title": "Category Id",
             "type": "string"
           },
-          "image_url": {
+          "image_key": {
             "anyOf": [
               {
+                "maxLength": 300,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Image Url"
+            "title": "Image Key"
           },
           "is_available": {
             "default": true,
@@ -2426,6 +2468,18 @@
             "title": "Id",
             "type": "string"
           },
+          "image_key": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Key"
+          },
           "image_url": {
             "anyOf": [
               {
@@ -2475,7 +2529,8 @@
           "sku",
           "name",
           "price",
-          "id"
+          "id",
+          "image_url"
         ],
         "title": "ProductOut",
         "type": "object"
@@ -2835,6 +2890,10 @@
             "title": "Has More",
             "type": "boolean"
           },
+          "media_base_url": {
+            "title": "Media Base Url",
+            "type": "string"
+          },
           "next_cursor": {
             "title": "Next Cursor",
             "type": "integer"
@@ -2849,7 +2908,8 @@
           "changes",
           "next_cursor",
           "has_more",
-          "server_time"
+          "server_time",
+          "media_base_url"
         ],
         "title": "PullResult",
         "type": "object"
@@ -2941,6 +3001,11 @@
             "type": "string"
           },
           "status": {
+            "enum": [
+              "pending",
+              "paid",
+              "expired"
+            ],
             "title": "Status",
             "type": "string"
           }
@@ -3955,6 +4020,56 @@
         ]
       }
     },
+    "/api/v1/media/images": {
+      "post": {
+        "description": "Product image as the raw request body (JPEG/PNG/WebP, max 2 MB, ADR-021).",
+        "operationId": "upload_image_api_v1_media_images_post",
+        "requestBody": {
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            },
+            "image/webp": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ImageOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upload Image",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/api/v1/modifier-groups": {
       "get": {
         "operationId": "list_modifier_groups_api_v1_modifier_groups_get",
@@ -4843,7 +4958,7 @@
     },
     "/api/v1/payments/qris/{charge_id}": {
       "get": {
-        "description": "Polled by the device until the charge is paid.",
+        "description": "Polled by the device until the charge is paid or expired.",
         "operationId": "qris_status_api_v1_payments_qris__charge_id__get",
         "parameters": [
           {
