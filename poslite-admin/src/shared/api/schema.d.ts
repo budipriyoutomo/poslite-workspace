@@ -189,6 +189,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/media/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Image
+         * @description Product image as the raw request body (JPEG/PNG/WebP, max 2 MB, ADR-021).
+         */
+        post: operations["upload_image_api_v1_media_images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/modifier-groups": {
         parameters: {
             query?: never;
@@ -421,7 +441,7 @@ export interface paths {
         };
         /**
          * Qris Status
-         * @description Polled by the device until the charge is paid.
+         * @description Polled by the device until the charge is paid or expired.
          */
         get: operations["qris_status_api_v1_payments_qris__charge_id__get"];
         put?: never;
@@ -916,6 +936,22 @@ export interface components {
         /** ApiResponse[DeviceMe] */
         ApiResponse_DeviceMe_: {
             data: components["schemas"]["DeviceMe"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[ImageOut] */
+        ApiResponse_ImageOut_: {
+            data: components["schemas"]["ImageOut"];
             /**
              * Message
              * @default OK
@@ -1677,6 +1713,13 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ImageOut */
+        ImageOut: {
+            /** Key */
+            key: string;
+            /** Url */
+            url: string;
+        };
         /** IncomingEvent */
         IncomingEvent: {
             /** Aggregate Id */
@@ -2016,8 +2059,8 @@ export interface components {
         ProductIn: {
             /** Category Id */
             category_id: string;
-            /** Image Url */
-            image_url?: string | null;
+            /** Image Key */
+            image_key?: string | null;
             /**
              * Is Available
              * @default true
@@ -2041,8 +2084,10 @@ export interface components {
             category_id: string;
             /** Id */
             id: string;
+            /** Image Key */
+            image_key?: string | null;
             /** Image Url */
-            image_url?: string | null;
+            image_url: string | null;
             /**
              * Is Available
              * @default true
@@ -2180,6 +2225,8 @@ export interface components {
             changes: components["schemas"]["ChangeOut"][];
             /** Has More */
             has_more: boolean;
+            /** Media Base Url */
+            media_base_url: string;
             /** Next Cursor */
             next_cursor: number;
             /**
@@ -2220,8 +2267,11 @@ export interface components {
             paid_at: string | null;
             /** Qr String */
             qr_string: string;
-            /** Status */
-            status: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "paid" | "expired";
         };
         /** SalesSummaryOut */
         SalesSummaryOut: {
@@ -2737,6 +2787,32 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    upload_image_api_v1_media_images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "image/jpeg": string;
+                "image/png": string;
+                "image/webp": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ImageOut_"];
                 };
             };
         };

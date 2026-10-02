@@ -14,8 +14,10 @@ export function renderWithApi(ui: ReactElement, route: Route) {
   const calls: { method: string; path: string; body: unknown }[] = [];
   const fetchFn = vi.fn<typeof fetch>(async (input) => {
     const request = input as Request;
-    const text = await request.text();
-    const call = { method: request.method, path: new URL(request.url).pathname + new URL(request.url).search, body: text ? JSON.parse(text) : undefined };
+    const type = request.headers.get("content-type") ?? "";
+    // JSON bodies are parsed; anything else (an uploaded file) is recorded as its type and size.
+    const body = type.includes("json") ? JSON.parse(await request.text()) : request.body ? { type, size: (await request.arrayBuffer()).byteLength } : undefined;
+    const call = { method: request.method, path: new URL(request.url).pathname + new URL(request.url).search, body };
     calls.push(call);
     const reply = route(call) ?? { status: 404, body: { message: "not found", code: "NOT_FOUND" } };
     return new Response(JSON.stringify(reply.body), { status: reply.status ?? 200, headers: { "content-type": "application/json" } });

@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import { signUp, uniq } from "./support";
 
+const PNG_1PX = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+
 // Fase 3 exit: an owner sets up the business from the back-office against the real API.
 test("owner sets up menu, outlet price, cashier, payment method, outlet rates, tables and a promotion", async ({ page }) => {
   await signUp(page, uniq());
@@ -19,8 +21,13 @@ test("owner sets up menu, outlet price, cashier, payment method, outlet rates, t
   await dialog.getByLabel("Nama").fill("Es Teh Manis");
   await dialog.getByLabel("SKU").fill("MN-001");
   await dialog.getByLabel("Harga").fill("5000");
+  await dialog.getByLabel("Gambar produk").setInputFiles({ name: "es-teh.png", mimeType: "image/png", buffer: PNG_1PX });
+  const preview = dialog.getByRole("img", { name: "Pratinjau gambar produk" });
+  await expect(preview).toHaveAttribute("src", /^http:\/\/127\.0\.0\.1:8210\/media\/[0-9A-Z]{26}\/products\/[0-9A-Z]{26}\.png$/);
+  await expect.poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1); // really served
   await dialog.getByRole("button", { name: "Simpan" }).click();
   await expect(page.getByRole("cell", { name: "Rp 5.000" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Gambar Es Teh Manis" })).toBeVisible();
 
   await nav.getByRole("link", { name: "Harga Outlet" }).click();
   await page.getByLabel("Harga di outlet Es Teh Manis").fill("6000");

@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Plus } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { formatRupiah } from "@/shared/money";
@@ -39,7 +40,14 @@ export function ProductsTab() {
           {products.data?.map((p) => (
             <tr key={p.id} className="border-b last:border-0">
               <td className="px-3 py-2 font-medium">
-                {p.name} {!p.is_available && <Badge variant="secondary">Habis</Badge>}
+                <span className="flex items-center gap-2">
+                  {p.image_url ? (
+                    <Image src={p.image_url} alt={`Gambar ${p.name}`} width={32} height={32} unoptimized className="size-8 rounded object-cover" />
+                  ) : (
+                    <span className="size-8 rounded bg-slate-100" />
+                  )}
+                  {p.name} {!p.is_available && <Badge variant="secondary">Habis</Badge>}
+                </span>
               </td>
               <td className="px-3 py-2 text-muted-foreground">{p.sku}</td>
               <td className="px-3 py-2">{categoryName.get(p.category_id) ?? "—"}</td>

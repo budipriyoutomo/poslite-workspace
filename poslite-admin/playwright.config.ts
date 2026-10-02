@@ -25,7 +25,8 @@ export default defineConfig({
       url: `${API_ORIGIN}/api/v1/health`,
       reuseExistingServer: false,
       timeout: 120_000,
-      env: { ...DATABASE_ENV, CORS_ORIGINS: JSON.stringify([ADMIN_URL]) },
+      // Media on local disk, served by this API (ADR-021): preview URLs point at :8210.
+      env: { ...DATABASE_ENV, CORS_ORIGINS: JSON.stringify([ADMIN_URL]), PUBLIC_API_URL: API_ORIGIN, MEDIA_STORAGE: "local", MEDIA_LOCAL_DIR: "var/media-e2e" },
     },
     {
       command: "pnpm build && ./node_modules/.bin/next start -p 3310",

@@ -11,7 +11,8 @@ import { RupiahInput } from "@/shared/ui/rupiah-input";
 import { Switch } from "@/shared/ui/switch";
 import { FormField, selectClass } from "@/shared/ui/form-field";
 
-import { type Product, useCategories, useModifierGroups, useSaveProduct } from "../application/use-menu";
+import { type Product, type UploadedImage, useCategories, useModifierGroups, useSaveProduct } from "../application/use-menu";
+import { ProductImageField } from "./ProductImageField";
 
 const ERRORS: Record<string, string> = { SKU_TAKEN: "SKU sudah dipakai produk lain" };
 
@@ -25,14 +26,14 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone: ()
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
   const [groupIds, setGroupIds] = useState<string[]>(product?.modifier_group_ids ?? []);
   const [isAvailable, setIsAvailable] = useState(product?.is_available ?? true);
-  const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
+  const [image, setImage] = useState<UploadedImage | null>(product?.image_key && product.image_url ? { key: product.image_key, url: product.image_url } : null);
   const category = categoryId || categories.data?.[0]?.id || "";
   const canSave = name.trim() !== "" && sku.trim() !== "" && price !== null && category !== "";
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
-    const body = { category_id: category, sku: sku.trim(), name: name.trim(), price, image_url: imageUrl.trim() || null, is_available: isAvailable, modifier_group_ids: groupIds };
+    const body = { category_id: category, sku: sku.trim(), name: name.trim(), price, image_key: image?.key ?? null, is_available: isAvailable, modifier_group_ids: groupIds };
     save.mutate(
       { id: product?.id, body },
       {
@@ -64,9 +65,7 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone: ()
           ))}
         </select>
       </FormField>
-      <FormField id="product-image" label="URL gambar (opsional)">
-        <Input id="product-image" type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-      </FormField>
+      <ProductImageField value={image} onChange={setImage} />
       {groups.data && groups.data.length > 0 && (
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium">Pilihan / modifier</legend>

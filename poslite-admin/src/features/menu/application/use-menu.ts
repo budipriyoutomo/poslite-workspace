@@ -10,6 +10,7 @@ export type ProductIn = components["schemas"]["ProductIn"];
 export type ModifierGroup = components["schemas"]["ModifierGroupOut"];
 export type ModifierGroupIn = components["schemas"]["ModifierGroupIn"];
 export type CategoryIn = components["schemas"]["CategoryIn"];
+export type UploadedImage = components["schemas"]["ImageOut"];
 
 export function useCategories() {
   const api = useApi();
@@ -75,4 +76,20 @@ export function useSaveModifierGroup() {
 export function useDeleteModifierGroup() {
   const api = useApi();
   return useMenuMutation((id: string) => unwrap(api.DELETE("/api/v1/modifier-groups/{group_id}", { params: { path: { group_id: id } } })), ["modifier-groups"]);
+}
+
+/** Product image sent as the raw request body (ADR-021); the API answers its storage key and URL. */
+export function useUploadImage() {
+  const api = useApi();
+  return useMutation({
+    mutationFn: async (file: File) =>
+      unwrap(
+        api.POST("/api/v1/media/images", {
+          // The bytes, not the File: a Blob body is not portable across fetch implementations.
+          body: (await file.arrayBuffer()) as unknown as string,
+          bodySerializer: (body) => body as unknown as BodyInit,
+          headers: { "Content-Type": file.type },
+        }),
+      ),
+  });
 }
