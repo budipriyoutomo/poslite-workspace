@@ -56,3 +56,16 @@ make db-reset                # drop + buat ulang + migrasi (minta konfirmasi)
 ```
 
 Port & kredensial bisa di-override, mis. `make dev API_PORT=8001 WEB_PORT=3002`.
+
+## Repo GitHub per aplikasi
+
+Monorepo ini tetap menjadi sumber utama. Setiap folder aplikasi, beserta riwayat commit-nya, disalin ke repo GitHub sendiri:
+
+| Folder | Repo |
+|---|---|
+| `poslite-api` | https://github.com/budipriyoutomo/poslite-api |
+| `poslite-web` | https://github.com/budipriyoutomo/poslite-web |
+| `poslite-admin` | https://github.com/budipriyoutomo/poslite-admin |
+| `poslite-operator` | https://github.com/budipriyoutomo/poslite-operator |
+
+Commit di monorepo seperti biasa, lalu jalankan `make repos-push` untuk mengirim perubahan ke keempat repo. Jangan commit langsung ke repo per aplikasi, karena push berikutnya akan ditolak. `poslite-docs`, `deploy/` dan `Makefile` hanya ada di monorepo. Setiap repo aplikasi punya CI sendiri di `.github/workflows/ci.yml`.

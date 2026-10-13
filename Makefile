@@ -233,5 +233,5 @@ repos-push: repos-remotes ## Mirror each app folder's committed history to its o
 	@test -z "$$(git status --porcelain -- $(APPS))" || { echo "✗ Uncommitted changes in an app folder; commit first"; exit 1; }
 	@for app in $(APPS); do \
 		echo "→ $$app"; \
-		git subtree split --prefix=$$app -b split/$$app >/dev/null && git push $$app split/$$app:main || exit 1; \
+		git subtree split -q --prefix=$$app -b split/$$app && git push $$app split/$$app:main || exit 1; \
 	done
