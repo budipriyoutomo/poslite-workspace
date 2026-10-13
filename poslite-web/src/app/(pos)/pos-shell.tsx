@@ -93,7 +93,7 @@ export function PosShell({ children }: { children: ReactNode }) {
             <span aria-hidden className="flex size-7 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
               {user.name.trim().charAt(0).toUpperCase()}
             </span>
-            {user.name}
+            <span>{user.name}</span>
           </span>
           <Button size="sm" variant="secondary" onClick={lock}>
             <Lock /> {authCopy.lock}
