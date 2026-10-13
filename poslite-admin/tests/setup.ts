@@ -15,7 +15,8 @@ afterEach(() => cleanup());
 // Screens run for a signed-in owner working in one brand (ADR-022); auth tests reset this.
 export const TEST_BRAND = "01K5ZB00000000000000000001";
 beforeEach(() => {
-  if (typeof localStorage?.setItem !== "function") return; // node-environment tests (architecture)
+  // globalThis: a bare `localStorage` throws where it is undeclared (node environment on Node < 25).
+  if (typeof globalThis.localStorage?.setItem !== "function") return; // node-environment tests (architecture)
   useSessionStore.getState().signIn({
     token: "tok",
     expires_at: "2099-01-01T00:00:00Z",
