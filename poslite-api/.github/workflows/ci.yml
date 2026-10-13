@@ -7,6 +7,10 @@ on:
     branches: [main]
   pull_request:
 
+defaults:
+  run:
+    working-directory: poslite-api
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -23,10 +27,20 @@ jobs:
       TEST_MIGRATION_DATABASE_URL: postgresql+asyncpg://poslite:poslite@localhost:5432/poslite_test
       TEST_SYSTEM_DATABASE_URL: postgresql+asyncpg://poslite_system:poslite@localhost:5432/poslite_test
     steps:
+      # Sibling layout as in the workspace: tests/fixtures/*.json are symlinks to the fixtures shared
+      # with the POS (../../../poslite-web/tests/fixtures), so device and server compute the same totals.
       - uses: actions/checkout@v4
+        with:
+          path: poslite-api
+      - uses: actions/checkout@v4
+        with:
+          repository: budipriyoutomo/poslite-web
+          path: poslite-web
+          sparse-checkout: tests/fixtures
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          working-directory: poslite-api
       - run: uv sync --locked
       - name: Create database roles and the test database
         env:
@@ -49,6 +63,9 @@ jobs:
   # file lives in the monorepo (deploy/staging) and is validated by its root workflow.
   image:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t poslite-api:ci .
