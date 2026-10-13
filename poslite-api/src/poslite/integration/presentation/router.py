@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
+from poslite.identity import api as identity
 from poslite.integration.application.schemas import (
     CreatedEndpointOut,
     DeliveryOut,
@@ -10,11 +11,14 @@ from poslite.integration.application.schemas import (
     EndpointOut,
 )
 from poslite.integration.infrastructure import service
+from poslite.organization import api as organization
 from poslite.shared.presentation.dependencies import id_factory, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 
-router = APIRouter(tags=["integration"])
+router = APIRouter(
+    tags=["integration"], dependencies=[identity.company_only]
+)  # company page (ADR-022)
 Reader = Annotated[Principal, Depends(require_ability("backoffice:read"))]
 Writer = Annotated[Principal, Depends(require_ability("backoffice:write"))]
 
@@ -34,6 +38,8 @@ async def create_webhook(
 ) -> ApiResponse[CreatedEndpointOut]:
     """The signing secret is returned only here (ADR-020)."""
     async with open_uow(request, principal.tenant_id) as uow:
+        for brand_id in body.brand_ids:
+            await organization.get_brand(uow, brand_id)
         created = await service.create_endpoint(uow, new_id, body)
         await uow.commit()
     return ok(created)

@@ -10,16 +10,18 @@ from ..sync.test_push import batch, push
 
 
 async def test_adds_another_outlet_with_a_unique_code(api: AsyncClient) -> None:
-    token = (await signup(api))["token"]
+    owner = await signup(api)
+    token = owner["token"]
+    body = {"brand_id": owner["brand_id"], "timezone": "Asia/Jakarta"}
 
     created = await api.post(
         "/api/v1/outlets",
-        json={"code": "BDG01", "name": "Bandung", "timezone": "Asia/Jakarta"},
+        json={**body, "code": "BDG01", "name": "Bandung"},
         headers=bearer(token),
     )
     taken = await api.post(
         "/api/v1/outlets",
-        json={"code": "BDG01", "name": "Lagi", "timezone": "Asia/Jakarta"},
+        json={**body, "code": "BDG01", "name": "Lagi"},
         headers=bearer(token),
     )
 

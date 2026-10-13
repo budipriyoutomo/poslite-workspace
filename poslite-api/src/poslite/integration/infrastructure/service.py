@@ -3,7 +3,7 @@ import secrets
 from collections.abc import Callable
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 
 from poslite.integration.application.schemas import (
@@ -18,7 +18,13 @@ from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 
 def _out(e: WebhookEndpointModel) -> EndpointOut:
-    return EndpointOut(id=e.id, url=e.url, event_types=list(e.event_types), is_active=e.is_active)
+    return EndpointOut(
+        id=e.id,
+        url=e.url,
+        event_types=list(e.event_types),
+        brand_ids=list(e.brand_ids),
+        is_active=e.is_active,
+    )
 
 
 async def create_endpoint(
@@ -30,6 +36,7 @@ async def create_endpoint(
         url=str(body.url),
         secret=f"whsec_{secrets.token_urlsafe(24)}",
         event_types=list(body.event_types),
+        brand_ids=list(dict.fromkeys(body.brand_ids)),
     )
     uow.session.add(row)
     await uow.session.flush()
@@ -83,16 +90,22 @@ async def enqueue(
     *,
     event_type: str,
     event_key: str,
+    brand_id: str,
     data: dict[str, object],
     new_id: Callable[[], str],
     now: datetime,
 ) -> None:
-    """One delivery per subscribed endpoint; a repeated event (at-least-once relay) is ignored."""
+    """One delivery per subscribed endpoint; a repeated event (at-least-once relay) is ignored.
+    An endpoint limited to brands only gets events of those brands (ADR-022)."""
     endpoints = await uow.session.scalars(
         select(WebhookEndpointModel).where(
             WebhookEndpointModel.is_active,
             WebhookEndpointModel.deleted_at.is_(None),
             WebhookEndpointModel.event_types.contains([event_type]),
+            or_(
+                func.cardinality(WebhookEndpointModel.brand_ids) == 0,
+                WebhookEndpointModel.brand_ids.contains([brand_id]),
+            ),
         )
     )
     for endpoint in endpoints:

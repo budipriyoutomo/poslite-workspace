@@ -42,6 +42,10 @@ class SqlAlchemyUnitOfWork:
             await self.session.rollback()
         await self.session.close()
 
+    def new_id(self) -> str:
+        """A ULID for a row the server creates itself (never for device ids)."""
+        return self._new_id()
+
     def record(self, event: DomainEvent) -> None:
         self._events.append(event)
 

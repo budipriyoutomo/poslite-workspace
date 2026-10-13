@@ -26,3 +26,18 @@ class SyncEventModel(Base):
     processed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class DeviceImportModel(Base):
+    __tablename__ = "device_imports"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    device_id: Mapped[str] = mapped_column(CHAR(26))
+    imported_by: Mapped[str] = mapped_column(CHAR(26))
+    file_sha256: Mapped[str] = mapped_column(CHAR(64))
+    accepted: Mapped[int] = mapped_column(Integer)
+    duplicate: Mapped[int] = mapped_column(Integer)
+    flagged: Mapped[int] = mapped_column(Integer)
+    rejected: Mapped[list[dict[str, str | None]]] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

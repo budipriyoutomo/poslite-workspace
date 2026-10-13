@@ -1,6 +1,136 @@
 {
   "components": {
     "schemas": {
+      "AccessBrand": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "outlets": {
+            "items": {
+              "$ref": "#/components/schemas/AccessOutlet"
+            },
+            "title": "Outlets",
+            "type": "array"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "owner",
+                  "manager",
+                  "cashier"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Role over the whole brand; null = access to some of its outlets only",
+            "title": "Role"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "role",
+          "outlets"
+        ],
+        "title": "AccessBrand",
+        "type": "object"
+      },
+      "AccessOutlet": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "manager",
+              "cashier"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "role"
+        ],
+        "title": "AccessOutlet",
+        "type": "object"
+      },
+      "AccessTenant": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status"
+        ],
+        "title": "AccessTenant",
+        "type": "object"
+      },
+      "AccessTree": {
+        "properties": {
+          "brands": {
+            "items": {
+              "$ref": "#/components/schemas/AccessBrand"
+            },
+            "title": "Brands",
+            "type": "array"
+          },
+          "company_scope": {
+            "title": "Company Scope",
+            "type": "boolean"
+          },
+          "tenant": {
+            "$ref": "#/components/schemas/AccessTenant"
+          }
+        },
+        "required": [
+          "tenant",
+          "company_scope",
+          "brands"
+        ],
+        "title": "AccessTree",
+        "type": "object"
+      },
       "ActivateRequest": {
         "properties": {
           "device_name": {
@@ -63,6 +193,29 @@
         "title": "ActivationResult",
         "type": "object"
       },
+      "ApiResponse_AccessTree_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AccessTree"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[AccessTree]",
+        "type": "object"
+      },
       "ApiResponse_ActivationResult_": {
         "properties": {
           "data": {
@@ -107,6 +260,29 @@
           "data"
         ],
         "title": "ApiResponse[AuthResult]",
+        "type": "object"
+      },
+      "ApiResponse_BrandOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BrandOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[BrandOut]",
         "type": "object"
       },
       "ApiResponse_CategoryOut_": {
@@ -178,6 +354,29 @@
         "title": "ApiResponse[DeviceMe]",
         "type": "object"
       },
+      "ApiResponse_ExtendTrialOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExtendTrialOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[ExtendTrialOut]",
+        "type": "object"
+      },
       "ApiResponse_ImageOut_": {
         "properties": {
           "data": {
@@ -199,6 +398,29 @@
           "data"
         ],
         "title": "ApiResponse[ImageOut]",
+        "type": "object"
+      },
+      "ApiResponse_ImportOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ImportOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[ImportOut]",
         "type": "object"
       },
       "ApiResponse_LoginOut_": {
@@ -271,6 +493,52 @@
         "title": "ApiResponse[NoneType]",
         "type": "object"
       },
+      "ApiResponse_OperatorOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OperatorOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[OperatorOut]",
+        "type": "object"
+      },
+      "ApiResponse_OrderDetailOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OrderDetailOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[OrderDetailOut]",
+        "type": "object"
+      },
       "ApiResponse_OutletOut_": {
         "properties": {
           "data": {
@@ -338,6 +606,29 @@
           "data"
         ],
         "title": "ApiResponse[OutletSettingsOut]",
+        "type": "object"
+      },
+      "ApiResponse_PasswordResetOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PasswordResetOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[PasswordResetOut]",
         "type": "object"
       },
       "ApiResponse_PaymentMethodOut_": {
@@ -478,6 +769,29 @@
         "title": "ApiResponse[QrisChargeOut]",
         "type": "object"
       },
+      "ApiResponse_RefundDetailOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RefundDetailOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[RefundDetailOut]",
+        "type": "object"
+      },
       "ApiResponse_SalesSummaryOut_": {
         "properties": {
           "data": {
@@ -501,6 +815,29 @@
         "title": "ApiResponse[SalesSummaryOut]",
         "type": "object"
       },
+      "ApiResponse_SummaryOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SummaryOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[SummaryOut]",
+        "type": "object"
+      },
       "ApiResponse_TableOut_": {
         "properties": {
           "data": {
@@ -522,6 +859,29 @@
           "data"
         ],
         "title": "ApiResponse[TableOut]",
+        "type": "object"
+      },
+      "ApiResponse_TenantDetailOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TenantDetailOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[TenantDetailOut]",
         "type": "object"
       },
       "ApiResponse_Union_SubscriptionOut__NoneType__": {
@@ -602,6 +962,87 @@
           "data"
         ],
         "title": "ApiResponse[dict[str, bool]]",
+        "type": "object"
+      },
+      "ApiResponse_list_AssignmentOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[AssignmentOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_AuditEntryOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[AuditEntryOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_BrandOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/BrandOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[BrandOut]]",
         "type": "object"
       },
       "ApiResponse_list_CategoryOut__": {
@@ -712,6 +1153,33 @@
         "title": "ApiResponse[list[EndpointOut]]",
         "type": "object"
       },
+      "ApiResponse_list_ImportOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ImportOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[ImportOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_ModifierGroupOut__": {
         "properties": {
           "data": {
@@ -737,6 +1205,33 @@
           "data"
         ],
         "title": "ApiResponse[list[ModifierGroupOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_OperatorOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OperatorOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[OperatorOut]]",
         "type": "object"
       },
       "ApiResponse_list_OrderOut__": {
@@ -901,6 +1396,33 @@
         "title": "ApiResponse[list[PromotionOut]]",
         "type": "object"
       },
+      "ApiResponse_list_RefundOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RefundOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[RefundOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_TableOut__": {
         "properties": {
           "data": {
@@ -928,11 +1450,11 @@
         "title": "ApiResponse[list[TableOut]]",
         "type": "object"
       },
-      "ApiResponse_list_TenantOut__": {
+      "ApiResponse_list_TenantListItem__": {
         "properties": {
           "data": {
             "items": {
-              "$ref": "#/components/schemas/poslite__platform_admin__presentation__router__TenantOut"
+              "$ref": "#/components/schemas/TenantListItem"
             },
             "title": "Data",
             "type": "array"
@@ -952,7 +1474,34 @@
         "required": [
           "data"
         ],
-        "title": "ApiResponse[list[TenantOut]]",
+        "title": "ApiResponse[list[TenantListItem]]",
+        "type": "object"
+      },
+      "ApiResponse_list_UserHitOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UserHitOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[UserHitOut]]",
         "type": "object"
       },
       "ApiResponse_list_UserOut__": {
@@ -982,6 +1531,203 @@
         "title": "ApiResponse[list[UserOut]]",
         "type": "object"
       },
+      "AssignmentIn": {
+        "description": "`brand_id` of an outlet scope may be left out: it is the outlet's brand.",
+        "properties": {
+          "brand_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Id"
+          },
+          "outlet_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outlet Id"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "manager",
+              "cashier"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "scope_type": {
+            "enum": [
+              "company",
+              "brand",
+              "outlet"
+            ],
+            "title": "Scope Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "scope_type"
+        ],
+        "title": "AssignmentIn",
+        "type": "object"
+      },
+      "AssignmentOut": {
+        "properties": {
+          "brand_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Id"
+          },
+          "outlet_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outlet Id"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "manager",
+              "cashier"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "scope_type": {
+            "enum": [
+              "company",
+              "brand",
+              "outlet"
+            ],
+            "title": "Scope Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "scope_type",
+          "brand_id",
+          "outlet_id"
+        ],
+        "title": "AssignmentOut",
+        "type": "object"
+      },
+      "AssignmentsIn": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentIn"
+            },
+            "title": "Assignments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assignments"
+        ],
+        "title": "AssignmentsIn",
+        "type": "object"
+      },
+      "AuditEntryOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "operator_id": {
+            "title": "Operator Id",
+            "type": "string"
+          },
+          "operator_name": {
+            "title": "Operator Name",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "tenant_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Name"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "operator_id",
+          "operator_name",
+          "tenant_id",
+          "tenant_name",
+          "target_id",
+          "detail",
+          "created_at"
+        ],
+        "title": "AuditEntryOut",
+        "type": "object"
+      },
       "AuthResult": {
         "properties": {
           "expires_at": {
@@ -990,7 +1736,7 @@
             "type": "string"
           },
           "tenant": {
-            "$ref": "#/components/schemas/poslite__identity__presentation__schemas__TenantOut"
+            "$ref": "#/components/schemas/TenantOut"
           },
           "token": {
             "title": "Token",
@@ -1007,6 +1753,142 @@
           "tenant"
         ],
         "title": "AuthResult",
+        "type": "object"
+      },
+      "BrandIn": {
+        "properties": {
+          "code": {
+            "pattern": "^[A-Za-z0-9]{2,20}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/DiscountPolicyIn",
+            "default": {
+              "allow_custom": true,
+              "amounts": [
+                5000,
+                10000,
+                25000,
+                50000
+              ],
+              "cashier_max_amount": 50000,
+              "cashier_max_percentage": 20,
+              "percentages": [
+                5,
+                10,
+                15,
+                20
+              ]
+            }
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "logo_key": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Key"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "receipt_footer": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Receipt Footer",
+            "type": "string"
+          },
+          "receipt_header": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Receipt Header",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "BrandIn",
+        "type": "object"
+      },
+      "BrandOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/DiscountPolicyIn"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "logo_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Key"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "receipt_footer": {
+            "title": "Receipt Footer",
+            "type": "string"
+          },
+          "receipt_header": {
+            "title": "Receipt Header",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "logo_key",
+          "logo_url",
+          "receipt_header",
+          "receipt_footer",
+          "is_active",
+          "discount"
+        ],
+        "title": "BrandOut",
         "type": "object"
       },
       "CashierSales": {
@@ -1183,6 +2065,13 @@
       },
       "CreatedEndpointOut": {
         "properties": {
+          "brand_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Brand Ids",
+            "type": "array"
+          },
           "event_types": {
             "items": {
               "type": "string"
@@ -1211,6 +2100,7 @@
           "id",
           "url",
           "event_types",
+          "brand_ids",
           "is_active",
           "secret"
         ],
@@ -1240,6 +2130,14 @@
             "title": "Order Count",
             "type": "integer"
           },
+          "refund_amount": {
+            "title": "Refund Amount",
+            "type": "integer"
+          },
+          "refund_count": {
+            "title": "Refund Count",
+            "type": "integer"
+          },
           "service": {
             "title": "Service",
             "type": "integer"
@@ -1261,6 +2159,8 @@
           "net",
           "order_count",
           "void_count",
+          "refund_amount",
+          "refund_count",
           "business_date"
         ],
         "title": "DaySales",
@@ -1454,13 +2354,83 @@
         "title": "DeviceOut",
         "type": "object"
       },
+      "DiscountPolicyIn": {
+        "description": "Manual-discount rules of a brand (06 Order rule 5).",
+        "properties": {
+          "allow_custom": {
+            "default": true,
+            "title": "Allow Custom",
+            "type": "boolean"
+          },
+          "amounts": {
+            "default": [
+              5000,
+              10000,
+              25000,
+              50000
+            ],
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Amounts",
+            "type": "array"
+          },
+          "cashier_max_amount": {
+            "default": 50000,
+            "maximum": 1000000000000.0,
+            "minimum": 0.0,
+            "title": "Cashier Max Amount",
+            "type": "integer"
+          },
+          "cashier_max_percentage": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Cashier Max Percentage",
+            "type": "integer"
+          },
+          "percentages": {
+            "default": [
+              5,
+              10,
+              15,
+              20
+            ],
+            "items": {
+              "maximum": 100.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Percentages",
+            "type": "array"
+          }
+        },
+        "title": "DiscountPolicyIn",
+        "type": "object"
+      },
       "EndpointIn": {
         "properties": {
+          "brand_ids": {
+            "default": [],
+            "description": "Only these brands; empty = all",
+            "items": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "type": "string"
+            },
+            "title": "Brand Ids",
+            "type": "array"
+          },
           "event_types": {
             "items": {
               "enum": [
                 "order.placed",
-                "shift.closed"
+                "shift.closed",
+                "order.voided",
+                "order.refunded"
               ],
               "type": "string"
             },
@@ -1485,6 +2455,13 @@
       },
       "EndpointOut": {
         "properties": {
+          "brand_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Brand Ids",
+            "type": "array"
+          },
           "event_types": {
             "items": {
               "type": "string"
@@ -1509,6 +2486,7 @@
           "id",
           "url",
           "event_types",
+          "brand_ids",
           "is_active"
         ],
         "title": "EndpointOut",
@@ -1574,6 +2552,35 @@
         "title": "EventResultOut",
         "type": "object"
       },
+      "ExtendTrialIn": {
+        "properties": {
+          "days": {
+            "maximum": 90.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "ExtendTrialIn",
+        "type": "object"
+      },
+      "ExtendTrialOut": {
+        "properties": {
+          "trial_ends_at": {
+            "format": "date-time",
+            "title": "Trial Ends At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trial_ends_at"
+        ],
+        "title": "ExtendTrialOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1603,6 +2610,59 @@
           "url"
         ],
         "title": "ImageOut",
+        "type": "object"
+      },
+      "ImportOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "duplicate": {
+            "title": "Duplicate",
+            "type": "integer"
+          },
+          "flagged": {
+            "title": "Flagged",
+            "type": "integer"
+          },
+          "import_id": {
+            "title": "Import Id",
+            "type": "string"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/RejectedEventOut"
+            },
+            "title": "Rejected",
+            "type": "array"
+          }
+        },
+        "required": [
+          "import_id",
+          "device_id",
+          "accepted",
+          "duplicate",
+          "flagged",
+          "rejected"
+        ],
+        "title": "ImportOut",
         "type": "object"
       },
       "IncomingEvent": {
@@ -1777,6 +2837,22 @@
         "title": "LoginRequest",
         "type": "object"
       },
+      "MethodOutletsIn": {
+        "properties": {
+          "outlet_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Outlet Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "outlet_ids"
+        ],
+        "title": "MethodOutletsIn",
+        "type": "object"
+      },
       "ModifierGroupIn": {
         "properties": {
           "max_select": {
@@ -1851,6 +2927,29 @@
         "title": "ModifierGroupOut",
         "type": "object"
       },
+      "ModifierOut": {
+        "properties": {
+          "modifier_option_id": {
+            "title": "Modifier Option Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "modifier_option_id",
+          "name",
+          "price"
+        ],
+        "title": "ModifierOut",
+        "type": "object"
+      },
       "NewOutlet": {
         "properties": {
           "code": {
@@ -1879,6 +2978,11 @@
       },
       "NewOutletIn": {
         "properties": {
+          "brand_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Brand Id",
+            "type": "string"
+          },
           "code": {
             "pattern": "^[A-Z0-9]{2,10}$",
             "title": "Code",
@@ -1897,10 +3001,146 @@
           }
         },
         "required": [
+          "brand_id",
           "code",
           "name"
         ],
         "title": "NewOutletIn",
+        "type": "object"
+      },
+      "NewPaymentMethodIn": {
+        "description": "Without `outlet_ids` the method is switched on at every outlet.",
+        "properties": {
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "outlet_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outlet Ids"
+          },
+          "requires_reference": {
+            "default": false,
+            "title": "Requires Reference",
+            "type": "boolean"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "type": {
+            "enum": [
+              "cash",
+              "debit",
+              "qris",
+              "credit_card",
+              "voucher",
+              "other"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "title": "NewPaymentMethodIn",
+        "type": "object"
+      },
+      "OperatorIn": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "password"
+        ],
+        "title": "OperatorIn",
+        "type": "object"
+      },
+      "OperatorOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "disabled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled At"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "created_at",
+          "disabled_at"
+        ],
+        "title": "OperatorOut",
         "type": "object"
       },
       "OptionIn": {
@@ -1960,6 +3200,234 @@
         "title": "OptionOut",
         "type": "object"
       },
+      "OrderDetailOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "cashier_id": {
+            "title": "Cashier Id",
+            "type": "string"
+          },
+          "change_amount": {
+            "title": "Change Amount",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "discount_amount": {
+            "title": "Discount Amount",
+            "type": "integer"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/OrderLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "order_type": {
+            "title": "Order Type",
+            "type": "string"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "paid_amount": {
+            "title": "Paid Amount",
+            "type": "integer"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/OrderPaymentOut"
+            },
+            "title": "Payments",
+            "type": "array"
+          },
+          "receipt_no": {
+            "title": "Receipt No",
+            "type": "string"
+          },
+          "refunds": {
+            "items": {
+              "$ref": "#/components/schemas/RefundRef"
+            },
+            "title": "Refunds",
+            "type": "array"
+          },
+          "service_charge": {
+            "title": "Service Charge",
+            "type": "integer"
+          },
+          "shift_id": {
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subtotal": {
+            "title": "Subtotal",
+            "type": "integer"
+          },
+          "table_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Label"
+          },
+          "tax": {
+            "title": "Tax",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "void": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VoidOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "outlet_id",
+          "device_id",
+          "shift_id",
+          "receipt_no",
+          "cashier_id",
+          "business_date",
+          "order_type",
+          "table_label",
+          "status",
+          "subtotal",
+          "discount_amount",
+          "service_charge",
+          "tax",
+          "total",
+          "paid_amount",
+          "change_amount",
+          "flags",
+          "created_at",
+          "lines",
+          "payments",
+          "void",
+          "refunds"
+        ],
+        "title": "OrderDetailOut",
+        "type": "object"
+      },
+      "OrderLineOut": {
+        "properties": {
+          "category_name": {
+            "title": "Category Name",
+            "type": "string"
+          },
+          "discount_amount": {
+            "title": "Discount Amount",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "line_total": {
+            "title": "Line Total",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/components/schemas/ModifierOut"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "promotion_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promotion Id"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "refunded_quantity": {
+            "title": "Refunded Quantity",
+            "type": "integer"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "product_id",
+          "product_name",
+          "category_name",
+          "unit_price",
+          "quantity",
+          "line_total",
+          "discount_amount",
+          "promotion_id",
+          "notes",
+          "modifiers",
+          "refunded_quantity"
+        ],
+        "title": "OrderLineOut",
+        "type": "object"
+      },
       "OrderOut": {
         "properties": {
           "business_date": {
@@ -2013,8 +3481,52 @@
         "title": "OrderOut",
         "type": "object"
       },
+      "OrderPaymentOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "method_type": {
+            "title": "Method Type",
+            "type": "string"
+          },
+          "payment_method_id": {
+            "title": "Payment Method Id",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "required": [
+          "id",
+          "payment_method_id",
+          "method_type",
+          "amount",
+          "reference"
+        ],
+        "title": "OrderPaymentOut",
+        "type": "object"
+      },
       "OutletOut": {
         "properties": {
+          "brand_id": {
+            "title": "Brand Id",
+            "type": "string"
+          },
           "code": {
             "title": "Code",
             "type": "string"
@@ -2035,6 +3547,7 @@
         },
         "required": [
           "id",
+          "brand_id",
           "code",
           "name"
         ],
@@ -2251,6 +3764,19 @@
         "title": "OutletSettingsOut",
         "type": "object"
       },
+      "PasswordResetOut": {
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "PasswordResetOut",
+        "type": "object"
+      },
       "PaymentMethodIn": {
         "properties": {
           "logo_url": {
@@ -2323,6 +3849,13 @@
             "title": "Name",
             "type": "string"
           },
+          "outlet_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Outlet Ids",
+            "type": "array"
+          },
           "requires_reference": {
             "default": false,
             "title": "Requires Reference",
@@ -2349,7 +3882,8 @@
         "required": [
           "type",
           "name",
-          "id"
+          "id",
+          "outlet_ids"
         ],
         "title": "PaymentMethodOut",
         "type": "object"
@@ -2371,13 +3905,18 @@
           "payment_method_id": {
             "title": "Payment Method Id",
             "type": "string"
+          },
+          "refund_amount": {
+            "title": "Refund Amount",
+            "type": "integer"
           }
         },
         "required": [
           "payment_method_id",
           "method_type",
           "amount",
-          "count"
+          "count",
+          "refund_amount"
         ],
         "title": "PaymentMethodSales",
         "type": "object"
@@ -2552,13 +4091,23 @@
           "quantity": {
             "title": "Quantity",
             "type": "integer"
+          },
+          "refund_amount": {
+            "title": "Refund Amount",
+            "type": "integer"
+          },
+          "refund_qty": {
+            "title": "Refund Qty",
+            "type": "integer"
           }
         },
         "required": [
           "product_id",
           "product_name",
           "quantity",
-          "gross"
+          "gross",
+          "refund_qty",
+          "refund_amount"
         ],
         "title": "ProductSales",
         "type": "object"
@@ -3021,6 +4570,332 @@
         "title": "QrisChargeOut",
         "type": "object"
       },
+      "RefundDetailOut": {
+        "properties": {
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/RefundLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/RefundPaymentOut"
+            },
+            "title": "Payments",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "refund_no": {
+            "title": "Refund No",
+            "type": "string"
+          },
+          "refunded_by": {
+            "title": "Refunded By",
+            "type": "string"
+          },
+          "shift_id": {
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "order_id",
+          "outlet_id",
+          "device_id",
+          "shift_id",
+          "refund_no",
+          "business_date",
+          "reason",
+          "refunded_by",
+          "approved_by",
+          "total",
+          "flags",
+          "created_at",
+          "lines",
+          "payments"
+        ],
+        "title": "RefundDetailOut",
+        "type": "object"
+      },
+      "RefundLineOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "order_line_id": {
+            "title": "Order Line Id",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_line_id",
+          "product_id",
+          "product_name",
+          "quantity",
+          "amount"
+        ],
+        "title": "RefundLineOut",
+        "type": "object"
+      },
+      "RefundOut": {
+        "properties": {
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "refund_no": {
+            "title": "Refund No",
+            "type": "string"
+          },
+          "refunded_by": {
+            "title": "Refunded By",
+            "type": "string"
+          },
+          "shift_id": {
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "order_id",
+          "outlet_id",
+          "device_id",
+          "shift_id",
+          "refund_no",
+          "business_date",
+          "reason",
+          "refunded_by",
+          "approved_by",
+          "total",
+          "flags",
+          "created_at"
+        ],
+        "title": "RefundOut",
+        "type": "object"
+      },
+      "RefundPaymentOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "method_name": {
+            "title": "Method Name",
+            "type": "string"
+          },
+          "method_type": {
+            "title": "Method Type",
+            "type": "string"
+          },
+          "payment_method_id": {
+            "title": "Payment Method Id",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "required": [
+          "id",
+          "payment_method_id",
+          "method_type",
+          "method_name",
+          "amount",
+          "reference"
+        ],
+        "title": "RefundPaymentOut",
+        "type": "object"
+      },
+      "RefundRef": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "refund_no": {
+            "title": "Refund No",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "refund_no",
+          "business_date",
+          "total",
+          "flags"
+        ],
+        "title": "RefundRef",
+        "type": "object"
+      },
+      "RejectedEventOut": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code"
+        ],
+        "title": "RejectedEventOut",
+        "type": "object"
+      },
       "SalesSummaryOut": {
         "properties": {
           "cashiers": {
@@ -3159,6 +5034,64 @@
         "title": "SubscriptionOut",
         "type": "object"
       },
+      "SummaryOut": {
+        "properties": {
+          "active_tenants": {
+            "title": "Active Tenants",
+            "type": "integer"
+          },
+          "devices": {
+            "title": "Devices",
+            "type": "integer"
+          },
+          "monthly_recurring_revenue": {
+            "title": "Monthly Recurring Revenue",
+            "type": "integer"
+          },
+          "open_invoice_amount": {
+            "title": "Open Invoice Amount",
+            "type": "integer"
+          },
+          "outlets": {
+            "title": "Outlets",
+            "type": "integer"
+          },
+          "past_due": {
+            "title": "Past Due",
+            "type": "integer"
+          },
+          "paying": {
+            "title": "Paying",
+            "type": "integer"
+          },
+          "suspended_tenants": {
+            "title": "Suspended Tenants",
+            "type": "integer"
+          },
+          "tenants": {
+            "title": "Tenants",
+            "type": "integer"
+          },
+          "trialing": {
+            "title": "Trialing",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tenants",
+          "active_tenants",
+          "suspended_tenants",
+          "trialing",
+          "paying",
+          "past_due",
+          "outlets",
+          "devices",
+          "monthly_recurring_revenue",
+          "open_invoice_amount"
+        ],
+        "title": "SummaryOut",
+        "type": "object"
+      },
       "TableIn": {
         "properties": {
           "area": {
@@ -3226,236 +5159,56 @@
         "title": "TableOut",
         "type": "object"
       },
-      "Totals": {
+      "TenantDetailOut": {
         "properties": {
-          "discount": {
-            "title": "Discount",
-            "type": "integer"
-          },
-          "gross": {
-            "title": "Gross",
-            "type": "integer"
-          },
-          "net": {
-            "title": "Net",
-            "type": "integer"
-          },
-          "order_count": {
-            "title": "Order Count",
-            "type": "integer"
-          },
-          "service": {
-            "title": "Service",
-            "type": "integer"
-          },
-          "tax": {
-            "title": "Tax",
-            "type": "integer"
-          },
-          "void_count": {
-            "title": "Void Count",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "gross",
-          "discount",
-          "service",
-          "tax",
-          "net",
-          "order_count",
-          "void_count"
-        ],
-        "title": "Totals",
-        "type": "object"
-      },
-      "UserIn": {
-        "properties": {
-          "email": {
-            "anyOf": [
-              {
-                "maxLength": 254,
-                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Name",
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
             "type": "string"
           },
-          "outlets": {
+          "device_count": {
+            "title": "Device Count",
+            "type": "integer"
+          },
+          "devices": {
             "items": {
-              "$ref": "#/components/schemas/OutletRole"
+              "$ref": "#/components/schemas/TenantDeviceOut"
             },
-            "minItems": 1,
-            "title": "Outlets",
+            "title": "Devices",
             "type": "array"
-          },
-          "password": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 8,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Password"
-          },
-          "pin": {
-            "anyOf": [
-              {
-                "pattern": "^\\d{4,6}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Pin"
-          }
-        },
-        "required": [
-          "name",
-          "outlets"
-        ],
-        "title": "UserIn",
-        "type": "object"
-      },
-      "UserUpdate": {
-        "properties": {
-          "is_active": {
-            "default": true,
-            "title": "Is Active",
-            "type": "boolean"
-          },
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          },
-          "outlets": {
-            "items": {
-              "$ref": "#/components/schemas/OutletRole"
-            },
-            "title": "Outlets",
-            "type": "array"
-          }
-        },
-        "required": [
-          "name",
-          "outlets"
-        ],
-        "title": "UserUpdate",
-        "type": "object"
-      },
-      "ValidationError": {
-        "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "title": "Location",
-            "type": "array"
-          },
-          "msg": {
-            "title": "Message",
-            "type": "string"
-          },
-          "type": {
-            "title": "Error Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError",
-        "type": "object"
-      },
-      "poslite__identity__application__schemas__UserOut": {
-        "properties": {
-          "email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "has_pin": {
-            "title": "Has Pin",
-            "type": "boolean"
           },
           "id": {
             "title": "Id",
             "type": "string"
           },
-          "is_active": {
-            "title": "Is Active",
-            "type": "boolean"
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/TenantInvoiceOut"
+            },
+            "title": "Invoices",
+            "type": "array"
           },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "outlet_count": {
+            "title": "Outlet Count",
+            "type": "integer"
           },
           "outlets": {
             "items": {
-              "$ref": "#/components/schemas/OutletRole"
+              "$ref": "#/components/schemas/TenantOutletOut"
             },
             "title": "Outlets",
             "type": "array"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email",
-          "has_pin",
-          "is_active",
-          "outlets"
-        ],
-        "title": "UserOut",
-        "type": "object"
-      },
-      "poslite__identity__presentation__schemas__TenantOut": {
-        "properties": {
-          "id": {
-            "title": "Id",
-            "type": "string"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
+          "owners": {
+            "items": {
+              "$ref": "#/components/schemas/TenantOwnerOut"
+            },
+            "title": "Owners",
+            "type": "array"
           },
           "slug": {
             "title": "Slug",
@@ -3464,41 +5217,216 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "subscription": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TenantSubscriptionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subscription_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Status"
+          },
+          "suspended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspended At"
+          },
+          "suspended_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspended Reason"
+          },
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/TenantUserOut"
+            },
+            "title": "Users",
+            "type": "array"
           }
         },
         "required": [
           "id",
           "slug",
           "name",
-          "status"
+          "status",
+          "created_at",
+          "suspended_at",
+          "suspended_reason",
+          "subscription_status",
+          "outlet_count",
+          "device_count",
+          "owners",
+          "outlets",
+          "users",
+          "devices",
+          "subscription",
+          "invoices"
         ],
-        "title": "TenantOut",
+        "title": "TenantDetailOut",
         "type": "object"
       },
-      "poslite__identity__presentation__schemas__UserOut": {
+      "TenantDeviceOut": {
         "properties": {
+          "app_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Version"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
           },
           "name": {
             "title": "Name",
             "type": "string"
           },
-          "role": {
-            "title": "Role",
+          "outlet_name": {
+            "title": "Outlet Name",
             "type": "string"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
           }
         },
         "required": [
           "id",
+          "code",
           "name",
-          "role"
+          "outlet_name",
+          "platform",
+          "app_version",
+          "last_seen_at",
+          "revoked_at"
         ],
-        "title": "UserOut",
+        "title": "TenantDeviceOut",
         "type": "object"
       },
-      "poslite__platform_admin__presentation__router__TenantOut": {
+      "TenantInvoiceOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outlet_count": {
+            "title": "Outlet Count",
+            "type": "integer"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "period_start",
+          "period_end",
+          "outlet_count",
+          "unit_price",
+          "amount",
+          "status",
+          "due_at",
+          "paid_at"
+        ],
+        "title": "TenantInvoiceOut",
+        "type": "object"
+      },
+      "TenantListItem": {
         "properties": {
           "created_at": {
             "format": "date-time",
@@ -3576,7 +5504,547 @@
           "outlet_count",
           "device_count"
         ],
+        "title": "TenantListItem",
+        "type": "object"
+      },
+      "TenantOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "status"
+        ],
         "title": "TenantOut",
+        "type": "object"
+      },
+      "TenantOutletOut": {
+        "properties": {
+          "brand_name": {
+            "title": "Brand Name",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "device_count": {
+            "title": "Device Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "brand_name",
+          "device_count"
+        ],
+        "title": "TenantOutletOut",
+        "type": "object"
+      },
+      "TenantOwnerOut": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ],
+        "title": "TenantOwnerOut",
+        "type": "object"
+      },
+      "TenantSubscriptionOut": {
+        "properties": {
+          "current_period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "trial_ends_at": {
+            "format": "date-time",
+            "title": "Trial Ends At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "trial_ends_at",
+          "current_period_end"
+        ],
+        "title": "TenantSubscriptionOut",
+        "type": "object"
+      },
+      "TenantUserOut": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "has_login": {
+            "title": "Has Login",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "roles",
+          "has_login",
+          "is_active"
+        ],
+        "title": "TenantUserOut",
+        "type": "object"
+      },
+      "Totals": {
+        "properties": {
+          "discount": {
+            "title": "Discount",
+            "type": "integer"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "refund_amount": {
+            "title": "Refund Amount",
+            "type": "integer"
+          },
+          "refund_count": {
+            "title": "Refund Count",
+            "type": "integer"
+          },
+          "service": {
+            "title": "Service",
+            "type": "integer"
+          },
+          "tax": {
+            "title": "Tax",
+            "type": "integer"
+          },
+          "void_count": {
+            "title": "Void Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gross",
+          "discount",
+          "service",
+          "tax",
+          "net",
+          "order_count",
+          "void_count",
+          "refund_amount",
+          "refund_count"
+        ],
+        "title": "Totals",
+        "type": "object"
+      },
+      "UserHitOut": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "tenant_name": {
+            "title": "Tenant Name",
+            "type": "string"
+          },
+          "tenant_slug": {
+            "title": "Tenant Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "roles",
+          "is_active",
+          "tenant_id",
+          "tenant_name",
+          "tenant_slug"
+        ],
+        "title": "UserHitOut",
+        "type": "object"
+      },
+      "UserIn": {
+        "description": "Roles as `assignments` (ADR-022), or the older per-outlet `outlets`; exactly one of them.",
+        "properties": {
+          "assignments": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssignmentIn"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "outlets": {
+            "default": [],
+            "description": "Deprecated (before ADR-022): roles per outlet. Use `assignments`.",
+            "items": {
+              "$ref": "#/components/schemas/OutletRole"
+            },
+            "title": "Outlets",
+            "type": "array"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "pin": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4,6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pin"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "UserIn",
+        "type": "object"
+      },
+      "UserUpdate": {
+        "description": "Without `outlets` the roles stay as they are (change them at /users/{id}/assignments).",
+        "properties": {
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "outlets": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OutletRole"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deprecated (before ADR-022): roles per outlet. Use `assignments`.",
+            "title": "Outlets"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "UserUpdate",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VoidOut": {
+        "properties": {
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "voided_at": {
+            "format": "date-time",
+            "title": "Voided At",
+            "type": "string"
+          },
+          "voided_by": {
+            "title": "Voided By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "voided_by",
+          "approved_by",
+          "voided_at"
+        ],
+        "title": "VoidOut",
+        "type": "object"
+      },
+      "poslite__identity__application__schemas__UserOut": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentOut"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "has_pin": {
+            "title": "Has Pin",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "outlets": {
+            "description": "Role at every outlet the assignments cover",
+            "items": {
+              "$ref": "#/components/schemas/OutletRole"
+            },
+            "title": "Outlets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "has_pin",
+          "is_active",
+          "assignments",
+          "outlets"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "poslite__identity__presentation__schemas__UserOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role"
+        ],
+        "title": "UserOut",
         "type": "object"
       }
     },
@@ -3687,9 +6155,200 @@
         ]
       }
     },
+    "/api/v1/brands": {
+      "get": {
+        "operationId": "brands_api_v1_brands_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_BrandOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Brands",
+        "tags": [
+          "organization"
+        ]
+      },
+      "post": {
+        "operationId": "add_brand_api_v1_brands_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_BrandOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Brand",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
+    "/api/v1/brands/{brand_id}": {
+      "delete": {
+        "description": "Only a brand without live outlets: its orders and reports keep pointing at it.",
+        "operationId": "remove_brand_api_v1_brands__brand_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "brand_id",
+            "required": true,
+            "schema": {
+              "title": "Brand Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Brand",
+        "tags": [
+          "organization"
+        ]
+      },
+      "put": {
+        "operationId": "edit_brand_api_v1_brands__brand_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "brand_id",
+            "required": true,
+            "schema": {
+              "title": "Brand Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_BrandOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Edit Brand",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
     "/api/v1/categories": {
       "get": {
         "operationId": "list_categories_api_v1_categories_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -3700,6 +6359,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -3714,6 +6383,24 @@
       },
       "post": {
         "operationId": "create_category_api_v1_categories_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3769,6 +6456,22 @@
               "title": "Category Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -3813,6 +6516,22 @@
             "schema": {
               "title": "Category Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -3940,6 +6659,22 @@
               "title": "Device Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4020,10 +6755,139 @@
         ]
       }
     },
+    "/api/v1/imports": {
+      "get": {
+        "operationId": "device_imports_api_v1_imports_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "title": "Device Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_ImportOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Device Imports",
+        "tags": [
+          "sync"
+        ]
+      }
+    },
+    "/api/v1/imports/device-export": {
+      "post": {
+        "description": "A manager of the outlet pushes a device's export file for it (ADR-024). The file goes\nthrough the normal push path, so importing it twice changes nothing.",
+        "operationId": "import_device_export_api_v1_imports_device_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ImportOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Device Export",
+        "tags": [
+          "sync"
+        ]
+      }
+    },
+    "/api/v1/me/access": {
+      "get": {
+        "description": "The brands and outlets this user may pick in the back-office (ADR-022).",
+        "operationId": "my_access_api_v1_me_access_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AccessTree_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Access",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
     "/api/v1/media/images": {
       "post": {
         "description": "Product image as the raw request body (JPEG/PNG/WebP, max 2 MB, ADR-021).",
         "operationId": "upload_image_api_v1_media_images_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "image/jpeg": {
@@ -4057,6 +6921,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -4073,6 +6947,24 @@
     "/api/v1/modifier-groups": {
       "get": {
         "operationId": "list_modifier_groups_api_v1_modifier_groups_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4083,6 +6975,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -4097,6 +6999,24 @@
       },
       "post": {
         "operationId": "create_modifier_group_api_v1_modifier_groups_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -4152,6 +7072,22 @@
               "title": "Group Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4196,6 +7132,22 @@
             "schema": {
               "title": "Group Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -4266,6 +7218,22 @@
               "title": "Business Date",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4301,9 +7269,142 @@
         ]
       }
     },
+    "/api/v1/orders/lookup": {
+      "get": {
+        "description": "A device finds an order of its own outlet (any device) to refund it while online.",
+        "operationId": "lookup_order_api_v1_orders_lookup_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "receipt_no",
+            "required": true,
+            "schema": {
+              "maxLength": 40,
+              "minLength": 1,
+              "title": "Receipt No",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OrderDetailOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lookup Order",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/orders/{order_id}": {
+      "get": {
+        "operationId": "get_order_api_v1_orders__order_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OrderDetailOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Order",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
     "/api/v1/outlets": {
       "get": {
+        "description": "Outlets in the user's scope, optionally of one brand.",
         "operationId": "outlets_api_v1_outlets_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "brand_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Brand Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4314,6 +7415,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -4383,6 +7494,22 @@
               "title": "Outlet Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4427,6 +7554,22 @@
             "schema": {
               "title": "Outlet Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -4485,6 +7628,22 @@
               "title": "Outlet Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4531,6 +7690,22 @@
             "schema": {
               "title": "Outlet Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -4589,6 +7764,22 @@
               "title": "Product Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "requestBody": {
@@ -4646,6 +7837,22 @@
               "title": "Outlet Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -4691,6 +7898,22 @@
             "schema": {
               "title": "Outlet Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -4768,7 +7991,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PaymentMethodIn"
+                "$ref": "#/components/schemas/NewPaymentMethodIn"
               }
             }
           },
@@ -4909,6 +8132,64 @@
         ]
       }
     },
+    "/api/v1/payment-methods/{method_id}/outlets": {
+      "put": {
+        "description": "Where the method is taken (doc 11 §3); devices of other outlets drop it on their pull.",
+        "operationId": "set_payment_method_outlets_api_v1_payment_methods__method_id__outlets_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method_id",
+            "required": true,
+            "schema": {
+              "title": "Method Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodOutletsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PaymentMethodOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Payment Method Outlets",
+        "tags": [
+          "payment"
+        ]
+      }
+    },
     "/api/v1/payments/qris": {
       "post": {
         "description": "Online only: a dynamic QR for the bill; offline the device keeps static QRIS (ADR-019).",
@@ -5004,6 +8285,84 @@
         ]
       }
     },
+    "/api/v1/platform/audit": {
+      "get": {
+        "operationId": "audit_log_api_v1_platform_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_AuditEntryOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Audit Log",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/platform/auth/login": {
       "post": {
         "operationId": "login_api_v1_platform_auth_login_post",
@@ -5045,28 +8404,19 @@
         ]
       }
     },
-    "/api/v1/platform/tenants": {
-      "get": {
-        "operationId": "tenants_api_v1_platform_tenants_get",
+    "/api/v1/platform/invoices/{invoice_id}/mark-paid": {
+      "post": {
+        "description": "Payment received outside the gateway (e.g. bank transfer); same effect as the webhook.",
+        "operationId": "mark_invoice_paid_api_v1_platform_invoices__invoice_id__mark_paid_post",
         "parameters": [
           {
-            "in": "query",
-            "name": "status",
-            "required": false,
+            "in": "path",
+            "name": "invoice_id",
+            "required": true,
             "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "active",
-                    "suspended"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Status"
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Invoice Id",
+              "type": "string"
             }
           }
         ],
@@ -5075,7 +8425,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_list_TenantOut__"
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
                 }
               }
             },
@@ -5097,7 +8447,372 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Tenants",
+        "summary": "Mark Invoice Paid",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/me": {
+      "get": {
+        "operationId": "me_api_v1_platform_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OperatorOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/operators": {
+      "get": {
+        "operationId": "operators_api_v1_platform_operators_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_OperatorOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Operators",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "create_operator_api_v1_platform_operators_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperatorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OperatorOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Operator",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/operators/{operator_id}/disable": {
+      "post": {
+        "description": "The operator is signed out everywhere and cannot sign in until enabled again.",
+        "operationId": "disable_operator_api_v1_platform_operators__operator_id__disable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operator_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Operator Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OperatorOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Disable Operator",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/operators/{operator_id}/enable": {
+      "post": {
+        "operationId": "enable_operator_api_v1_platform_operators__operator_id__enable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operator_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Operator Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OperatorOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Enable Operator",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/summary": {
+      "get": {
+        "operationId": "summary_api_v1_platform_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SummaryOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Summary",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants": {
+      "get": {
+        "operationId": "tenant_list_api_v1_platform_tenants_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "suspended"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_TenantListItem__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tenant List",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants/{tenant_id}": {
+      "get": {
+        "operationId": "tenant_detail_api_v1_platform_tenants__tenant_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_TenantDetailOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tenant Detail",
         "tags": [
           "platform"
         ]
@@ -5105,6 +8820,7 @@
     },
     "/api/v1/platform/tenants/{tenant_id}/activate": {
       "post": {
+        "description": "Lifts any suspension, a billing one included.",
         "operationId": "activate_api_v1_platform_tenants__tenant_id__activate_post",
         "parameters": [
           {
@@ -5112,6 +8828,7 @@
             "name": "tenant_id",
             "required": true,
             "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
               "title": "Tenant Id",
               "type": "string"
             }
@@ -5150,6 +8867,64 @@
         ]
       }
     },
+    "/api/v1/platform/tenants/{tenant_id}/extend-trial": {
+      "post": {
+        "operationId": "extend_trial_api_v1_platform_tenants__tenant_id__extend_trial_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendTrialIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ExtendTrialOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Extend Trial",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/platform/tenants/{tenant_id}/suspend": {
       "post": {
         "description": "Back-office writes stop; devices keep pushing sales (05 \"Multi-tenancy\").",
@@ -5160,6 +8935,7 @@
             "name": "tenant_id",
             "required": true,
             "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
               "title": "Tenant Id",
               "type": "string"
             }
@@ -5198,9 +8974,252 @@
         ]
       }
     },
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/activate": {
+      "post": {
+        "operationId": "activate_user_api_v1_platform_tenants__tenant_id__users__user_id__activate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Activate User",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/deactivate": {
+      "post": {
+        "description": "Signs the user out; the company's last active owner stays (LAST_OWNER).",
+        "operationId": "deactivate_user_api_v1_platform_tenants__tenant_id__users__user_id__deactivate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Deactivate User",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/reset-password": {
+      "post": {
+        "description": "A temporary password, shown to the operator once; every session of the user ends.\n\nRuns in the tenant's own transaction (RLS): a user of another tenant is not found.",
+        "operationId": "reset_password_api_v1_platform_tenants__tenant_id__users__user_id__reset_password_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PasswordResetOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reset Password",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/users": {
+      "get": {
+        "operationId": "user_search_api_v1_platform_users_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 2,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_UserHitOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "User Search",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/products": {
       "get": {
         "operationId": "list_products_api_v1_products_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -5211,6 +9230,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -5225,6 +9254,24 @@
       },
       "post": {
         "operationId": "create_product_api_v1_products_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5280,6 +9327,22 @@
               "title": "Product Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -5324,6 +9387,22 @@
             "schema": {
               "title": "Product Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -5373,6 +9452,24 @@
     "/api/v1/promotions": {
       "get": {
         "operationId": "list_promotions_api_v1_promotions_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -5383,6 +9480,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -5398,6 +9505,24 @@
       "post": {
         "description": "Devices evaluate promotions offline at payment time (ADR-016).",
         "operationId": "create_promotion_api_v1_promotions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5453,6 +9578,22 @@
               "title": "Promotion Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -5497,6 +9638,22 @@
             "schema": {
               "title": "Promotion Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -5543,9 +9700,10 @@
         ]
       }
     },
-    "/api/v1/reports/sales-summary": {
+    "/api/v1/refunds": {
       "get": {
-        "operationId": "get_sales_summary_api_v1_reports_sales_summary_get",
+        "description": "Refunds paid out at an outlet on a business day (they count on that day, ADR-023).",
+        "operationId": "refunds_api_v1_refunds_get",
         "parameters": [
           {
             "in": "query",
@@ -5557,6 +9715,134 @@
               "type": "string"
             }
           },
+          {
+            "in": "query",
+            "name": "business_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Business Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_RefundOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Refunds",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/refunds/{refund_id}": {
+      "get": {
+        "operationId": "get_refund_api_v1_refunds__refund_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "refund_id",
+            "required": true,
+            "schema": {
+              "title": "Refund Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_RefundDetailOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Refund",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/reports/sales-summary": {
+      "get": {
+        "description": "No filter = every outlet in the user's scope; `brand_id` / `outlet_id` narrow it.",
+        "operationId": "get_sales_summary_api_v1_reports_sales_summary_get",
+        "parameters": [
           {
             "in": "query",
             "name": "from",
@@ -5575,6 +9861,56 @@
               "format": "date",
               "title": "To",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "outlet_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outlet Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Brand Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -5617,16 +9953,6 @@
         "parameters": [
           {
             "in": "query",
-            "name": "outlet_id",
-            "required": true,
-            "schema": {
-              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
-              "title": "Outlet Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
             "name": "from",
             "required": true,
             "schema": {
@@ -5647,6 +9973,40 @@
           },
           {
             "in": "query",
+            "name": "outlet_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outlet Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Brand Id"
+            }
+          },
+          {
+            "in": "query",
             "name": "format",
             "required": false,
             "schema": {
@@ -5657,6 +10017,22 @@
               ],
               "title": "Format",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -5812,6 +10188,22 @@
               "title": "Table Id",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
           }
         ],
         "responses": {
@@ -5856,6 +10248,22 @@
             "schema": {
               "title": "Table Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
             }
           }
         ],
@@ -5904,7 +10312,7 @@
     },
     "/api/v1/tenants/signup": {
       "post": {
-        "description": "New SaaS customer: tenant, owner and first outlet in one transaction, plus a token.",
+        "description": "New SaaS customer: company, owner, first brand and first outlet in one transaction, plus a\ntoken (ADR-022).",
         "operationId": "signup_api_v1_tenants_signup_post",
         "requestBody": {
           "content": {
@@ -6112,6 +10520,109 @@
           }
         ],
         "summary": "Update",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}/assignments": {
+      "get": {
+        "operationId": "assignments_api_v1_users__user_id__assignments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_AssignmentOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Assignments",
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "description": "Replace every role of a user (ADR-022); the company keeps at least one owner.",
+        "operationId": "set_assignments_api_v1_users__user_id__assignments_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_AssignmentOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Assignments",
         "tags": [
           "users"
         ]

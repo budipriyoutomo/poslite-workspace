@@ -25,6 +25,7 @@ def batch(s: Setup) -> list[dict[str, Any]]:
     """The shared fixture events, re-pointed at this test's cashier, product and payment method."""
     raw = json.dumps(FIXTURE)
     raw = raw.replace("01K5ZA00000000000000000001", s.ids["siti"])
+    raw = raw.replace("01K5ZA00000000000000000002", s.ids["owner"])  # approves void/refund
     raw = raw.replace("01K5ZP00000000000000000001", s.ids["product"]).replace(
         "01K5ZY00000000000000000001", s.ids["cash"]
     )
@@ -236,7 +237,9 @@ async def test_stores_a_dine_in_order_with_line_discounts_without_flags(
     s = await outlet_with_menu_and_device(api)
     opened, _, placed, _ = batch(s)
     variant = json.loads(
-        json.dumps(VARIANTS[0]["payload"]).replace("01K5ZA00000000000000000001", s.ids["siti"])
+        json.dumps(VARIANTS[0]["payload"])
+        .replace("01K5ZA00000000000000000001", s.ids["siti"])
+        .replace("01K5ZY00000000000000000002", s.ids["qris"])  # a method this outlet takes
     )
     order = {**placed, "payload": variant}
 

@@ -80,3 +80,62 @@ class PaymentModel(Base):
     amount: Mapped[int] = mapped_column(BigInteger)
     reference: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class OrderVoidModel(Base):
+    __tablename__ = "order_voids"
+
+    order_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    device_id: Mapped[str] = mapped_column(CHAR(26))
+    reason: Mapped[str] = mapped_column(String(200))
+    voided_by: Mapped[str] = mapped_column(CHAR(26))
+    approved_by: Mapped[str | None] = mapped_column(CHAR(26))
+    voided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RefundModel(Base):
+    """brand_id is filled from the outlet by a trigger (ADR-022), so it is not mapped."""
+
+    __tablename__ = "refunds"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26))
+    device_id: Mapped[str] = mapped_column(CHAR(26))
+    shift_id: Mapped[str] = mapped_column(CHAR(26))
+    order_id: Mapped[str] = mapped_column(CHAR(26))
+    refund_no: Mapped[str] = mapped_column(String(40))
+    business_date: Mapped[date] = mapped_column(Date)
+    reason: Mapped[str] = mapped_column(String(200))
+    refunded_by: Mapped[str] = mapped_column(CHAR(26))
+    approved_by: Mapped[str | None] = mapped_column(CHAR(26))
+    total: Mapped[int] = mapped_column(BigInteger)
+    flags: Mapped[list[str]] = mapped_column(ARRAY(String(30)))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RefundLineModel(Base):
+    __tablename__ = "refund_lines"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    refund_id: Mapped[str] = mapped_column(CHAR(26))
+    order_line_id: Mapped[str] = mapped_column(CHAR(26))
+    product_id: Mapped[str] = mapped_column(CHAR(26))
+    product_name: Mapped[str] = mapped_column(String(150))
+    quantity: Mapped[int] = mapped_column(Integer)
+    amount: Mapped[int] = mapped_column(BigInteger)
+
+
+class RefundPaymentModel(Base):
+    __tablename__ = "refund_payments"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    refund_id: Mapped[str] = mapped_column(CHAR(26))
+    payment_method_id: Mapped[str] = mapped_column(CHAR(26))
+    method_type: Mapped[str] = mapped_column(String(20))
+    method_name: Mapped[str] = mapped_column(String(100))
+    amount: Mapped[int] = mapped_column(BigInteger)
+    reference: Mapped[str | None] = mapped_column(String(64))

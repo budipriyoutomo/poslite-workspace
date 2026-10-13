@@ -10,6 +10,7 @@ class CategoryModel(MasterColumns, Base):
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))
     name: Mapped[str] = mapped_column(String(100))
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0")
     color: Mapped[str] = mapped_column(String(20), server_default="")
@@ -21,6 +22,7 @@ class ProductModel(MasterColumns, Base):
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))
     category_id: Mapped[str] = mapped_column(CHAR(26))
     sku: Mapped[str] = mapped_column(String(50))
     name: Mapped[str] = mapped_column(String(150))
@@ -35,6 +37,7 @@ class ModifierGroupModel(MasterColumns, Base):
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))
     name: Mapped[str] = mapped_column(String(100))
     min_select: Mapped[int] = mapped_column(SmallInteger)
     max_select: Mapped[int] = mapped_column(SmallInteger)

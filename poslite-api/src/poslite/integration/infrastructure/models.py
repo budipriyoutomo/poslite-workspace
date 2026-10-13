@@ -15,6 +15,7 @@ class WebhookEndpointModel(Base):
     url: Mapped[str] = mapped_column(Text)
     secret: Mapped[str] = mapped_column(String(64))
     event_types: Mapped[list[str]] = mapped_column(ARRAY(String(40)))
+    brand_ids: Mapped[list[str]] = mapped_column(ARRAY(CHAR(26)))  # empty = every brand
     is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -16,6 +16,7 @@ from poslite.billing.domain.rules import (
 from poslite.billing.infrastructure.models import InvoiceModel, SubscriptionModel
 from poslite.organization import api as organization
 from poslite.shared.application.payment_gateway import PaymentGateway
+from poslite.shared.domain.errors import DomainError
 from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 from poslite.tenancy import api as tenancy
@@ -128,8 +129,30 @@ async def mark_invoice_paid(session: AsyncSession, gateway_ref: str, paid_at: da
     )
     if invoice is None:
         return False
-    if invoice.status == "paid":
-        return True
+    if invoice.status != "paid":
+        await _settle(session, invoice, paid_at)
+    return True
+
+
+async def settle_invoice(session: AsyncSession, invoice_id: str, paid_at: datetime) -> str:
+    """An operator records an invoice paid outside the gateway (e.g. bank transfer); same effect
+    as the gateway notification. Returns the invoice's tenant id."""
+    invoice = await session.scalar(
+        select(InvoiceModel).where(InvoiceModel.id == invoice_id).with_for_update()
+    )
+    if invoice is None:
+        raise DomainError("INVOICE_NOT_FOUND", "Invoice not found", kind="not_found")
+    if invoice.status != "open":
+        raise DomainError(
+            "INVOICE_ALREADY_PAID", f"Invoice is already {invoice.status}", kind="conflict"
+        )
+    await _settle(session, invoice, paid_at)
+    return invoice.tenant_id
+
+
+async def _settle(session: AsyncSession, invoice: InvoiceModel, paid_at: datetime) -> None:
+    """Paid: the paid period extends the subscription; with nothing else open the tenant is
+    active again (a billing suspension is lifted, a manual one stays)."""
     invoice.status, invoice.paid_at = "paid", paid_at
     sub = await session.get_one(SubscriptionModel, invoice.tenant_id)
     if sub.current_period_end is None or invoice.period_end > sub.current_period_end:
@@ -144,7 +167,26 @@ async def mark_invoice_paid(session: AsyncSession, gateway_ref: str, paid_at: da
     if still_open is None:
         sub.status = "active"
         await tenancy.reactivate_after_payment(session, invoice.tenant_id)
-    return True
+
+
+async def extend_trial(
+    session: AsyncSession, *, tenant_id: str, signed_up_at: datetime, days: int
+) -> datetime:
+    """An operator lengthens a trial (ADR-018). Before the first billing run the subscription is
+    started here, from the sign-up date, exactly as the job would. Returns the new trial end."""
+    sub = await session.get(SubscriptionModel, tenant_id, with_for_update=True)
+    if sub is None:
+        sub = SubscriptionModel(
+            tenant_id=tenant_id, status="trialing", trial_ends_at=trial_end(signed_up_at)
+        )
+        session.add(sub)
+    elif sub.status != "trialing":
+        raise DomainError(
+            "TRIAL_NOT_ACTIVE", "The tenant is no longer in its trial", kind="conflict"
+        )
+    sub.trial_ends_at = sub.trial_ends_at + timedelta(days=days)
+    await session.flush()
+    return sub.trial_ends_at
 
 
 async def subscription_view(uow: SqlAlchemyUnitOfWork) -> SubscriptionOut | None:
@@ -154,6 +196,24 @@ async def subscription_view(uow: SqlAlchemyUnitOfWork) -> SubscriptionOut | None
     invoices = await uow.session.scalars(
         select(InvoiceModel).order_by(InvoiceModel.period_start.desc())
     )
+    return SubscriptionOut(
+        status=sub.status,
+        trial_ends_at=sub.trial_ends_at,
+        current_period_end=sub.current_period_end,
+        invoices=[InvoiceOut.model_validate(i, from_attributes=True) for i in invoices],
+    )
+
+
+async def subscription_of(session: AsyncSession, tenant_id: str) -> SubscriptionOut | None:
+    """Any tenant's subscription and invoices, newest first (poslite_system: operator console)."""
+    sub = await session.get(SubscriptionModel, tenant_id)
+    invoices = await session.scalars(
+        select(InvoiceModel)
+        .where(InvoiceModel.tenant_id == tenant_id)
+        .order_by(InvoiceModel.period_start.desc())
+    )
+    if sub is None:
+        return None
     return SubscriptionOut(
         status=sub.status,
         trial_ends_at=sub.trial_ends_at,

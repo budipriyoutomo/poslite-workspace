@@ -2,7 +2,15 @@ from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
-from poslite.sales.api import OrderRepository, PlaceOrderData, PlaceOrderHandler
+from poslite.sales.api import (
+    OrderRepository,
+    PlaceOrderData,
+    PlaceOrderHandler,
+    RefundOrderData,
+    RefundOrderHandler,
+    VoidOrderData,
+    VoidOrderHandler,
+)
 from poslite.shared.application.sync import DeviceContext, EventOutcome
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.domain.events import DomainEvent
@@ -55,9 +63,12 @@ class EventRegistry:
         open_shift: OpenShiftHandler,
         close_shift: CloseShiftHandler,
         move_cash: MoveCashHandler,
+        void_order: VoidOrderHandler,
+        refund_order: RefundOrderHandler,
     ) -> None:
         self._place_order, self._open_shift = place_order, open_shift
         self._close_shift, self._move_cash = close_shift, move_cash
+        self._void_order, self._refund_order = void_order, refund_order
 
     async def dispatch(
         self, event: IncomingEvent, ctx: DeviceContext, uow: PushUnitOfWork
@@ -71,6 +82,10 @@ class EventRegistry:
                 return await self._close_shift(cmd, ctx, uow)
             case MoveCash() as cmd:
                 return await self._move_cash(cmd, ctx, uow)
+            case VoidOrderData() as cmd:
+                return await self._void_order(cmd, ctx, uow)
+            case RefundOrderData() as cmd:
+                return await self._refund_order(cmd, ctx, uow)
 
 
 class PushEventsHandler:

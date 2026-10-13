@@ -42,11 +42,19 @@ async def test_reports_daily_sales_after_the_worker_projected_them(
             "net": 72_765,
             "order_count": 1,
             "void_count": 0,
+            "refund_amount": 0,
+            "refund_count": 0,
         }
     ]
     assert data["totals"]["net"] == 72_765
     assert data["payment_methods"] == [
-        {"payment_method_id": s.ids["cash"], "method_type": "cash", "amount": 72_765, "count": 1}
+        {
+            "payment_method_id": s.ids["cash"],
+            "method_type": "cash",
+            "amount": 72_765,
+            "count": 1,
+            "refund_amount": 0,
+        }
     ]
     assert data["products"] == [
         {
@@ -54,6 +62,8 @@ async def test_reports_daily_sales_after_the_worker_projected_them(
             "product_name": "Nasi Gudeg",
             "quantity": 2,
             "gross": 70_000,
+            "refund_qty": 0,
+            "refund_amount": 0,
         }
     ]
 

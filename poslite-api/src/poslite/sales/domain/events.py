@@ -21,3 +21,41 @@ class OrderPlaced(DomainEvent):
             "business_date": self.business_date,
             "total": self.total,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class OrderVoided(DomainEvent):
+    """The order's own day is re-aggregated without it (ADR-023)."""
+
+    order_id: str
+    outlet_id: str
+    business_date: str
+
+    topic = "sales.order_voided"
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "order_id": self.order_id,
+            "outlet_id": self.outlet_id,
+            "business_date": self.business_date,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class OrderRefunded(DomainEvent):
+    """The refund's day (not the order's) is re-aggregated with it (ADR-023)."""
+
+    refund_id: str
+    order_id: str
+    outlet_id: str
+    business_date: str
+
+    topic = "sales.order_refunded"
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "refund_id": self.refund_id,
+            "order_id": self.order_id,
+            "outlet_id": self.outlet_id,
+            "business_date": self.business_date,
+        }

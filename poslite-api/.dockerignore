@@ -1,0 +1,11 @@
+.venv
+.env
+.coverage
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.import_linter_cache
+**/__pycache__
+var
+tests
+docs

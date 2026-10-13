@@ -54,6 +54,7 @@ class PlaceOrderData:
     change_amount: int
     occurred_at: datetime
     table_label: str | None = None
+    discount_approved_by: str | None = None  # manager who approved a discount over the limit
 
 
 @dataclass
@@ -87,6 +88,8 @@ class Order:
         business_date: date,
         current_rates: Rates,
         qris_unpaid: bool = False,
+        method_inactive: bool = False,
+        discount_unapproved: bool = False,
     ) -> "Order":
         """Accept a sale from a device (06-domain-and-database.md, Order rules).
 
@@ -124,6 +127,10 @@ class Order:
             flags.append("RATES_OUTDATED")
         if qris_unpaid:  # dynamic QRIS the gateway has not confirmed (ADR-019)
             flags.append("QRIS_UNPAID")
+        if method_inactive:  # a method the outlet switched off (doc 11 §3)
+            flags.append("PAYMENT_METHOD_INACTIVE")
+        if discount_unapproved:  # over the brand's cashier limit without a manager (rule 5)
+            flags.append("DISCOUNT_UNAPPROVED")
 
         order = cls(
             id=data.order_id,

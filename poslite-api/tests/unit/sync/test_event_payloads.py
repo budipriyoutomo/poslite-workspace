@@ -4,13 +4,16 @@ from typing import Any
 
 import pytest
 
-from poslite.sales.api import Discount, PlaceOrderData
+from poslite.sales.api import Discount, PlaceOrderData, RefundOrderData, VoidOrderData
 from poslite.shared.domain.errors import DomainError
 from poslite.shift.api import CloseShift, MoveCash, OpenShift
 from poslite.sync.application.events import IncomingEvent, to_command
 
 EVENTS: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "sync-events.json").read_text()
+)
+CORRECTIONS: list[dict[str, Any]] = json.loads(
+    (Path(__file__).parents[2] / "fixtures" / "correction-events.json").read_text()
 )
 VARIANTS: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "order-placed-variants.json").read_text()
@@ -20,10 +23,14 @@ COMMAND = {
     "cash.moved": MoveCash,
     "order.placed": PlaceOrderData,
     "shift.closed": CloseShift,
+    "order.voided": VoidOrderData,
+    "order.refunded": RefundOrderData,
 }
 
 
-@pytest.mark.parametrize("event", EVENTS, ids=[e["type"] for e in EVENTS])
+@pytest.mark.parametrize(
+    "event", EVENTS + CORRECTIONS, ids=[e["type"] for e in EVENTS + CORRECTIONS]
+)
 def test_accepts_every_payload_the_device_sends(event: dict[str, Any]) -> None:
     """Same fixture as poslite-web's Zod contract test."""
     command = to_command(IncomingEvent.model_validate(event))
@@ -72,7 +79,7 @@ def test_rejects_a_payment_reference_longer_than_the_column() -> None:
 
 
 def test_rejects_an_event_type_it_does_not_handle_yet() -> None:
-    event = {**EVENTS[0], "type": "order.voided", "payload": {}}
+    event = {**EVENTS[0], "type": "bill.merged", "payload": {}}
 
     with pytest.raises(DomainError) as err:
         to_command(IncomingEvent.model_validate(event))

@@ -1,7 +1,8 @@
 from datetime import timedelta
 
+from poslite.identity.domain.assignments import highest_role
 from poslite.identity.domain.roles import BACKOFFICE_ABILITIES
-from poslite.identity.infrastructure.service import highest, roles_of
+from poslite.identity.infrastructure.service import assignments_of
 from poslite.identity.infrastructure.tokens import issue_token
 from poslite.identity.presentation.schemas import AuthResult, TenantOut, UserOut
 from poslite.shared.application.clock import Clock
@@ -29,7 +30,7 @@ async def start_backoffice_session(
         abilities=BACKOFFICE_ABILITIES,
         expires_at=expires_at,
     )
-    role = highest(await roles_of(uow, user_id))
+    role = highest_role(await assignments_of(uow, user_id))
     return AuthResult(
         token=token,
         expires_at=expires_at,

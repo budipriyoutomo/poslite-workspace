@@ -15,6 +15,10 @@ from poslite.sales.api import (
     PlaceOrderData,
     PriceBreakdown,
     Rates,
+    RefundLineData,
+    RefundOrderData,
+    RefundPaymentData,
+    VoidOrderData,
 )
 from poslite.shared.domain.errors import DomainError
 from poslite.shift.api import CloseShift, MoveCash, OpenShift
@@ -118,9 +122,48 @@ class OrderPlacedPayload(_Strict):
     totals: _Totals
     payments: Annotated[list[_Payment], Field(min_length=1)]
     change_amount: Rupiah
+    # Manager who approved a discount over the brand's cashier limit; optional for older devices.
+    discount_approved_by: Ulid | None = None
 
 
-Command = OpenShift | CloseShift | MoveCash | PlaceOrderData
+Reason = Annotated[str, StringConstraints(min_length=1, max_length=200)]
+MethodType = Literal["cash", "debit", "qris", "credit_card", "voucher", "other"]
+
+
+class OrderVoidedPayload(_Strict):
+    reason: Reason
+    voided_by: Ulid
+    approved_by: Ulid | None
+
+
+class _RefundLine(_Strict):
+    order_line_id: Ulid
+    quantity: Annotated[StrictInt, Field(gt=0)]
+    amount: Rupiah
+
+
+class _RefundPayment(_Strict):
+    id: Ulid
+    payment_method_id: Ulid
+    method_type: MethodType
+    method_name: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    amount: Rupiah
+    reference: Annotated[str, StringConstraints(max_length=64)] | None
+
+
+class OrderRefundedPayload(_Strict):
+    order_id: Ulid
+    shift_id: Ulid
+    refund_no: Annotated[str, StringConstraints(min_length=1, max_length=40)]
+    reason: Reason
+    refunded_by: Ulid
+    approved_by: Ulid | None
+    lines: Annotated[list[_RefundLine], Field(min_length=1)]
+    total: Rupiah
+    payments: Annotated[list[_RefundPayment], Field(min_length=1)]
+
+
+Command = OpenShift | CloseShift | MoveCash | PlaceOrderData | VoidOrderData | RefundOrderData
 
 
 def _parse[P: _Strict](model: type[P], event: IncomingEvent) -> P:
@@ -209,9 +252,40 @@ def to_command(event: IncomingEvent) -> Command:
                     change_amount=p.change_amount,
                     occurred_at=event.occurred_at,
                     table_label=p.table_label,
+                    discount_approved_by=p.discount_approved_by,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err
+        case "order.voided":
+            v = _parse(OrderVoidedPayload, event)
+            return VoidOrderData(
+                event.aggregate_id, v.reason, v.voided_by, v.approved_by, event.occurred_at
+            )
+        case "order.refunded":
+            r = _parse(OrderRefundedPayload, event)
+            return RefundOrderData(
+                refund_id=event.aggregate_id,
+                order_id=r.order_id,
+                shift_id=r.shift_id,
+                refund_no=r.refund_no,
+                reason=r.reason,
+                refunded_by=r.refunded_by,
+                approved_by=r.approved_by,
+                lines=tuple(RefundLineData(x.order_line_id, x.quantity, x.amount) for x in r.lines),
+                total=r.total,
+                payments=tuple(
+                    RefundPaymentData(
+                        y.id,
+                        y.payment_method_id,
+                        y.method_type,
+                        y.method_name,
+                        y.amount,
+                        y.reference,
+                    )
+                    for y in r.payments
+                ),
+                occurred_at=event.occurred_at,
+            )
         case _:
             raise DomainError(
                 "UNSUPPORTED_EVENT_TYPE", f"Event type {event.type} is not handled yet"

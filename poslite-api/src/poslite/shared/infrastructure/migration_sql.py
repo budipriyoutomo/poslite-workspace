@@ -42,5 +42,24 @@ def sync_version_trigger(table: str) -> list[str]:
     ]
 
 
+# Once per database (migration 0016, ADR-022). Transaction rows (shifts, orders, rpt_*) carry the
+# brand of their outlet for reporting; the server copies it from the outlet, never from a payload.
+# An outlet never changes brand, so the copy cannot go stale.
+FILL_BRAND_FUNCTION = """
+    CREATE FUNCTION fill_brand_from_outlet() RETURNS trigger AS $$
+    BEGIN
+      SELECT brand_id INTO NEW.brand_id FROM outlets WHERE id = NEW.outlet_id;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql
+"""
+
+
+def fill_brand_trigger(table: str) -> str:
+    return (
+        f"CREATE TRIGGER trg_{table}_fill_brand BEFORE INSERT ON {table}"
+        " FOR EACH ROW EXECUTE FUNCTION fill_brand_from_outlet()"
+    )
+
+
 def grant_to_app_roles(table: str) -> list[str]:
     return [f"GRANT SELECT, INSERT, UPDATE, DELETE ON {table} TO {role}" for role in APP_ROLES]

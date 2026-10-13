@@ -22,15 +22,20 @@ class UserModel(MasterColumns, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
 
 
-class OutletUserModel(Base):
-    """User's role at an outlet. Changing it must touch users.version (ADR-009 link tables)."""
+class UserAssignmentModel(Base):
+    """A user's role over the company, a brand or an outlet (ADR-022). Changing it must touch
+    users.version (ADR-009 link tables)."""
 
-    __tablename__ = "outlet_user"
+    __tablename__ = "user_assignments"
 
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
-    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
-    user_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    user_id: Mapped[str] = mapped_column(CHAR(26))
     role_id: Mapped[int] = mapped_column(SmallInteger)
+    scope_type: Mapped[str] = mapped_column(String(10))
+    brand_id: Mapped[str | None] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str | None] = mapped_column(CHAR(26))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class ApiTokenModel(Base):

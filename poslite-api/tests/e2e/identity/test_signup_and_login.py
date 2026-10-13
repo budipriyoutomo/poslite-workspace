@@ -1,4 +1,8 @@
 from httpx import AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
+
+from poslite.shared.infrastructure.tenancy import set_tenant
 
 from .helpers import SIGNUP, bearer, signup
 
@@ -15,6 +19,24 @@ async def test_signup_creates_tenant_owner_and_first_outlet(api: AsyncClient) ->
     assert data["user"]["role"] == "owner"
     outlets = (await api.get("/api/v1/outlets", headers=bearer(data["token"]))).json()["data"]
     assert [(o["code"], o["name"]) for o in outlets] == [("JKT01", "Outlet Kemang")]
+
+
+async def test_signup_creates_the_first_brand_and_a_company_wide_owner(
+    api: AsyncClient, app_engine: AsyncEngine
+) -> None:
+    data = await signup(api)
+
+    async with app_engine.begin() as conn:
+        await set_tenant(conn, data["tenant"]["id"])
+        brands = (await conn.execute(text("SELECT id, code, name FROM brands"))).all()
+        outlet_brands = (await conn.execute(text("SELECT brand_id FROM outlets"))).scalars().all()
+        assignments = (
+            await conn.execute(text("SELECT user_id, role_id, scope_type FROM user_assignments"))
+        ).all()
+
+    assert [(b.code, b.name) for b in brands] == [("MAHARASA", "Warung Maharasa")]
+    assert outlet_brands == [brands[0].id]
+    assert [tuple(a) for a in assignments] == [(data["user"]["id"], 1, "company")]
 
 
 async def test_signup_rejects_a_taken_slug_or_email(api: AsyncClient) -> None:

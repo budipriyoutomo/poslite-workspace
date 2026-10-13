@@ -1,10 +1,47 @@
 from datetime import datetime, time
 
-from sqlalchemy import CHAR, DateTime, Integer, String, Text, Time, func
+from sqlalchemy import (
+    CHAR,
+    BigInteger,
+    Boolean,
+    DateTime,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    Time,
+    func,
+)
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.columns import MasterColumns
 from poslite.shared.infrastructure.database import Base
+
+
+class BrandModel(MasterColumns, Base):
+    """ADR-022: a company's selling identity — its own menu and promotions, one or more outlets."""
+
+    __tablename__ = "brands"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    code: Mapped[str] = mapped_column(String(20))
+    name: Mapped[str] = mapped_column(String(100))
+    logo_key: Mapped[str | None] = mapped_column(Text)
+    receipt_header: Mapped[str] = mapped_column(Text, server_default="")
+    receipt_footer: Mapped[str] = mapped_column(Text, server_default="")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    # Discount policy (06 Order rule 5), see organization.domain.discount_policy.
+    discount_percentages: Mapped[list[int]] = mapped_column(
+        ARRAY(SmallInteger), server_default="{5,10,15,20}"
+    )
+    discount_amounts: Mapped[list[int]] = mapped_column(
+        ARRAY(BigInteger), server_default="{5000,10000,25000,50000}"
+    )
+    allow_custom_discount: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    cashier_max_discount_percentage: Mapped[int] = mapped_column(SmallInteger, server_default="20")
+    cashier_max_discount_amount: Mapped[int] = mapped_column(BigInteger, server_default="50000")
 
 
 class OutletModel(MasterColumns, Base):
@@ -12,6 +49,7 @@ class OutletModel(MasterColumns, Base):
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))  # fixed for life: orders keep it (ADR-022)
     code: Mapped[str] = mapped_column(String(10))
     name: Mapped[str] = mapped_column(String(100))
     address: Mapped[str] = mapped_column(Text, server_default="")

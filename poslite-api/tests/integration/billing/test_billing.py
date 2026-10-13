@@ -54,8 +54,13 @@ async def test_a_new_tenant_starts_a_14_day_trial(
 async def test_after_the_trial_an_invoice_for_the_active_outlets_is_issued_once(
     api: AsyncClient, system_engine: AsyncEngine
 ) -> None:
-    token = (await signup(api))["token"]
-    await api.post("/api/v1/outlets", json={"code": "BDG01", "name": "Dago"}, headers=bearer(token))
+    owner = await signup(api)
+    token = owner["token"]
+    await api.post(
+        "/api/v1/outlets",
+        json={"brand_id": owner["brand_id"], "code": "BDG01", "name": "Dago"},
+        headers=bearer(token),
+    )
     start = await signed_up_at(system_engine)
     later = start + timedelta(days=15)
 

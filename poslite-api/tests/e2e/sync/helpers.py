@@ -12,6 +12,7 @@ class Setup:
     device_token: str
     device_id: str
     outlet_id: str
+    brand_id: str
     ids: dict[str, str]
 
 
@@ -90,6 +91,7 @@ async def outlet_with_menu_and_device(api: AsyncClient, **signup_overrides: Any)
         device_token=activated["token"],
         device_id=activated["device"]["id"],
         outlet_id=outlet_id,
+        brand_id=owner["brand_id"],
         ids={
             "category": drinks["id"],
             "group": sugar["id"],

@@ -18,6 +18,8 @@ DAY_HEADERS = [
     "Pendapatan",
     "Transaksi",
     "Void",
+    "Refund",
+    "Jumlah refund",
 ]
 RUPIAH_FORMAT = "#,##0;-#,##0"
 
@@ -61,7 +63,7 @@ def _sheet(
 def to_xlsx(summary: SalesSummary) -> bytes:
     workbook = Workbook()
     workbook.remove(workbook.active)  # type: ignore[arg-type]  # a new workbook always has one sheet
-    _sheet(workbook, "Harian", DAY_HEADERS, _day_rows(summary), money_columns=range(2, 7))
+    _sheet(workbook, "Harian", DAY_HEADERS, _day_rows(summary), money_columns=[*range(2, 7), 9])
     _sheet(
         workbook,
         "Menu",

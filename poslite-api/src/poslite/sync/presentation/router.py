@@ -1,7 +1,8 @@
+import json
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, status
 from pydantic import BaseModel, Field
 
 from poslite.catalog import api as catalog
@@ -11,11 +12,14 @@ from poslite.payment import api as payment
 from poslite.promotion import api as promotion
 from poslite.shared.application.clock import Clock
 from poslite.shared.application.sync import DeviceContext
+from poslite.shared.domain.errors import DomainError
 from poslite.shared.presentation.dependencies import clock, media_base_url, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 from poslite.sync.application.events import IncomingEvent
 from poslite.sync.application.pull_changes import merge_feeds
+from poslite.sync.domain.device_export import parse_export
+from poslite.sync.infrastructure import imports
 from poslite.sync.infrastructure.push import push_events
 
 router = APIRouter(tags=["sync"])
@@ -55,17 +59,31 @@ async def pull(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
             *await catalog.catalog_changes(
+                uow,
+                outlet_id=device.outlet.id,
+                brand_id=device.outlet.brand_id,
+                cursor=cursor,
+                limit=limit,
+            ),
+            await payment.payment_method_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
-            await payment.payment_method_changes(uow, cursor=cursor, limit=limit),
             await organization.dining_table_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
             await promotion.promotion_changes(
-                uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
+                uow,
+                outlet_id=device.outlet.id,
+                brand_id=device.outlet.brand_id,
+                cursor=cursor,
+                limit=limit,
             ),
             await identity.user_changes(
-                uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
+                uow,
+                outlet_id=device.outlet.id,
+                brand_id=device.outlet.brand_id,
+                cursor=cursor,
+                limit=limit,
             ),
         ]
         await uow.commit()  # keeps last_seen_at / app_version
@@ -129,3 +147,88 @@ async def push(
             ]
         )
     )
+
+
+# ── Emergency import (ADR-024) ─────────────────────────────────────────────────────────────
+
+MAX_EXPORT_BYTES = 10 * 1024 * 1024
+
+
+class RejectedEventOut(BaseModel):
+    id: str
+    code: str | None
+
+
+class ImportOut(BaseModel):
+    import_id: str
+    device_id: str
+    accepted: int
+    duplicate: int
+    flagged: int
+    rejected: list[RejectedEventOut]
+    created_at: datetime | None = None
+
+
+@router.post(
+    "/imports/device-export",
+    status_code=status.HTTP_201_CREATED,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/json": {"schema": {"type": "object"}}},
+        }
+    },
+)
+async def import_device_export(
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    scope: identity.Access,
+) -> ApiResponse[ImportOut]:
+    """A manager of the outlet pushes a device's export file for it (ADR-024). The file goes
+    through the normal push path, so importing it twice changes nothing."""
+    body = await request.body()
+    if len(body) > MAX_EXPORT_BYTES:
+        raise DomainError("EXPORT_INVALID", "Export files are at most 10 MB")
+    try:
+        raw = json.loads(body)
+    except ValueError as err:
+        raise DomainError("EXPORT_INVALID", "The export file is not JSON") from err
+    export = parse_export(raw)
+    if export.tenant_id is not None and export.tenant_id != principal.tenant_id:
+        raise imports.wrong_tenant()
+    async with open_uow(request, principal.tenant_id) as uow:
+        outlet = await organization.get_outlet(uow, export.outlet_id)
+        identity.ensure_outlet(scope, outlet_id=outlet.id, brand_id=outlet.brand_id)
+        if not await identity.can_approve(
+            uow,
+            user_id=principal.owner_id,
+            outlet_id=outlet.id,
+            brand_id=outlet.brand_id,
+            permission="sync.import",
+        ):
+            raise DomainError(
+                "OUTLET_FORBIDDEN", "You cannot import for this outlet", kind="forbidden"
+            )
+        device = await organization.find_device(uow, export.device_id)
+        if device is None or device.outlet.id != outlet.id:
+            raise DomainError("EXPORT_DEVICE_UNKNOWN", "The device of this file is not known")
+        ctx = DeviceContext(tenant_id=principal.tenant_id, device_id=device.id, outlet_id=outlet.id)
+        result = await imports.import_export(uow, export, ctx=ctx, imported_by=principal.owner_id)
+        await uow.commit()
+    return ok(ImportOut.model_validate(result, from_attributes=True))
+
+
+@router.get("/imports")
+async def device_imports(
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    scope: identity.Access,
+    device_id: Annotated[str, Query()],
+) -> ApiResponse[list[ImportOut]]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        device = await organization.find_device(uow, device_id)
+        if device is None:
+            raise DomainError("DEVICE_NOT_FOUND", "Device not found", kind="not_found")
+        identity.ensure_outlet(scope, outlet_id=device.outlet.id, brand_id=device.outlet.brand_id)
+        rows = await imports.list_imports(uow, device_id)
+    return ok([ImportOut.model_validate(r, from_attributes=True) for r in rows])

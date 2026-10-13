@@ -24,7 +24,8 @@ async def signup(
     now: Annotated[Clock, Depends(clock)],
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
 ) -> ApiResponse[identity.AuthResult]:
-    """New SaaS customer: tenant, owner and first outlet in one transaction, plus a token."""
+    """New SaaS customer: company, owner, first brand and first outlet in one transaction, plus a
+    token (ADR-022)."""
     if await slug_taken(system, body.slug):
         raise DomainError("SLUG_TAKEN", "Business slug is already used", kind="conflict")
     if await identity.email_taken(system, body.email):
@@ -42,14 +43,29 @@ async def signup(
             email=body.email,
             password_hash=await identity.hash_password(body.password),
         )
-        outlet = await organization.create_outlet(
+        brand_id = await organization.create_brand(
+            uow,
+            brand_id=new_id(),
+            code=organization.brand_code(body.slug),
+            name=body.business_name[:100],
+        )
+        await organization.create_outlet(
             uow,
             outlet_id=new_id(),
+            brand_id=brand_id,
             code=body.outlet.code,
             name=body.outlet.name,
             timezone=body.outlet.timezone,
         )
-        await identity.assign_role(uow, user_id=owner_id, outlet_id=outlet.id, role="owner")
+        await identity.add_assignments(
+            uow,
+            user_id=owner_id,
+            assignments=[
+                identity.Assignment(
+                    role="owner", scope_type="company", brand_id=None, outlet_id=None
+                )
+            ],
+        )
         result = await identity.start_backoffice_session(
             uow,
             user_id=owner_id,

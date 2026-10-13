@@ -33,3 +33,13 @@ class QrisChargeModel(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class OutletPaymentMethodModel(Base):
+    """A payment method switched on at an outlet; changes touch payment_methods.version."""
+
+    __tablename__ = "outlet_payment_method"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    payment_method_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)

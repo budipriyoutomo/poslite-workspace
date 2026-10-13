@@ -57,7 +57,7 @@ async def test_devices_pull_the_tables_of_their_outlet(api: AsyncClient) -> None
     other = (
         await api.post(
             "/api/v1/outlets",
-            json={"code": "BDG01", "name": "Dago"},
+            json={"brand_id": s.brand_id, "code": "BDG01", "name": "Dago"},
             headers=bearer(s.owner_token),
         )
     ).json()["data"]

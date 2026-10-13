@@ -1,0 +1,59 @@
+# CI for the standalone poslite-api repository (published from the poslite-workspace monorepo with
+# `make repos-push`). In the monorepo this file is inert; the root .github/workflows/api.yml runs there.
+name: API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Same three roles as `make db-setup` (ADR-013).
+      TEST_DATABASE_URL: postgresql+asyncpg://poslite_app:poslite@localhost:5432/poslite_test
+      TEST_MIGRATION_DATABASE_URL: postgresql+asyncpg://poslite:poslite@localhost:5432/poslite_test
+      TEST_SYSTEM_DATABASE_URL: postgresql+asyncpg://poslite_system:poslite@localhost:5432/poslite_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Create database roles and the test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE poslite LOGIN PASSWORD 'poslite' CREATEDB" \
+            -c "CREATE ROLE poslite_app LOGIN PASSWORD 'poslite' NOBYPASSRLS" \
+            -c "CREATE ROLE poslite_system LOGIN PASSWORD 'poslite' BYPASSRLS" \
+            -c "CREATE DATABASE poslite_test OWNER poslite"
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy src
+      - run: uv run lint-imports
+      - name: openapi.json matches the code
+        run: uv run python -m poslite.tools.export_openapi && git diff --exit-code openapi.json
+      - run: uv run pytest --cov --cov-fail-under=85
+
+  # The image builds and boots: gunicorn imports the app and /health answers. The staging compose
+  # file lives in the monorepo (deploy/staging) and is validated by its root workflow.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t poslite-api:ci .
+      - name: Image serves /health
+        run: |
+          docker run -d --name api -p 8000:8000 poslite-api:ci
+          for i in $(seq 1 30); do curl -sf localhost:8000/api/v1/health && exit 0; sleep 1; done
+          docker logs api; exit 1

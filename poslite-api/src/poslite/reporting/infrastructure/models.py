@@ -19,6 +19,8 @@ class DailySalesModel(Base):
     net: Mapped[int] = mapped_column(BigInteger)
     order_count: Mapped[int] = mapped_column(Integer)
     void_count: Mapped[int] = mapped_column(Integer)
+    refund_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
+    refund_count: Mapped[int] = mapped_column(Integer, server_default="0")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -32,6 +34,8 @@ class DailyProductSalesModel(Base):
     product_name: Mapped[str] = mapped_column(String(150))
     quantity: Mapped[int] = mapped_column(Integer)
     gross: Mapped[int] = mapped_column(BigInteger)
+    refund_qty: Mapped[int] = mapped_column(Integer, server_default="0")
+    refund_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
 
 
 class DailyPaymentSalesModel(Base):
@@ -44,6 +48,7 @@ class DailyPaymentSalesModel(Base):
     method_type: Mapped[str] = mapped_column(String(20))
     amount: Mapped[int] = mapped_column(BigInteger)
     count: Mapped[int] = mapped_column(Integer)
+    refund_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
 
 
 class DailyCategorySalesModel(Base):

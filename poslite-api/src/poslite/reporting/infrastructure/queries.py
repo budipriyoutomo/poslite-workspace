@@ -13,7 +13,17 @@ from poslite.reporting.infrastructure.models import (
 )
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
-TOTAL_FIELDS = ("gross", "discount", "service", "tax", "net", "order_count", "void_count")
+TOTAL_FIELDS = (
+    "gross",
+    "discount",
+    "service",
+    "tax",
+    "net",
+    "order_count",
+    "void_count",
+    "refund_amount",  # refunds paid out that day (ADR-023), not subtracted from net
+    "refund_count",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,27 +37,32 @@ class SalesSummary:
 
 
 async def sales_summary(
-    uow: SqlAlchemyUnitOfWork, outlet_id: str, start: date, end: date
+    uow: SqlAlchemyUnitOfWork, outlet_ids: list[str], start: date, end: date
 ) -> SalesSummary:
-    """Back-office report from the read model only (never scans orders on the request path)."""
+    """Back-office report from the read model only (never scans orders on the request path),
+    summed over the given outlets (one outlet, a brand, or the whole company — ADR-022)."""
     days = (
-        await uow.session.scalars(
-            select(DailySalesModel)
+        await uow.session.execute(
+            select(
+                DailySalesModel.business_date,
+                *(func.sum(getattr(DailySalesModel, f)) for f in TOTAL_FIELDS),
+            )
             .where(
-                DailySalesModel.outlet_id == outlet_id,
+                DailySalesModel.outlet_id.in_(outlet_ids),
                 DailySalesModel.business_date.between(start, end),
             )
+            .group_by(DailySalesModel.business_date)
             .order_by(DailySalesModel.business_date)
         )
     ).all()
-    day_rows = [
-        {"business_date": d.business_date.isoformat(), **{f: getattr(d, f) for f in TOTAL_FIELDS}}
-        for d in days
+    per_day = [(d[0], {f: int(v) for f, v in zip(TOTAL_FIELDS, d[1:], strict=True)}) for d in days]
+    day_rows: list[dict[str, object]] = [
+        {"business_date": day.isoformat(), **sums} for day, sums in per_day
     ]
-    totals = {f: sum(int(getattr(d, f)) for d in days) for f in TOTAL_FIELDS}
+    totals = {f: sum(sums[f] for _, sums in per_day) for f in TOTAL_FIELDS}
 
     in_range = (
-        DailyPaymentSalesModel.outlet_id == outlet_id,
+        DailyPaymentSalesModel.outlet_id.in_(outlet_ids),
         DailyPaymentSalesModel.business_date.between(start, end),
     )
     payments = await uow.session.execute(
@@ -56,6 +71,7 @@ async def sales_summary(
             func.max(DailyPaymentSalesModel.method_type),
             func.sum(DailyPaymentSalesModel.amount),
             func.sum(DailyPaymentSalesModel.count),
+            func.sum(DailyPaymentSalesModel.refund_amount),
         )
         .where(*in_range)
         .group_by(DailyPaymentSalesModel.payment_method_id)
@@ -67,9 +83,11 @@ async def sales_summary(
             func.max(DailyProductSalesModel.product_name),
             func.sum(DailyProductSalesModel.quantity),
             func.sum(DailyProductSalesModel.gross),
+            func.sum(DailyProductSalesModel.refund_qty),
+            func.sum(DailyProductSalesModel.refund_amount),
         )
         .where(
-            DailyProductSalesModel.outlet_id == outlet_id,
+            DailyProductSalesModel.outlet_id.in_(outlet_ids),
             DailyProductSalesModel.business_date.between(start, end),
         )
         .group_by(DailyProductSalesModel.product_id)
@@ -82,7 +100,7 @@ async def sales_summary(
             func.sum(DailyCategorySalesModel.gross),
         )
         .where(
-            DailyCategorySalesModel.outlet_id == outlet_id,
+            DailyCategorySalesModel.outlet_id.in_(outlet_ids),
             DailyCategorySalesModel.business_date.between(start, end),
         )
         .group_by(DailyCategorySalesModel.category_name)
@@ -96,7 +114,7 @@ async def sales_summary(
                 func.sum(DailyCashierSalesModel.net),
             )
             .where(
-                DailyCashierSalesModel.outlet_id == outlet_id,
+                DailyCashierSalesModel.outlet_id.in_(outlet_ids),
                 DailyCashierSalesModel.business_date.between(start, end),
             )
             .group_by(DailyCashierSalesModel.cashier_id)
@@ -108,12 +126,25 @@ async def sales_summary(
         days=day_rows,
         totals=totals,
         payment_methods=[
-            {"payment_method_id": m, "method_type": t, "amount": int(a), "count": int(c)}
-            for m, t, a, c in payments
+            {
+                "payment_method_id": m,
+                "method_type": t,
+                "amount": int(a),
+                "count": int(c),
+                "refund_amount": int(r),
+            }
+            for m, t, a, c, r in payments
         ],
         products=[
-            {"product_id": p, "product_name": n, "quantity": int(q), "gross": int(g)}
-            for p, n, q, g in products
+            {
+                "product_id": p,
+                "product_name": n,
+                "quantity": int(q),
+                "gross": int(g),
+                "refund_qty": int(rq),
+                "refund_amount": int(ra),
+            }
+            for p, n, q, g, rq, ra in products
         ],
         categories=[
             {"category_name": c, "quantity": int(q), "gross": int(g)} for c, q, g in categories

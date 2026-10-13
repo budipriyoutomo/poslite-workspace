@@ -1,28 +1,9 @@
 from typing import Any
 
-import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
-
-from poslite.platform_admin.api import create_admin
 
 from ..identity.helpers import bearer, signup
-
-ADMIN = {"email": "ops@poslite.id", "password": "operator-rahasia"}
-
-
-@pytest.fixture
-async def admin_token(api: AsyncClient, system_engine: AsyncEngine) -> str:
-    await create_admin(
-        async_sessionmaker(system_engine),
-        email=ADMIN["email"],
-        name="Ops",
-        password=ADMIN["password"],
-    )
-    response = await api.post("/api/v1/platform/auth/login", json=ADMIN)
-    assert response.status_code == 200, response.text
-    token: str = response.json()["data"]["token"]
-    return token
+from .helpers import ADMIN
 
 
 async def tenants(api: AsyncClient, token: str, query: str = "") -> list[dict[str, Any]]:

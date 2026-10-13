@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, Request
 
 from poslite.billing.application.schemas import SubscriptionOut
 from poslite.billing.infrastructure.service import subscription_view
+from poslite.identity import api as identity
 from poslite.shared.presentation.dependencies import open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
 
-router = APIRouter(tags=["billing"])
+# Company page (ADR-022): company-wide users only.
+router = APIRouter(tags=["billing"], dependencies=[identity.company_only])
 
 
 @router.get("/billing/subscription")

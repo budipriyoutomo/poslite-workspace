@@ -1,16 +1,49 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
-from poslite.shared.presentation.schemas import Bps, Email, Name, TimeZone
+from poslite.shared.presentation.schemas import Bps, Email, Name, TimeZone, Ulid
 
 
 class OutletOut(BaseModel):
     id: str
+    brand_id: str
     code: str
     name: str
     timezone: str = "Asia/Jakarta"
+
+
+Role = Literal["owner", "manager", "cashier"]
+
+
+class AccessTenant(BaseModel):
+    id: str
+    name: str
+    status: str
+
+
+class AccessOutlet(BaseModel):
+    id: str
+    code: str
+    name: str
+    role: Role
+
+
+class AccessBrand(BaseModel):
+    id: str
+    code: str
+    name: str
+    role: Role | None = Field(
+        description="Role over the whole brand; null = access to some of its outlets only"
+    )
+    outlets: list[AccessOutlet]
+
+
+class AccessTree(BaseModel):
+    tenant: AccessTenant
+    company_scope: bool
+    brands: list[AccessBrand]
 
 
 class DeviceOut(BaseModel):
@@ -54,11 +87,60 @@ class OutletSettingsOut(OutletSettingsIn):
 
 
 class NewOutletIn(BaseModel):
+    brand_id: Ulid
     code: Annotated[
         str, StringConstraints(strip_whitespace=True, to_upper=True, pattern=r"^[A-Z0-9]{2,10}$")
     ]
     name: Name
     timezone: TimeZone = "Asia/Jakarta"
+
+
+ReceiptText = Annotated[str, StringConstraints(max_length=500)]
+
+
+class DiscountPolicyIn(BaseModel):
+    """Manual-discount rules of a brand (06 Order rule 5)."""
+
+    percentages: Annotated[list[Annotated[int, Field(ge=1, le=100)]], Field(max_length=8)] = [
+        5,
+        10,
+        15,
+        20,
+    ]
+    amounts: Annotated[list[Annotated[int, Field(ge=1, le=10**9)]], Field(max_length=8)] = [
+        5_000,
+        10_000,
+        25_000,
+        50_000,
+    ]
+    allow_custom: bool = True
+    cashier_max_percentage: Annotated[int, Field(ge=0, le=100)] = 20
+    cashier_max_amount: Annotated[int, Field(ge=0, le=10**12)] = 50_000
+
+
+class BrandIn(BaseModel):
+    code: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, to_upper=True, pattern=r"^[A-Za-z0-9]{2,20}$"),
+    ]
+    name: Name
+    logo_key: Annotated[str, StringConstraints(max_length=300)] | None = None
+    receipt_header: ReceiptText = ""
+    receipt_footer: ReceiptText = ""
+    is_active: bool = True
+    discount: DiscountPolicyIn = DiscountPolicyIn()
+
+
+class BrandOut(BaseModel):
+    id: str
+    code: str
+    name: str
+    logo_key: str | None
+    logo_url: str | None
+    receipt_header: str
+    receipt_footer: str
+    is_active: bool
+    discount: DiscountPolicyIn
 
 
 class DeviceListItem(BaseModel):

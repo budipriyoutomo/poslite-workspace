@@ -13,6 +13,7 @@ class PromotionModel(MasterColumns, Base):
 
     id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))
     name: Mapped[str] = mapped_column(String(100))
     type: Mapped[str] = mapped_column(String(20))
     percentage: Mapped[int | None] = mapped_column(Integer)

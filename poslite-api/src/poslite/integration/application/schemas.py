@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, HttpUrl
 
-EventType = Literal["order.placed", "shift.closed"]
+EventType = Literal["order.placed", "shift.closed", "order.voided", "order.refunded"]
 
 
 def _https(url: HttpUrl) -> HttpUrl:
@@ -13,15 +13,20 @@ def _https(url: HttpUrl) -> HttpUrl:
     return url
 
 
+Ulid = Annotated[str, Field(pattern=r"^[0-9A-HJKMNP-TV-Z]{26}$")]
+
+
 class EndpointIn(BaseModel):
     url: Annotated[HttpUrl, AfterValidator(_https)]
     event_types: Annotated[list[EventType], Field(min_length=1)]
+    brand_ids: list[Ulid] = Field(default=[], description="Only these brands; empty = all")
 
 
 class EndpointOut(BaseModel):
     id: str
     url: str
     event_types: list[str]
+    brand_ids: list[str]
     is_active: bool
 
 

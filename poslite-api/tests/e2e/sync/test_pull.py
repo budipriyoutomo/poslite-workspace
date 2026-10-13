@@ -30,6 +30,19 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
         "service_rate_bps": 500,
         "receipt_header": "",
         "receipt_footer": "",
+        "brand": {
+            "id": s.brand_id,
+            "code": "MAHARASA",
+            "name": "Warung Maharasa",
+            "logo_key": None,
+        },
+        "discount_policy": {
+            "percentages": [5, 10, 15, 20],
+            "amounts": [5000, 10000, 25000, 50000],
+            "allow_custom": True,
+            "cashier_max_percentage": 20,
+            "cashier_max_amount": 50000,
+        },
     }
     assert changes["product"][0]["data"] == {
         "category_id": s.ids["category"],

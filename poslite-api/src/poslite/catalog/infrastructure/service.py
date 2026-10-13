@@ -30,16 +30,46 @@ from poslite.shared.infrastructure.sync_feed import feed
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 # Thin CRUD module (05-backend-architecture.md): no separate domain entities. Deletes are soft
-# (deleted_at) so devices receive them as `op: "delete"` on pull; RLS scopes every query.
+# (deleted_at) so devices receive them as `op: "delete"` on pull; RLS scopes every query to the
+# company, and every function here to one brand (ADR-022): a row of another brand is not found.
 
 
 async def _live[M: (CategoryModel, ProductModel, ModifierGroupModel)](
-    uow: SqlAlchemyUnitOfWork, model: type[M], row_id: str, code: str
+    uow: SqlAlchemyUnitOfWork, model: type[M], row_id: str, code: str, brand_id: str
 ) -> M:
+    row = await uow.session.get(model, row_id)
+    if row is None or row.deleted_at is not None or row.brand_id != brand_id:
+        raise DomainError(code, kind="not_found")
+    return row
+
+
+async def _reference[M: (CategoryModel, ProductModel, ModifierGroupModel)](
+    uow: SqlAlchemyUnitOfWork, model: type[M], row_id: str, code: str, brand_id: str
+) -> M:
+    """A row another row points at: missing → not found; in another brand → 422."""
     row = await uow.session.get(model, row_id)
     if row is None or row.deleted_at is not None:
         raise DomainError(code, kind="not_found")
+    if row.brand_id != brand_id:
+        raise DomainError("CROSS_BRAND_REFERENCE", "Rows of different brands cannot be linked")
     return row
+
+
+async def ensure_menu_in_brand(
+    uow: SqlAlchemyUnitOfWork, brand_id: str, *, product_ids: list[str], category_ids: list[str]
+) -> None:
+    """Other modules (promotions) may point only at menu rows of their own brand."""
+    brands = set(
+        await uow.session.scalars(
+            select(ProductModel.brand_id).where(ProductModel.id.in_(product_ids))
+        )
+    ) | set(
+        await uow.session.scalars(
+            select(CategoryModel.brand_id).where(CategoryModel.id.in_(category_ids))
+        )
+    )
+    if brands - {brand_id}:
+        raise DomainError("CROSS_BRAND_REFERENCE", "Rows of different brands cannot be linked")
 
 
 # ── Categories ───────────────────────────────────────────────────────────────────────────────
@@ -51,36 +81,38 @@ def _category(c: CategoryModel) -> CategoryOut:
     )
 
 
-async def list_categories(uow: SqlAlchemyUnitOfWork) -> list[CategoryOut]:
+async def list_categories(uow: SqlAlchemyUnitOfWork, *, brand_id: str) -> list[CategoryOut]:
     rows = await uow.session.scalars(
         select(CategoryModel)
-        .where(CategoryModel.deleted_at.is_(None))
+        .where(CategoryModel.brand_id == brand_id, CategoryModel.deleted_at.is_(None))
         .order_by(CategoryModel.sort_order, CategoryModel.name)
     )
     return [_category(c) for c in rows]
 
 
 async def create_category(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: CategoryIn
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: CategoryIn, *, brand_id: str
 ) -> CategoryOut:
-    row = CategoryModel(id=new_id(), tenant_id=uow.tenant_id, **body.model_dump())
+    row = CategoryModel(
+        id=new_id(), tenant_id=uow.tenant_id, brand_id=brand_id, **body.model_dump()
+    )
     uow.session.add(row)
     await uow.session.flush()
     return _category(row)
 
 
 async def update_category(
-    uow: SqlAlchemyUnitOfWork, category_id: str, body: CategoryIn
+    uow: SqlAlchemyUnitOfWork, category_id: str, body: CategoryIn, *, brand_id: str
 ) -> CategoryOut:
-    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND")
+    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND", brand_id)
     for key, value in body.model_dump().items():
         setattr(row, key, value)
     await uow.session.flush()
     return _category(row)
 
 
-async def delete_category(uow: SqlAlchemyUnitOfWork, category_id: str) -> None:
-    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND")
+async def delete_category(uow: SqlAlchemyUnitOfWork, category_id: str, *, brand_id: str) -> None:
+    row = await _live(uow, CategoryModel, category_id, "CATEGORY_NOT_FOUND", brand_id)
     row.deleted_at = func.now()
     await uow.session.flush()
 
@@ -114,11 +146,13 @@ def _product(p: ProductModel, group_ids: list[str], base_url: str) -> ProductOut
     )
 
 
-async def list_products(uow: SqlAlchemyUnitOfWork, base_url: str) -> list[ProductOut]:
+async def list_products(
+    uow: SqlAlchemyUnitOfWork, base_url: str, *, brand_id: str
+) -> list[ProductOut]:
     rows = list(
         await uow.session.scalars(
             select(ProductModel)
-            .where(ProductModel.deleted_at.is_(None))
+            .where(ProductModel.brand_id == brand_id, ProductModel.deleted_at.is_(None))
             .order_by(ProductModel.name)
         )
     )
@@ -127,14 +161,14 @@ async def list_products(uow: SqlAlchemyUnitOfWork, base_url: str) -> list[Produc
 
 
 async def _check_references(
-    uow: SqlAlchemyUnitOfWork, body: ProductIn, current_image: str | None = None
+    uow: SqlAlchemyUnitOfWork, body: ProductIn, brand_id: str, current_image: str | None = None
 ) -> None:
-    await _live(uow, CategoryModel, body.category_id, "CATEGORY_NOT_FOUND")
+    await _reference(uow, CategoryModel, body.category_id, "CATEGORY_NOT_FOUND", brand_id)
     own = f"{uow.tenant_id}/products/"
     if body.image_key not in (None, current_image) and not body.image_key.startswith(own):
         raise DomainError("INVALID_IMAGE_KEY", "Upload the image with POST /media/images first")
     for group_id in body.modifier_group_ids:
-        await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+        await _reference(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND", brand_id)
 
 
 async def _set_groups(uow: SqlAlchemyUnitOfWork, product_id: str, group_ids: list[str]) -> None:
@@ -160,11 +194,19 @@ async def _flush_unique_sku(uow: SqlAlchemyUnitOfWork) -> None:
 
 
 async def create_product(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ProductIn, base_url: str
+    uow: SqlAlchemyUnitOfWork,
+    new_id: Callable[[], str],
+    body: ProductIn,
+    base_url: str,
+    *,
+    brand_id: str,
 ) -> ProductOut:
-    await _check_references(uow, body)
+    await _check_references(uow, body, brand_id)
     row = ProductModel(
-        id=new_id(), tenant_id=uow.tenant_id, **body.model_dump(exclude={"modifier_group_ids"})
+        id=new_id(),
+        tenant_id=uow.tenant_id,
+        brand_id=brand_id,
+        **body.model_dump(exclude={"modifier_group_ids"}),
     )
     uow.session.add(row)
     await _flush_unique_sku(uow)
@@ -174,11 +216,11 @@ async def create_product(
 
 
 async def update_product(
-    uow: SqlAlchemyUnitOfWork, product_id: str, body: ProductIn, base_url: str
+    uow: SqlAlchemyUnitOfWork, product_id: str, body: ProductIn, base_url: str, *, brand_id: str
 ) -> ProductOut:
     """Full replace. The UPDATE re-versions the product, which carries its modifier group links."""
-    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
-    await _check_references(uow, body, current_image=row.image_key)
+    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND", brand_id)
+    await _check_references(uow, body, brand_id, current_image=row.image_key)
     for key, value in body.model_dump(exclude={"modifier_group_ids"}).items():
         setattr(row, key, value)
     row.updated_at = func.now()
@@ -188,8 +230,8 @@ async def update_product(
     return _product(row, list(dict.fromkeys(body.modifier_group_ids)), base_url)
 
 
-async def delete_product(uow: SqlAlchemyUnitOfWork, product_id: str) -> None:
-    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
+async def delete_product(uow: SqlAlchemyUnitOfWork, product_id: str, *, brand_id: str) -> None:
+    row = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND", brand_id)
     row.deleted_at = func.now()
     await uow.session.flush()
 
@@ -223,11 +265,13 @@ def _check_range(body: ModifierGroupIn) -> None:
         raise DomainError("INVALID_SELECTION_RANGE", "min_select must not exceed max_select")
 
 
-async def list_modifier_groups(uow: SqlAlchemyUnitOfWork) -> list[ModifierGroupOut]:
+async def list_modifier_groups(
+    uow: SqlAlchemyUnitOfWork, *, brand_id: str
+) -> list[ModifierGroupOut]:
     rows = list(
         await uow.session.scalars(
             select(ModifierGroupModel)
-            .where(ModifierGroupModel.deleted_at.is_(None))
+            .where(ModifierGroupModel.brand_id == brand_id, ModifierGroupModel.deleted_at.is_(None))
             .order_by(ModifierGroupModel.name)
         )
     )
@@ -277,12 +321,13 @@ async def _save_options(
 
 
 async def create_modifier_group(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ModifierGroupIn
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: ModifierGroupIn, *, brand_id: str
 ) -> ModifierGroupOut:
     _check_range(body)
     row = ModifierGroupModel(
         id=new_id(),
         tenant_id=uow.tenant_id,
+        brand_id=brand_id,
         name=body.name,
         min_select=body.min_select,
         max_select=body.max_select,
@@ -294,10 +339,15 @@ async def create_modifier_group(
 
 
 async def update_modifier_group(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], group_id: str, body: ModifierGroupIn
+    uow: SqlAlchemyUnitOfWork,
+    new_id: Callable[[], str],
+    group_id: str,
+    body: ModifierGroupIn,
+    *,
+    brand_id: str,
 ) -> ModifierGroupOut:
     _check_range(body)
-    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND", brand_id)
     row.name, row.min_select, row.max_select = body.name, body.min_select, body.max_select
     row.updated_at = func.now()
     await uow.session.flush()
@@ -305,8 +355,8 @@ async def update_modifier_group(
     return _group(row, (await _options(uow, [row.id]))[row.id])
 
 
-async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str) -> None:
-    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND")
+async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str, *, brand_id: str) -> None:
+    row = await _live(uow, ModifierGroupModel, group_id, "MODIFIER_GROUP_NOT_FOUND", brand_id)
     row.deleted_at = func.now()
     await uow.session.flush()
 
@@ -315,14 +365,16 @@ async def delete_modifier_group(uow: SqlAlchemyUnitOfWork, group_id: str) -> Non
 
 
 async def catalog_changes(
-    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, brand_id: str, cursor: int, limit: int
 ) -> list[list[Change]]:
+    """The menu of the outlet's brand only (ADR-022); options follow their group's brand."""
     products = await feed(
         uow,
         ProductModel,
         "product",
         cursor=cursor,
         limit=limit,
+        where=ProductModel.brand_id == brand_id,
         data=lambda p: {
             "category_id": p.category_id,
             "sku": p.sku,
@@ -354,6 +406,7 @@ async def catalog_changes(
             "category",
             cursor=cursor,
             limit=limit,
+            where=CategoryModel.brand_id == brand_id,
             data=lambda c: {"name": c.name, "sort_order": c.sort_order, "print_role": c.print_role},
         ),
         products,
@@ -363,6 +416,7 @@ async def catalog_changes(
             "modifier_group",
             cursor=cursor,
             limit=limit,
+            where=ModifierGroupModel.brand_id == brand_id,
             data=lambda g: {"name": g.name, "min_select": g.min_select, "max_select": g.max_select},
         ),
         await feed(
@@ -371,6 +425,9 @@ async def catalog_changes(
             "modifier_option",
             cursor=cursor,
             limit=limit,
+            where=ModifierOptionModel.modifier_group_id.in_(
+                select(ModifierGroupModel.id).where(ModifierGroupModel.brand_id == brand_id)
+            ),
             data=lambda o: {
                 "modifier_group_id": o.modifier_group_id,
                 "name": o.name,
@@ -407,9 +464,15 @@ def _effective(data: dict[str, object], override: OutletProductModel | None) -> 
 
 
 async def set_outlet_product(
-    uow: SqlAlchemyUnitOfWork, outlet_id: str, product_id: str, body: OutletProductIn
+    uow: SqlAlchemyUnitOfWork,
+    outlet_id: str,
+    product_id: str,
+    body: OutletProductIn,
+    *,
+    brand_id: str,
 ) -> OutletProductOut:
-    product = await _live(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND")
+    """`brand_id` = the outlet's brand: an outlet sells only its own brand's menu."""
+    product = await _reference(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND", brand_id)
     values = {"price": body.price, "is_available": body.is_available}
     await uow.session.execute(
         insert(OutletProductModel)
@@ -428,11 +491,13 @@ async def set_outlet_product(
     )
 
 
-async def list_outlet_products(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> list[OutletProductOut]:
+async def list_outlet_products(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, *, brand_id: str
+) -> list[OutletProductOut]:
     products = list(
         await uow.session.scalars(
             select(ProductModel)
-            .where(ProductModel.deleted_at.is_(None))
+            .where(ProductModel.brand_id == brand_id, ProductModel.deleted_at.is_(None))
             .order_by(ProductModel.name)
         )
     )

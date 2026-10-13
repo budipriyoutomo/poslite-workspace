@@ -25,49 +25,51 @@ def _out(m: PromotionModel) -> PromotionOut:
     return PromotionOut.model_validate({"id": m.id, **_dump(m, _FIELDS)})
 
 
-async def _live(uow: SqlAlchemyUnitOfWork, promotion_id: str) -> PromotionModel:
+async def _live(uow: SqlAlchemyUnitOfWork, promotion_id: str, brand_id: str) -> PromotionModel:
     row = await uow.session.get(PromotionModel, promotion_id)
-    if row is None or row.deleted_at is not None:
+    if row is None or row.deleted_at is not None or row.brand_id != brand_id:
         raise DomainError("PROMOTION_NOT_FOUND", "Promotion not found", kind="not_found")
     return row
 
 
-async def list_promotions(uow: SqlAlchemyUnitOfWork) -> list[PromotionOut]:
+async def list_promotions(uow: SqlAlchemyUnitOfWork, *, brand_id: str) -> list[PromotionOut]:
     rows = await uow.session.scalars(
         select(PromotionModel)
-        .where(PromotionModel.deleted_at.is_(None))
+        .where(PromotionModel.brand_id == brand_id, PromotionModel.deleted_at.is_(None))
         .order_by(PromotionModel.name)
     )
     return [_out(m) for m in rows]
 
 
 async def create_promotion(
-    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: PromotionIn
+    uow: SqlAlchemyUnitOfWork, new_id: Callable[[], str], body: PromotionIn, *, brand_id: str
 ) -> PromotionOut:
-    row = PromotionModel(id=new_id(), tenant_id=uow.tenant_id, **body.model_dump())
+    row = PromotionModel(
+        id=new_id(), tenant_id=uow.tenant_id, brand_id=brand_id, **body.model_dump()
+    )
     uow.session.add(row)
     await uow.session.flush()
     return _out(row)
 
 
 async def update_promotion(
-    uow: SqlAlchemyUnitOfWork, promotion_id: str, body: PromotionIn
+    uow: SqlAlchemyUnitOfWork, promotion_id: str, body: PromotionIn, *, brand_id: str
 ) -> PromotionOut:
-    row = await _live(uow, promotion_id)
+    row = await _live(uow, promotion_id, brand_id)
     for key, value in body.model_dump().items():
         setattr(row, key, value)
     await uow.session.flush()
     return _out(row)
 
 
-async def delete_promotion(uow: SqlAlchemyUnitOfWork, promotion_id: str) -> None:
-    row = await _live(uow, promotion_id)
+async def delete_promotion(uow: SqlAlchemyUnitOfWork, promotion_id: str, *, brand_id: str) -> None:
+    row = await _live(uow, promotion_id, brand_id)
     row.deleted_at = func.now()
     await uow.session.flush()
 
 
 async def promotion_changes(
-    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, cursor: int, limit: int
+    uow: SqlAlchemyUnitOfWork, *, outlet_id: str, brand_id: str, cursor: int, limit: int
 ) -> list[Change]:
     """Every changed promotion, as `upsert` only if it is live, active and runs at this outlet.
 
@@ -76,7 +78,7 @@ async def promotion_changes(
     """
     rows = await uow.session.scalars(
         select(PromotionModel)
-        .where(PromotionModel.version > cursor)
+        .where(PromotionModel.version > cursor, PromotionModel.brand_id == brand_id)
         .order_by(PromotionModel.version)
         .limit(limit + 1)
     )

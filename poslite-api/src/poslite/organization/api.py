@@ -1,11 +1,17 @@
 """Public API of the organization module (other modules import only this)."""
 
+from poslite.organization.domain.brand_code import brand_code
 from poslite.organization.infrastructure.service import (
+    BrandInfo,
     DeviceInfo,
     OutletInfo,
     active_outlet_count,
+    brand_of_outlet,
+    create_brand,
     create_outlet,
     dining_table_changes,
+    find_device,
+    get_brand,
     get_device,
     get_outlet,
     list_outlets,
@@ -16,11 +22,17 @@ from poslite.organization.infrastructure.service import (
 )
 
 __all__ = [
+    "BrandInfo",
     "DeviceInfo",
     "OutletInfo",
     "active_outlet_count",
+    "brand_code",
+    "brand_of_outlet",
+    "create_brand",
     "create_outlet",
     "dining_table_changes",
+    "find_device",
+    "get_brand",
     "get_device",
     "get_outlet",
     "list_outlets",

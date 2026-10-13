@@ -12,6 +12,10 @@ async def flush_or_conflict(session: AsyncSession) -> None:
     try:
         await session.flush()
     except IntegrityError as err:
+        if "refund_no" in str(err.orig):
+            raise DomainError(
+                "REFUND_NO_TAKEN", "Refund number already used", kind="conflict"
+            ) from err
         if "receipt_no" in str(err.orig):
             raise DomainError(
                 "RECEIPT_NO_TAKEN", "Receipt number already used", kind="conflict"

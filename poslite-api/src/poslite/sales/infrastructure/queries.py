@@ -8,7 +8,11 @@ from poslite.sales.infrastructure.models import (
     OrderLineModel,
     OrderLineModifierModel,
     OrderModel,
+    OrderVoidModel,
     PaymentModel,
+    RefundLineModel,
+    RefundModel,
+    RefundPaymentModel,
 )
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -22,6 +26,8 @@ class DailyTotals:
     net: int
     order_count: int
     void_count: int
+    refund_amount: int = 0
+    refund_count: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,6 +36,8 @@ class ProductSales:
     product_name: str
     quantity: int
     gross: int
+    refund_qty: int = 0
+    refund_amount: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +46,12 @@ class PaymentSales:
     method_type: str
     amount: int
     count: int
+    refund_amount: int = 0
+
+
+def _refund_day(outlet_id: str, day: date) -> ColumnElement[bool]:
+    """Refunds count on the day they were paid out, not on the order's day (ADR-023)."""
+    return and_(RefundModel.outlet_id == outlet_id, RefundModel.business_date == day)
 
 
 def _day(outlet_id: str, day: date) -> ColumnElement[bool]:
@@ -59,7 +73,14 @@ async def daily_totals(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> 
             ).where(_day(outlet_id, day))
         )
     ).one()
-    return DailyTotals(*(int(v) for v in row))
+    refunds = (
+        await uow.session.execute(
+            select(func.coalesce(func.sum(RefundModel.total), 0), func.count()).where(
+                _refund_day(outlet_id, day)
+            )
+        )
+    ).one()
+    return DailyTotals(*(int(v) for v in (*row, *refunds)))
 
 
 async def daily_product_sales(
@@ -76,7 +97,24 @@ async def daily_product_sales(
         .where(_day(outlet_id, day), OrderModel.status == "paid")
         .group_by(OrderLineModel.product_id)
     )
-    return [ProductSales(pid, name, int(qty), int(gross)) for pid, name, qty, gross in rows]
+    sold = {pid: ProductSales(pid, name, int(qty), int(gross)) for pid, name, qty, gross in rows}
+    refunded = await uow.session.execute(
+        select(
+            RefundLineModel.product_id,
+            func.max(RefundLineModel.product_name),
+            func.sum(RefundLineModel.quantity),
+            func.sum(RefundLineModel.amount),
+        )
+        .join(RefundModel, RefundModel.id == RefundLineModel.refund_id)
+        .where(_refund_day(outlet_id, day))
+        .group_by(RefundLineModel.product_id)
+    )
+    for pid, name, qty, amount in refunded:
+        base = sold.get(pid, ProductSales(pid, name, 0, 0))
+        sold[pid] = ProductSales(
+            pid, base.product_name, base.quantity, base.gross, int(qty), int(amount)
+        )
+    return list(sold.values())
 
 
 async def daily_payment_sales(
@@ -107,7 +145,22 @@ async def daily_payment_sales(
         bucket = totals[(method_id, method_type)]
         bucket[0] += kept
         bucket[1] += 1
-    return [PaymentSales(m, t, amount, count) for (m, t), (amount, count) in totals.items()]
+    refunded = await uow.session.execute(
+        select(
+            RefundPaymentModel.payment_method_id,
+            RefundPaymentModel.method_type,
+            func.sum(RefundPaymentModel.amount),
+        )
+        .join(RefundModel, RefundModel.id == RefundPaymentModel.refund_id)
+        .where(_refund_day(outlet_id, day))
+        .group_by(RefundPaymentModel.payment_method_id, RefundPaymentModel.method_type)
+    )
+    refunds = {(m, t): int(a) for m, t, a in refunded}
+    keys = list(totals) + [k for k in refunds if k not in totals]
+    return [
+        PaymentSales(m, t, totals[(m, t)][0], totals[(m, t)][1], refunds.get((m, t), 0))
+        for m, t in keys
+    ]
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,6 +259,22 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
     payments = list(
         await uow.session.scalars(select(PaymentModel).where(PaymentModel.order_id == order_id))
     )
+    void = await uow.session.get(OrderVoidModel, order_id)
+    refunds = list(
+        await uow.session.scalars(
+            select(RefundModel)
+            .where(RefundModel.order_id == order_id)
+            .order_by(RefundModel.created_at)
+        )
+    )
+    refunded = dict(
+        (line_id, int(quantity))
+        for line_id, quantity in await uow.session.execute(
+            select(RefundLineModel.order_line_id, func.sum(RefundLineModel.quantity))
+            .where(RefundLineModel.refund_id.in_([r.id for r in refunds]))
+            .group_by(RefundLineModel.order_line_id)
+        )
+    )
     return {
         "id": order.id,
         "outlet_id": order.outlet_id,
@@ -238,6 +307,7 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
                 "discount_amount": line.discount_amount,
                 "promotion_id": line.promotion_id,
                 "notes": line.notes,
+                "refunded_quantity": refunded.get(line.id, 0),  # ADR-023
                 "modifiers": [
                     {"modifier_option_id": m.modifier_option_id, "name": m.name, "price": m.price}
                     for m in modifiers
@@ -255,5 +325,100 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
                 "reference": p.reference,
             }
             for p in payments
+        ],
+        "void": (
+            {
+                "reason": void.reason,
+                "voided_by": void.voided_by,
+                "approved_by": void.approved_by,
+                "voided_at": void.voided_at.isoformat(),
+            }
+            if void
+            else None
+        ),
+        "refunds": [
+            {
+                "id": r.id,
+                "refund_no": r.refund_no,
+                "business_date": r.business_date.isoformat(),
+                "total": r.total,
+                "flags": list(r.flags),
+            }
+            for r in refunds
+        ],
+    }
+
+
+async def order_id_by_receipt(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, receipt_no: str
+) -> str | None:
+    return await uow.session.scalar(
+        select(OrderModel.id).where(
+            OrderModel.outlet_id == outlet_id, OrderModel.receipt_no == receipt_no
+        )
+    )
+
+
+def _refund_summary(r: RefundModel) -> dict[str, object]:
+    return {
+        "id": r.id,
+        "order_id": r.order_id,
+        "outlet_id": r.outlet_id,
+        "device_id": r.device_id,
+        "shift_id": r.shift_id,
+        "refund_no": r.refund_no,
+        "business_date": r.business_date.isoformat(),
+        "reason": r.reason,
+        "refunded_by": r.refunded_by,
+        "approved_by": r.approved_by,
+        "total": r.total,
+        "flags": list(r.flags),
+        "created_at": r.created_at.isoformat(),
+    }
+
+
+async def list_refunds(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date
+) -> list[dict[str, object]]:
+    rows = await uow.session.scalars(
+        select(RefundModel).where(_refund_day(outlet_id, day)).order_by(RefundModel.created_at)
+    )
+    return [_refund_summary(r) for r in rows]
+
+
+async def refund_detail(uow: SqlAlchemyUnitOfWork, refund_id: str) -> dict[str, object] | None:
+    """One refund with its lines and payments (back-office, webhooks); None if RLS hides it."""
+    refund = await uow.session.get(RefundModel, refund_id)
+    if refund is None:
+        return None
+    lines = await uow.session.scalars(
+        select(RefundLineModel)
+        .where(RefundLineModel.refund_id == refund_id)
+        .order_by(RefundLineModel.id)
+    )
+    payments = await uow.session.scalars(
+        select(RefundPaymentModel).where(RefundPaymentModel.refund_id == refund_id)
+    )
+    return _refund_summary(refund) | {
+        "lines": [
+            {
+                "order_line_id": x.order_line_id,
+                "product_id": x.product_id,
+                "product_name": x.product_name,
+                "quantity": x.quantity,
+                "amount": x.amount,
+            }
+            for x in lines
+        ],
+        "payments": [
+            {
+                "id": y.id,
+                "payment_method_id": y.payment_method_id,
+                "method_type": y.method_type,
+                "method_name": y.method_name,
+                "amount": y.amount,
+                "reference": y.reference,
+            }
+            for y in payments
         ],
     }

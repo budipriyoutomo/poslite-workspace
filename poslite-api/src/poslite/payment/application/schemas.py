@@ -16,8 +16,19 @@ class PaymentMethodIn(BaseModel):
     logo_url: str | None = None
 
 
+class NewPaymentMethodIn(PaymentMethodIn):
+    """Without `outlet_ids` the method is switched on at every outlet."""
+
+    outlet_ids: list[str] | None = None
+
+
+class MethodOutletsIn(BaseModel):
+    outlet_ids: list[str]
+
+
 class PaymentMethodOut(PaymentMethodIn):
     id: str
+    outlet_ids: list[str]
 
 
 class QrisChargeIn(BaseModel):

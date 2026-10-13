@@ -2,35 +2,52 @@ from collections.abc import Callable
 from datetime import time
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.identity import api as identity
+from poslite.organization.domain.discount_policy import DiscountPolicy
 from poslite.organization.infrastructure.service import (
+    BrandInfo,
     DeviceInfo,
     DiningTable,
+    OutletInfo,
     OutletSettings,
     add_table,
+    create_brand,
     create_outlet,
+    delete_brand,
     delete_table,
+    device_outlet_id,
+    get_brand,
     get_device,
     get_outlet,
     get_outlet_settings,
+    list_brands,
     list_devices,
     list_outlets,
     list_tables,
     outlet_code_taken,
     register_device,
     revoke_device,
+    table_outlet_id,
+    update_brand,
     update_outlet_settings,
     update_table,
 )
 from poslite.organization.presentation.schemas import (
+    AccessBrand,
+    AccessOutlet,
+    AccessTenant,
+    AccessTree,
     ActivateRequest,
     ActivationResult,
+    BrandIn,
+    BrandOut,
     DeviceListItem,
     DeviceMe,
     DeviceOut,
+    DiscountPolicyIn,
     NewOutletIn,
     OutletOut,
     OutletSettingsIn,
@@ -38,13 +55,76 @@ from poslite.organization.presentation.schemas import (
     TableIn,
     TableOut,
 )
+from poslite.payment import api as payment
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
-from poslite.shared.presentation.dependencies import clock, id_factory, open_uow, system_sessions
+from poslite.shared.domain.media import media_url
+from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
+from poslite.shared.presentation.dependencies import (
+    clock,
+    id_factory,
+    media_base_url,
+    open_uow,
+    system_sessions,
+)
 from poslite.shared.presentation.envelope import ApiResponse, ok
+from poslite.shared.presentation.schemas import Ulid
 from poslite.shared.presentation.security import Principal, require_ability
+from poslite.tenancy import api as tenancy
 
 router = APIRouter(tags=["organization"])
+Reader = Annotated[Principal, Depends(require_ability("backoffice:read"))]
+Writer = Annotated[Principal, Depends(require_ability("backoffice:write"))]
+
+
+def _outlet_out(o: OutletInfo) -> OutletOut:
+    return OutletOut(id=o.id, brand_id=o.brand_id, code=o.code, name=o.name, timezone=o.timezone)
+
+
+async def _outlet_in_scope(
+    uow: SqlAlchemyUnitOfWork,
+    scope: identity.AccessScope,
+    outlet_id: str,
+    active_brand: str | None,
+) -> OutletInfo:
+    outlet = await get_outlet(uow, outlet_id)
+    identity.ensure_outlet(
+        scope, outlet_id=outlet.id, brand_id=outlet.brand_id, active_brand=active_brand
+    )
+    return outlet
+
+
+@router.get("/me/access")
+async def my_access(
+    request: Request, principal: Reader, scope: identity.Access
+) -> ApiResponse[AccessTree]:
+    """The brands and outlets this user may pick in the back-office (ADR-022)."""
+    async with open_uow(request, principal.tenant_id) as uow:
+        tenant = await tenancy.get_tenant(uow)
+        brands = await list_brands(uow)
+        outlets = await list_outlets(uow)
+    tree: list[AccessBrand] = []
+    for brand in brands:
+        reachable = [
+            AccessOutlet(id=o.id, code=o.code, name=o.name, role=role)
+            for o in outlets
+            if o.brand_id == brand.id
+            and (role := scope.outlet_role(outlet_id=o.id, brand_id=o.brand_id)) is not None
+        ]
+        role = scope.brand_role(brand.id)
+        if role is not None or reachable:
+            tree.append(
+                AccessBrand(
+                    id=brand.id, code=brand.code, name=brand.name, role=role, outlets=reachable
+                )
+            )
+    return ok(
+        AccessTree(
+            tenant=AccessTenant(id=tenant.id, name=tenant.name, status=tenant.status),
+            company_scope=scope.company,
+            brands=tree,
+        )
+    )
 
 
 def _device_out(d: DeviceInfo) -> DeviceOut:
@@ -52,9 +132,7 @@ def _device_out(d: DeviceInfo) -> DeviceOut:
         id=d.id,
         code=d.code,
         name=d.name,
-        outlet=OutletOut(
-            id=d.outlet.id, code=d.outlet.code, name=d.outlet.name, timezone=d.outlet.timezone
-        ),
+        outlet=_outlet_out(d.outlet),
     )
 
 
@@ -74,11 +152,22 @@ def _settings_out(s: OutletSettings) -> OutletSettingsOut:
 
 @router.get("/outlets")
 async def outlets(
-    request: Request, principal: Annotated[Principal, Depends(require_ability("backoffice:read"))]
+    request: Request,
+    principal: Reader,
+    scope: identity.Access,
+    brand_id: Annotated[Ulid | None, Query()] = None,
 ) -> ApiResponse[list[OutletOut]]:
+    """Outlets in the user's scope, optionally of one brand."""
     async with open_uow(request, principal.tenant_id) as uow:
         rows = await list_outlets(uow)
-    return ok([OutletOut(id=o.id, code=o.code, name=o.name, timezone=o.timezone) for o in rows])
+    return ok(
+        [
+            _outlet_out(o)
+            for o in rows
+            if scope.can_access_outlet(outlet_id=o.id, brand_id=o.brand_id)
+            and brand_id in (None, o.brand_id)
+        ]
+    )
 
 
 @router.post("/devices/activate", status_code=status.HTTP_201_CREATED)
@@ -94,7 +183,9 @@ async def activate(
     async with open_uow(request, manager.tenant_id) as uow:
         outlet = await get_outlet(uow, body.outlet_id)
         if not identity.can_activate_devices(
-            await identity.role_at(uow, user_id=manager.user_id, outlet_id=outlet.id)
+            await identity.role_at(
+                uow, user_id=manager.user_id, outlet_id=outlet.id, brand_id=outlet.brand_id
+            )
         ):
             raise DomainError(
                 "ROLE_NOT_ALLOWED",
@@ -134,9 +225,12 @@ async def me(
 async def settings(
     outlet_id: str,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    principal: Reader,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[OutletSettingsOut]:
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
         return ok(_settings_out(await get_outlet_settings(uow, outlet_id)))
 
 
@@ -145,10 +239,13 @@ async def update_settings(
     outlet_id: str,
     body: OutletSettingsIn,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[OutletSettingsOut]:
     hour, minute = map(int, body.business_day_cutoff.split(":"))
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
         saved = await update_outlet_settings(
             uow,
             outlet_id,
@@ -168,27 +265,39 @@ async def update_settings(
 async def add_outlet(
     body: NewOutletIn,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
 ) -> ApiResponse[OutletOut]:
     async with open_uow(request, principal.tenant_id) as uow:
+        if not scope.can_manage_brand(body.brand_id):
+            raise DomainError("BRAND_FORBIDDEN", "You cannot change this brand", kind="forbidden")
+        await get_brand(uow, body.brand_id)
         if await outlet_code_taken(uow, body.code):
             raise DomainError("OUTLET_CODE_TAKEN", "Outlet code is already used", kind="conflict")
         outlet = await create_outlet(
-            uow, outlet_id=new_id(), code=body.code, name=body.name, timezone=body.timezone
+            uow,
+            outlet_id=new_id(),
+            brand_id=body.brand_id,
+            code=body.code,
+            name=body.name,
+            timezone=body.timezone,
         )
+        await payment.enable_all_methods(uow, outlet.id)
         await uow.commit()
-    return ok(OutletOut(id=outlet.id, code=outlet.code, name=outlet.name, timezone=outlet.timezone))
+    return ok(_outlet_out(outlet))
 
 
 @router.get("/outlets/{outlet_id}/devices")
 async def devices(
     outlet_id: str,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    principal: Reader,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[list[DeviceListItem]]:
     async with open_uow(request, principal.tenant_id) as uow:
-        await get_outlet(uow, outlet_id)
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
         rows = await list_devices(uow, outlet_id)
     return ok([DeviceListItem.model_validate(d, from_attributes=True) for d in rows])
 
@@ -197,10 +306,13 @@ async def devices(
 async def revoke(
     device_id: str,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[None]:
     """Lost or stolen tablet: its token stops working at once (opaque tokens, 05 "Auth")."""
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, await device_outlet_id(uow, device_id), brand)
         await revoke_device(uow, device_id)
         await identity.revoke_tokens_of(uow, owner_type="device", owner_id=device_id)
         await uow.commit()
@@ -215,9 +327,12 @@ def _table_out(t: DiningTable) -> TableOut:
 async def tables(
     outlet_id: str,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    principal: Reader,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[list[TableOut]]:
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
         return ok([_table_out(t) for t in await list_tables(uow, outlet_id)])
 
 
@@ -226,11 +341,14 @@ async def add_dining_table(
     outlet_id: str,
     body: TableIn,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[TableOut]:
     """Tables are outlet master data; devices get them on their next pull (ADR-015)."""
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
         table = await add_table(uow, table_id=new_id(), outlet_id=outlet_id, **body.model_dump())
         await uow.commit()
     return ok(_table_out(table))
@@ -241,9 +359,12 @@ async def update_dining_table(
     table_id: str,
     body: TableIn,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[TableOut]:
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, await table_outlet_id(uow, table_id), brand)
         table = await update_table(uow, table_id, **body.model_dump())
         await uow.commit()
     return ok(_table_out(table))
@@ -253,9 +374,91 @@ async def update_dining_table(
 async def delete_dining_table(
     table_id: str,
     request: Request,
-    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    principal: Writer,
+    scope: identity.Access,
+    brand: identity.BrandHeader = None,
 ) -> ApiResponse[None]:
     async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, await table_outlet_id(uow, table_id), brand)
         await delete_table(uow, table_id)
+        await uow.commit()
+    return ok(None)
+
+
+# ── Brands (company page, ADR-022) ─────────────────────────────────────────────────────────
+
+MediaBase = Annotated[str, Depends(media_base_url)]
+
+
+def _policy(body: BrandIn) -> DiscountPolicy:
+    d = body.discount
+    return DiscountPolicy(
+        tuple(d.percentages),
+        tuple(d.amounts),
+        d.allow_custom,
+        d.cashier_max_percentage,
+        d.cashier_max_amount,
+    )
+
+
+def _brand_out(b: BrandInfo, base_url: str) -> BrandOut:
+    return BrandOut(
+        id=b.id,
+        code=b.code,
+        name=b.name,
+        logo_key=b.logo_key,
+        logo_url=media_url(base_url, b.logo_key),
+        receipt_header=b.receipt_header,
+        receipt_footer=b.receipt_footer,
+        is_active=b.is_active,
+        discount=DiscountPolicyIn.model_validate(b.discount.as_data()),
+    )
+
+
+@router.get("/brands", dependencies=[identity.company_only])
+async def brands(
+    request: Request, principal: Reader, base_url: MediaBase
+) -> ApiResponse[list[BrandOut]]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        return ok([_brand_out(b, base_url) for b in await list_brands(uow)])
+
+
+@router.post("/brands", status_code=status.HTTP_201_CREATED, dependencies=[identity.company_only])
+async def add_brand(
+    body: BrandIn,
+    request: Request,
+    principal: Writer,
+    new_id: Annotated[Callable[[], str], Depends(id_factory)],
+    base_url: MediaBase,
+) -> ApiResponse[BrandOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        brand_id = await create_brand(
+            uow,
+            brand_id=new_id(),
+            **body.model_dump(exclude={"discount"}),
+            discount=_policy(body),
+        )
+        brand = await get_brand(uow, brand_id)
+        await uow.commit()
+    return ok(_brand_out(brand, base_url))
+
+
+@router.put("/brands/{brand_id}", dependencies=[identity.company_only])
+async def edit_brand(
+    brand_id: str, body: BrandIn, request: Request, principal: Writer, base_url: MediaBase
+) -> ApiResponse[BrandOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        brand = await update_brand(
+            uow, brand_id, **body.model_dump(exclude={"discount"}), discount=_policy(body)
+        )
+        await uow.commit()
+    return ok(_brand_out(brand, base_url))
+
+
+@router.delete("/brands/{brand_id}", dependencies=[identity.company_only])
+async def remove_brand(brand_id: str, request: Request, principal: Writer) -> ApiResponse[None]:
+    """Only a brand without live outlets: its orders and reports keep pointing at it."""
+    async with open_uow(request, principal.tenant_id) as uow:
+        await delete_brand(uow, brand_id)
         await uow.commit()
     return ok(None)

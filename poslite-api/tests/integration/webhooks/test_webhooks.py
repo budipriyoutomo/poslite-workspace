@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from e2e.identity.helpers import bearer
 from e2e.sync.helpers import Setup, outlet_with_menu_and_device
+from e2e.sync.test_corrections import corrections
 from e2e.sync.test_push import batch, push
 from poslite.integration.api import deliver_webhooks
 from poslite.integration.api import subscribers as webhook_subscribers
@@ -72,6 +73,7 @@ async def test_the_secret_is_shown_only_when_the_endpoint_is_created(api: AsyncC
             "id": created["id"],
             "url": created["url"],
             "event_types": ["order.placed"],
+            "brand_ids": [],
             "is_active": True,
         }
     ]
@@ -186,3 +188,66 @@ async def test_relaying_the_same_order_twice_creates_one_delivery(
     async with system_engine.begin() as conn:
         count = (await conn.execute(text("SELECT count(*) FROM webhook_deliveries"))).scalar_one()
     assert count == 1
+
+
+async def test_an_endpoint_limited_to_brands_gets_only_their_events(
+    api: AsyncClient, app_engine: AsyncEngine, system_engine: AsyncEngine
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    other_brand = (
+        await api.post(
+            "/api/v1/brands", json={"code": "SUSHI", "name": "Sushi"}, headers=bearer(s.owner_token)
+        )
+    ).json()["data"]["id"]
+    ours = await endpoint(api, s, brand_ids=[s.brand_id])
+    await endpoint(api, s, url="https://sushi.example.id/hook", brand_ids=[other_brand])
+    await push(api, s.device_token, batch(s))
+    await relay(app_engine, system_engine)
+    receiver = FakeReceiver(200)
+
+    await deliver(app_engine, system_engine, receiver)
+
+    assert ours["brand_ids"] == [s.brand_id]
+    assert [url for url, _, _ in receiver.calls] == ["https://erp.example.id/poslite"]
+    assert json.loads(receiver.calls[0][1])["data"]["brand_id"] == s.brand_id
+
+
+async def test_an_endpoint_cannot_name_an_unknown_brand(api: AsyncClient) -> None:
+    s = await outlet_with_menu_and_device(api)
+
+    response = await api.post(
+        "/api/v1/webhooks",
+        json={
+            "url": "https://erp.example.id/hook",
+            "event_types": ["order.placed"],
+            "brand_ids": ["01K5ZB00000000000000000099"],
+        },
+        headers=bearer(s.owner_token),
+    )
+
+    assert (response.status_code, response.json()["code"]) == (404, "BRAND_NOT_FOUND")
+
+
+async def test_voids_and_refunds_are_sent_to_subscribed_endpoints(
+    api: AsyncClient, app_engine: AsyncEngine, system_engine: AsyncEngine
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    await endpoint(api, s, event_types=["order.voided", "order.refunded"])
+    *sale, closed = batch(s)
+    await push(api, s.device_token, [*sale, *corrections(s), closed])
+    await relay(app_engine, system_engine)
+    receiver = FakeReceiver(200)
+
+    await deliver(app_engine, system_engine, receiver)
+
+    events = {json.loads(body)["type"]: json.loads(body)["data"] for _, body, _ in receiver.calls}
+    assert sorted(events) == ["order.refunded", "order.voided"]
+    assert (events["order.voided"]["status"], events["order.voided"]["void"]["reason"]) == (
+        "voided",
+        "Salah input",
+    )
+    assert (events["order.refunded"]["total"], events["order.refunded"]["brand_id"]) == (
+        36_383,
+        s.brand_id,
+    )
+    assert events["order.refunded"]["lines"][0]["quantity"] == 1
