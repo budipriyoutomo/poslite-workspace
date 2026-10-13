@@ -33,7 +33,7 @@ flowchart LR
 
   subgraph Server["Backend (Python · FastAPI)"]
     API["REST API /api/v1<br/>token auth (opaque)"]
-    APP["Modules: Catalog · Sales · Payment · Shift · Identity · Reporting"]
+    APP["Modules: Tenancy · Identity · Organization (brand, outlet) · Catalog · Promotion · Sales · Payment · Shift · Sync · Reporting · Billing · Gateway · Integration"]
     Q["arq workers<br/>(projections, exports)"]
     DB[("PostgreSQL")]
     R[("Redis<br/>queue · rate limit")]
@@ -44,6 +44,7 @@ flowchart LR
 
   SYNC <-- "HTTPS JSON" --> API
   ADMIN["Back-office Web<br/>(Next.js, online-only)"] --> API
+  OPS["Konsol Operator SaaS<br/>(Next.js, online-only)"] -- "/api/v1/platform" --> API
 ```
 
 ## Tech Stack
@@ -64,6 +65,7 @@ flowchart LR
 | Queue/Cache | Redis + arq | Projection laporan, rate limit |
 | API Docs | OpenAPI bawaan FastAPI → `openapi-typescript` | Tipe TS frontend digenerate dari kontrak backend |
 | Back-office | Next.js (online-only, boleh SSR) | Kelola menu, harga, user, laporan |
+| Konsol operator | Next.js (online-only), app terpisah `poslite-operator` | Kelola tenant SaaS (ADR-025) |
 
 ## Architecture Decision Records (ADR)
 
@@ -141,7 +143,7 @@ flowchart LR
 
 ### ADR-014 — Back-office sebagai app terpisah (`poslite-admin`)
 
-- **Keputusan**: Back-office (pemilik/manajer) dan konsol operator SaaS (`/platform`) adalah app Next.js tersendiri di `poslite-admin` (port dev 3001, deploy ke `admin.<domain>`), bukan route di dalam PWA POS.
+- **Keputusan**: Back-office (pemilik/manajer) adalah app Next.js tersendiri di `poslite-admin` (port dev 3001, deploy ke `admin.<domain>`), bukan route di dalam PWA POS. Konsol operator SaaS awalnya berupa route `/platform` di app ini; sejak ADR-025 menjadi app sendiri (`poslite-operator`).
 - **Kenapa**: back-office online-only dan boleh SSR, sedangkan POS wajib SPA ter-prerender dengan service worker (ADR-002). Memisahkan app membuat halaman admin tidak ikut di-precache, bundle POS tetap kecil, dan aturan offline tidak berlaku untuk admin.
 - **Konsekuensi**: komponen shadcn/ui dan konfigurasi tooling diduplikasi (belum ada paket bersama). Tipe API admin di-generate dari `poslite-api/openapi.json` (`make admin-types`, dicek CI) dan dipakai lewat `openapi-fetch`. Token back-office disimpan di `localStorage` (12 jam, opaque, bisa dicabut) — cookie httpOnly menyusul bila dibutuhkan.
 ### ADR-015 — Open bill hanya di device yang membukanya
@@ -150,11 +152,11 @@ flowchart LR
 - **Kenapa**: order di server tetap immutable (ADR-003) dan tidak ada state mutable yang harus diselesaikan konfliknya antar device; open bill tetap jalan 100% offline.
 - **Konsekuensi**: tablet lain tidak melihat bill terbuka; tablet rusak/hilang = bill terbuka hilang (belum ada uang yang diterima). Shift tidak bisa ditutup selama masih ada bill terbuka. Berbagi bill antar tablet (pelayan ↔ kasir) = keputusan terpisah di masa depan.
 
-### ADR-016 — Diskon per item & promo otomatis dihitung di device
+### ADR-016 — Diskon per item & promo dipilih kasir, dihitung di device
 
-- **Keputusan**: Setiap baris boleh punya **satu** diskon (`percentage` 0..100 atau `fixed` Rupiah, dibatasi nilai baris) — dari kasir (manual) atau dari promo otomatis. Promo (`percent_off`, `buy_x_get_y`) adalah master data dari back-office yang di-pull ke device dan dievaluasi **offline** pada saat bayar, memakai jam & zona waktu outlet. Server tidak mengevaluasi ulang kelayakan promo; ia menyimpan snapshot promo per baris dan menghitung ulang aritmetika total (flag `TOTAL_MISMATCH` bila beda).
+- **Keputusan**: Setiap baris boleh punya **satu** diskon (`percentage` 0..100 atau `fixed` Rupiah, dibatasi nilai baris) — dari kasir (manual) atau dari promo. Promo (`percent_off`, `buy_x_get_y`) adalah master data dari back-office yang di-pull ke device; di layar bayar device menampilkan promo yang sedang berjalan untuk item di cart beserta besar hematnya, dan promo **hanya berlaku bila dipilih kasir** (2026-10-12; sebelumnya otomatis). Kelayakan dicek **offline** saat bayar, memakai jam & zona waktu outlet. Server tidak mengevaluasi ulang kelayakan promo; ia menyimpan snapshot promo per baris dan menghitung ulang aritmetika total (flag `TOTAL_MISMATCH` bila beda).
 - **Kenapa**: kasir harus bisa memberi harga promo tanpa internet; jam device bisa sedikit beda dari server, sehingga menolak order karena "promo sudah lewat" akan merugikan pelanggan yang sudah bayar.
-- **Konsekuensi**: aturan harga ada di dua bahasa → `pricing-cases.json` wajib memuat kasus diskon baris; aturan pemilihan promo diuji di web. Diskon manual menggantikan promo pada baris itu; bila beberapa promo berlaku, diambil diskon terbesar.
+- **Konsekuensi**: aturan harga ada di dua bahasa → `pricing-cases.json` wajib memuat kasus diskon baris; aturan pemilihan promo diuji di web. Diskon manual menggantikan promo pada baris itu; bila beberapa promo dipilih, per baris diambil diskon terbesar. Pilihan promo disimpan di cart (`promotionIds`), terhapus saat cart kosong; promo tidak butuh approval manajer. Server tidak berubah.
 
 ### ADR-017 — Payment gateway di balik port, vendor dipilih nanti
 
@@ -186,6 +188,30 @@ flowchart LR
 - **Kenapa**: ganti vendor S3 cukup dengan menyalin objek dan mengubah `.env` (endpoint, bucket, base URL) — tidak ada migrasi data, dan device ikut berganti di pull berikutnya tanpa perubahan versi produk. Unggah lewat API membuat kredensial S3 tetap di server, validasi di satu tempat, dan tidak perlu konfigurasi CORS bucket.
 - **Konsekuensi**: bandwidth unggah lewat API (gambar kecil, dibatasi 2 MB). Bucket harus bisa dibaca publik (objek diunggah dengan ACL `public-read`, bisa diatur `S3_OBJECT_ACL`). Gambar yang tidak jadi dipakai (form dibatalkan) tetap tersimpan sebagai objek yatim — boleh dibersihkan berkala. Di kasir, gambar butuh internet saat pertama tampil; tanpa gambar POS tetap jalan.
 
+### ADR-022 — Brand di bawah tenant; akses brand/outlet = otorisasi aplikasi, bukan RLS
+
+- **Keputusan**: Perusahaan (tenant) → Brand → Outlet. Isolasi antar perusahaan tetap RLS. Akses user ke brand/outlet lewat `user_assignments` (scope `company`/`brand`/`outlet`) yang dihitung menjadi `AccessScope` di setiap request back-office; brand aktif dikirim di `X-Brand-Id`. Device tetap terikat satu outlet, sehingga brand-nya otomatis.
+- **Kenapa / alternatif / konsekuensi**: lihat [10](./10-multi-company-brand.md#adr-022--brand-di-bawah-tenant-akses-brandoutlet--otorisasi-aplikasi-bukan-rls). Implementasi: brand di module `organization`; `brand_id` transaksi (shift, order, refund, `rpt_*`) diisi trigger DB dari outlet.
+
+### ADR-023 — Void = batal penuh di shift yang sama; Refund = dokumen baru, boleh sebagian, lintas shift
+
+- **Keputusan**: Void membatalkan seluruh order selama shift pembuatnya masih terbuka di device yang sama; refund adalah dokumen baru bernomor sendiri, per baris & qty, dicatat di shift dan business date saat refund. Keduanya butuh alasan dan approval PIN manajer (offline). Jumlah refund = alokasi total order ke baris (largest remainder) yang sama di device & server; selisih/kelebihan di-flag, tidak ditolak.
+- Detail: [11 §1](./11-trial-features.md#1-void--refund).
+
+### ADR-024 — File export darurat diproses sebagai push atas nama device asal
+
+- **Keputusan**: Device mengekspor semua event outbox yang belum diterima ke file JSON (checksum SHA-256 dari JSON kanonik); back-office mengimpornya lewat `POST /imports/device-export` yang menjalankan `PushEventsHandler` yang sama atas nama device asal.
+- Detail: [11 §4](./11-trial-features.md#4-export--import-data-darurat).
+
+### ADR-025 — Konsol operator SaaS sebagai app terpisah (`poslite-operator`)
+
+- **Keputusan**: Konsol operator SaaS (tim yang menjalankan POSLite, bukan pengguna tenant) dipindah dari route `/platform` di `poslite-admin` ke app Next.js sendiri, `poslite-operator` (port dev 3002, deploy ke `operator.<domain>`). Backend tetap `poslite-api` yang sama: konsol hanya memakai `/api/v1/platform/*` dengan token operator (`platform_tokens`), terpisah dari token tenant.
+- **Kenapa**: pengguna, tingkat kepercayaan, dan arah perkembangannya berbeda dari back-office. Konsol operator akan bertambah (detail tenant, user lintas tenant, billing, akun operator, audit), dan fitur itu tidak boleh ikut ter-bundle atau ter-deploy ke domain yang dibuka semua tenant. Domain sendiri juga memungkinkan proteksi tambahan (Vercel Deployment Protection / allowlist IP), deploy dan CI terpisah, serta sesi yang tidak bercampur dengan sesi owner di origin yang sama.
+- **Alternatif ditolak**: (a) tetap jadi route `/platform` di back-office — kode operator ikut terkirim ke semua tenant dan tidak bisa diproteksi per domain; (b) memisahkan backend operator — logika tenant, billing, dan RLS harus diduplikasi, sedangkan endpoint `/platform` sudah terisolasi lewat token & role `system`.
+- **Isi konsol**: ringkasan platform, daftar tenant (cari, filter, paginasi), detail tenant (owner, outlet, perangkat, user, langganan, tagihan), perpanjang trial, tandai tagihan lunas, cari user lintas tenant, reset password & (non)aktifkan user, kelola akun operator, audit log. Endpoint di [07](./07-api-contract.md#endpoint--platform-admin-operator-saas).
+- **Aturan backend**: bacaan lintas tenant berupa read model di `platform_admin` (role `poslite_system`, filter `tenant_id` sendiri). Setiap perubahan lewat `api.py` modul pemiliknya (`identity.reset_password`/`set_user_active`, `billing.extend_trial`/`settle_invoice`); perubahan user tenant berjalan di UoW tenant itu sehingga RLS & aturan `LAST_OWNER` tetap berlaku. Setiap aksi dicatat di `platform_audit_log` (append-only, tanpa rahasia — password sementara tidak pernah disimpan).
+- **Konsekuensi**: komponen shadcn/ui, klien API (`src/shared/api`), dan tooling diduplikasi untuk ketiga kalinya (masih belum ada paket bersama). Tipe API di-generate dari `openapi.json` yang sama (`make operator-types`, dicek CI `operator.yml`). `CORS_ORIGINS` API harus memuat origin konsol (`OPERATOR_DOMAIN` di staging, `http://localhost:3002` di dev). E2E operator (`make operator-e2e`) memakai database `poslite_e2e_operator` sendiri.
+
 ## Non-Functional Requirements
 
 | NFR | Target |
@@ -200,7 +226,8 @@ flowchart LR
 
 ## Deployment (awal)
 
-- **API**: VPS / container (Caddy/Nginx + gunicorn/uvicorn + arq worker + Redis + PostgreSQL), domain `api.<domain>`.
-- **POS PWA**: Vercel / Node server, domain `pos.<domain>` (HTTPS wajib — Web Bluetooth/USB/Serial & service worker hanya jalan di secure context).
-- **Back-office**: `admin.<domain>` — satu app untuk semua tenant; tenant ditentukan dari akun yang login. Halaman signup tenant publik di domain yang sama.
+- **API**: VPS dengan Docker Compose — Caddy (HTTPS otomatis) + gunicorn/uvicorn + arq worker + Redis + PostgreSQL 16; migrasi Alembic jalan sebagai job sekali jalan sebelum API/worker start. Domain `api.<domain>`. File & runbook staging: [`deploy/staging`](../deploy/staging/README.md) (image dari `poslite-api/Dockerfile`, dicek CI).
+- **POS PWA**: Vercel (project dengan root `poslite-web`, `NEXT_PUBLIC_API_URL` saat build), domain `pos.<domain>` (HTTPS wajib — Web Bluetooth/USB/Serial & service worker hanya jalan di secure context).
+- **Back-office**: Vercel (root `poslite-admin`, `NEXT_PUBLIC_API_ORIGIN`), `admin.<domain>` — satu app untuk semua tenant; tenant ditentukan dari akun yang login. Halaman signup tenant publik di domain yang sama.
+- **Konsol operator**: Vercel (root `poslite-operator`, `NEXT_PUBLIC_API_ORIGIN`), `operator.<domain>` — hanya untuk tim internal; lindungi dengan Vercel Deployment Protection atau allowlist IP. Akun operator dibuat lewat CLI (`make platform-admin` / `python -m poslite.platform_admin create-admin`), tidak ada signup.
 - Android tablet: install PWA via "Add to Home screen"; opsional kiosk mode (Chrome kiosk / MDM).

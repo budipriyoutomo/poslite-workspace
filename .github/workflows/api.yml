@@ -3,9 +3,9 @@ name: API
 on:
   push:
     branches: [main]
-    paths: [poslite-api/**, .github/workflows/api.yml]
+    paths: [poslite-api/**, deploy/**, .github/workflows/api.yml]
   pull_request:
-    paths: [poslite-api/**, .github/workflows/api.yml]
+    paths: [poslite-api/**, deploy/**, .github/workflows/api.yml]
 
 defaults:
   run:
@@ -49,3 +49,18 @@ jobs:
       - name: openapi.json matches the code
         run: uv run python -m poslite.tools.export_openapi && git diff --exit-code openapi.json
       - run: uv run pytest --cov --cov-fail-under=85
+
+  # The staging image (deploy/staging) builds and boots: gunicorn imports the app and /health answers.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t poslite-api:ci .
+      - name: Compose file is valid
+        working-directory: deploy/staging
+        run: cp .env.example .env && sed -i 's/=$/=ci/' .env && docker compose config --quiet
+      - name: Image serves /health
+        run: |
+          docker run -d --name api -p 8000:8000 poslite-api:ci
+          for i in $(seq 1 30); do curl -sf localhost:8000/api/v1/health && exit 0; sleep 1; done
+          docker logs api; exit 1

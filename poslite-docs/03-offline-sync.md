@@ -54,6 +54,8 @@ export class PosDb extends Dexie {
 
 Perubahan skema = `this.version(n).stores(...).upgrade(tx => ...)` — jangan edit versi lama.
 
+Versi yang sudah ada: v2 `modifierOptions`; v3 `diningTables`, `promotions`, `openBills`; v4 `products.imageKey` (ADR-021); **v5** `refunds: 'id, orderId, shiftId, businessDate, createdAt, syncStatus'` (ADR-023 — baris & pembayaran refund disimpan di dalam dokumennya). `orders.voidedAt`/`voidReason` dan `syncState.refundCounter` tidak butuh index. Event outbox baru: `order.voided`, `order.refunded`. Export darurat (ADR-024) membaca seluruh `outbox` tanpa menghapusnya.
+
 ## Outbox Pattern (Push)
 
 Setiap aksi kasir menulis **data + event outbox dalam satu Dexie transaction**. Tidak mungkin data tersimpan tapi event tidak (atau sebaliknya).
@@ -99,7 +101,7 @@ GET /api/v1/sync/pull?cursor=<lastVersion>&limit=500
 → { changes: [{ entity, op: 'upsert'|'delete', id, version, data }], next_cursor, has_more }
 ```
 
-- Server menyimpan kolom `version` (bigint, dari **satu sequence global** untuk semua tabel master) yang naik setiap insert/update/soft-delete. Version dibagikan secara serial sehingga urutan version = urutan commit (ADR-009) — cursor tidak pernah melompati perubahan.
+- Server menyimpan kolom `version` (bigint, dari **satu sequence global** untuk semua tabel master) yang naik setiap insert/update/soft-delete. Version dibagikan secara serial **per tenant** (advisory lock per tenant sampai commit) sehingga urutan version = urutan commit di dalam satu tenant (ADR-009) — cursor device, yang hanya melihat tenant-nya, tidak pernah melompati perubahan.
 - Device apply perubahan dalam satu Dexie transaction per halaman, lalu simpan `next_cursor`.
 - **Initial sync** saat aktivasi: cursor = 0 → tarik semua. Tampilkan progress.
 - Gambar produk tidak ikut payload; SW cache saat pertama kali ditampilkan (opsional: prefetch saat initial sync).
@@ -133,8 +135,8 @@ contoh: JKT01A-260925-0042
 2. **PIN kasir** (offline-capable): server mengirim daftar user outlet + `pin_hash` (PBKDF2-SHA256, salt per user, iterasi tinggi) via pull. Device memverifikasi PIN dengan WebCrypto.
 3. Setiap event yang di-push membawa `cashier_id`; server memverifikasi user tsb memang aktif di outlet itu pada waktu event.
 4. Rate limit lokal: 5 PIN salah → lock 1 menit, lalu berlipat tiap 5 salah berikutnya; state disimpan di IndexedDB (`syncState.pinLockout`) agar reload tidak mereset.
-6. Layar lock: kasir **memilih nama** lalu memasukkan PIN (bukan PIN saja) — cukup satu PBKDF2 per percobaan, dan jejak audit jelas.
-5. Revoke device dari back-office → request berikutnya 401 → device wipe data sensitif (users, token) tapi **outbox tetap dipertahankan** sampai diekspor/di-sync oleh device yang di-aktivasi ulang.
+5. Layar lock: kasir **memilih nama** lalu memasukkan PIN (bukan PIN saja) — cukup satu PBKDF2 per percobaan, dan jejak audit jelas. Layar lock langsung terbuka pada kasir terakhir yang login di device itu (cukup ketik PIN; "Ganti kasir" untuk memilih nama lain), dan daftar nama mengurutkan yang terakhir login lebih dulu — disimpan di `syncState.recentLogins` (maks. 5 user).
+6. Revoke device dari back-office → request berikutnya 401 → device wipe data sensitif (users, token) tapi **outbox tetap dipertahankan** sampai diekspor/di-sync oleh device yang di-aktivasi ulang.
 
 > Trade-off: PIN 4 digit rawan brute-force offline jika device dicuri. Mitigasi: PIN 6 digit untuk manager, hash dengan iterasi tinggi, wipe via revoke, dan PIN hanya membuka aksi di device itu (bukan kredensial API).
 

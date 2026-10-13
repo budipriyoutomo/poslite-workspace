@@ -5,6 +5,7 @@ SHELL := /bin/bash
 API_DIR ?= poslite-api
 WEB_DIR ?= poslite-web
 ADMIN_DIR ?= poslite-admin
+OPERATOR_DIR ?= poslite-operator
 DOCS_DIR ?= poslite-docs
 
 API_PORT ?= 8000
@@ -21,24 +22,26 @@ PSQL_ADMIN ?= psql -h $(DB_HOST) -d postgres -v ON_ERROR_STOP=1 -q
 UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
 ADMIN := pnpm --dir $(ADMIN_DIR)
+OPERATOR := pnpm --dir $(OPERATOR_DIR)
 
 .PHONY: help doctor setup install dev check test fmt dev-admin admin-install admin-test admin-check admin-types admin-e2e \
+	dev-operator operator-install operator-test operator-check operator-types operator-e2e \
 	dev-api worker openapi report-rebuild billing-run platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
-	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie
+	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie repos-remotes repos-push
 
 help: ## Show available targets
 	@awk 'BEGIN { FS = ":.*## " } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } \
 		/^[a-z0-9-]+:.*## / { printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-##@ Workspace (API + web)
+##@ Workspace (API + web + admin + operator)
 
 doctor: ## Check tools, app folders and local PostgreSQL
 	@ok=1; \
 	for tool in uv pnpm psql; do \
 		command -v $$tool >/dev/null && echo "✓ $$tool" || { echo "✗ $$tool not found in PATH"; ok=0; }; \
 	done; \
-	for dir in $(API_DIR) $(WEB_DIR) $(ADMIN_DIR) $(DOCS_DIR); do \
+	for dir in $(API_DIR) $(WEB_DIR) $(ADMIN_DIR) $(OPERATOR_DIR) $(DOCS_DIR); do \
 		test -d $$dir && echo "✓ $$dir" || { echo "✗ $$dir missing"; ok=0; }; \
 	done; \
 	pg_isready -h $(DB_HOST) -q && echo "✓ PostgreSQL on $(DB_HOST):5432" || { echo "✗ PostgreSQL not reachable (brew services start postgresql)"; ok=0; }; \
@@ -47,18 +50,19 @@ doctor: ## Check tools, app folders and local PostgreSQL
 
 setup: doctor install env db-setup migrate ## First-time setup: deps, .env, local DBs, migrations
 
-install: api-install web-install admin-install ## Install deps for API, POS web and back-office
+install: api-install web-install admin-install operator-install ## Install deps for API, POS web, back-office and operator console
 
-dev: ## Run API (:8000), POS web (:3000) and back-office (:3001) together — Ctrl-C stops all
+dev: ## Run API (:8000), POS web (:3000), back-office (:3001) and operator console (:3002) — Ctrl-C stops all
 	@trap 'kill 0' INT TERM; \
 	$(MAKE) --no-print-directory dev-api 2>&1 | awk '{ print "\033[35m[api]\033[0m " $$0; fflush() }' & \
 	$(MAKE) --no-print-directory dev-web 2>&1 | awk '{ print "\033[36m[web]\033[0m " $$0; fflush() }' & \
 	$(MAKE) --no-print-directory dev-admin 2>&1 | awk '{ print "\033[33m[admin]\033[0m " $$0; fflush() }' & \
+	$(MAKE) --no-print-directory dev-operator 2>&1 | awk '{ print "\033[32m[operator]\033[0m " $$0; fflush() }' & \
 	wait
 
-check: api-check web-check admin-check ## Everything required before a commit (all apps)
+check: api-check web-check admin-check operator-check ## Everything required before a commit (all apps)
 
-test: api-test web-test admin-test ## Run tests for all apps
+test: api-test web-test admin-test operator-test ## Run tests for all apps
 
 fmt: api-fmt ## Auto-fix lint and format
 
@@ -188,3 +192,46 @@ admin-e2e: ## Back-office e2e vs the real API (fresh poslite_e2e_admin DB; macOS
 
 admin-types: openapi ## Regenerate the back-office API types from poslite-api/openapi.json
 	$(ADMIN) api:types
+
+##@ Operator console (poslite-operator)
+
+dev-operator: ## Run only the SaaS operator console dev server (:3002)
+	$(OPERATOR) dev
+
+operator-install: ## Install operator console deps (pnpm)
+	$(OPERATOR) install
+
+operator-test: ## Operator console unit/component tests
+	$(OPERATOR) test
+
+operator-check: ## Operator console typecheck, lint, tests
+	$(OPERATOR) typecheck
+	$(OPERATOR) lint
+	$(OPERATOR) test
+
+operator-e2e: ## Operator console e2e vs the real API (fresh poslite_e2e_operator DB; macOS 13: PW_CHANNEL=chrome)
+	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_E2E_NAME)_operator WITH (FORCE)" -c "CREATE DATABASE $(DB_E2E_NAME)_operator OWNER $(DB_USER)"
+	PW_CHANNEL=$(PW_CHANNEL) $(OPERATOR) e2e
+
+operator-types: openapi ## Regenerate the operator console API types from poslite-api/openapi.json
+	$(OPERATOR) api:types
+
+##@ Publishing (one GitHub repo per app)
+
+# The monorepo stays the source of truth; each app folder (with its history) is mirrored to its own
+# repo with `git subtree split`. poslite-docs, deploy/ and this Makefile live only in the monorepo.
+GITHUB_OWNER ?= budipriyoutomo
+APPS ?= poslite-api poslite-web poslite-admin poslite-operator
+
+repos-remotes: ## Add a git remote per app repo on GitHub (GITHUB_OWNER), once
+	@for app in $(APPS); do \
+		git remote get-url $$app >/dev/null 2>&1 || git remote add $$app https://github.com/$(GITHUB_OWNER)/$$app.git; \
+		echo "✓ $$app → $$(git remote get-url $$app)"; \
+	done
+
+repos-push: repos-remotes ## Mirror each app folder's committed history to its own repo (main); commit first
+	@test -z "$$(git status --porcelain -- $(APPS))" || { echo "✗ Uncommitted changes in an app folder; commit first"; exit 1; }
+	@for app in $(APPS); do \
+		echo "→ $$app"; \
+		git subtree split --prefix=$$app -b split/$$app >/dev/null && git push $$app split/$$app:main || exit 1; \
+	done

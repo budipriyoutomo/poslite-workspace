@@ -1,0 +1,34 @@
+name: Operator
+
+on:
+  push:
+    branches: [main]
+    paths: [poslite-operator/**, poslite-api/openapi.json, .github/workflows/operator.yml]
+  pull_request:
+    paths: [poslite-operator/**, poslite-api/openapi.json, .github/workflows/operator.yml]
+
+defaults:
+  run:
+    working-directory: poslite-operator
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: poslite-operator/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: poslite-operator/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: API types match poslite-api/openapi.json
+        run: pnpm api:types && git diff --exit-code src/shared/api/schema.d.ts
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+

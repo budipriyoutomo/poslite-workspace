@@ -1,0 +1,13 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# Certificates come from Let's Encrypt; the DNS A record of API_DOMAIN must point at this VPS.
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy api:8000
+	request_body {
+		max_size 20MB # product images and emergency device exports
+	}
+	header -Server
+}

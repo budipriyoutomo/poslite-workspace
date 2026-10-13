@@ -27,7 +27,7 @@
 2. `change_amount = sum(cash payments) - (total - non-cash payments)`, ≥ 0. Non-cash tidak boleh melebihi sisa tagihan (tidak ada kembalian non-cash).
 3. Order `paid` **immutable**. Koreksi hanya lewat void (butuh permission `order.void` + alasan).
 4. Void hanya diperbolehkan pada business date yang sama & shift yang masih terbuka (konfigurasi); setelah itu → refund (fase lanjut).
-5. Diskon persen = integer 0..100; diskon nominal = integer Rupiah. Diskon tidak boleh membuat subtotal < 0. Diskon di atas batas role (mis. > 20% untuk kasir) butuh approval PIN manager.
+5. Diskon persen = integer 0..100; diskon nominal = integer Rupiah. Diskon tidak boleh membuat subtotal < 0. **Diskon manual** (diskon baris tanpa promo + diskon order) di atas batas kasir **brand** — persen > `cashier_max_discount_percentage` atau total Rupiah per order > `cashier_max_discount_amount` (default 20% / Rp 50.000) — butuh approval PIN manager/owner di device; `order.placed` membawa `discount_approved_by`. Manajer/owner (permission `discount.override`) tidak butuh approval. Promo otomatis tidak dihitung. Server tidak menolak: tanpa approval yang sah → flag `DISCOUNT_UNAPPROVED`. Aturan dikunci fixture bersama `discount-approval-cases.json`. Preset pilihan diskon dan boleh-tidaknya nilai bebas juga diatur per brand.
 6. Qty > 0, integer (MVP; qty desimal untuk produk timbang = fase lanjut).
 7. Total dihitung dengan tarif **snapshot** yang disimpan di order (`service_rate_bps`, `tax_rate_bps`), memakai `divRoundHalfUp` / `div_round_half_up` (ADR-005, ADR-011).
 8. Diskon **per baris**: paling banyak satu per baris (manual atau promo). `line_gross = (unit_price + modifiers_total) × qty`; persen → `divRoundHalfUp(line_gross × pct, 100)`, nominal → `min(value, line_gross)`.
@@ -37,7 +37,8 @@
 1. `percent_off`: `percentage` 1..100 untuk baris yang masuk cakupan. `buy_x_get_y`: per baris, `gratis = floor(qty / (x + y)) × y` unit → diskon nominal `gratis × (unit_price + modifiers_total)`; wajib punya cakupan produk/kategori.
 2. Cakupan: `product_ids` ∪ `category_ids` (keduanya kosong = semua produk, hanya untuk `percent_off`); `outlet_ids` kosong = semua outlet.
 3. Jadwal (zona waktu outlet, saat bayar): `starts_on`/`ends_on` (tanggal, opsional), `days_of_week` (1 = Senin … 7 = Minggu, kosong = setiap hari), `start_time`/`end_time` (HH:MM, opsional, `end` eksklusif; `end < start` = melewati tengah malam dan bagian setelah tengah malam dihitung ke hari mulainya, mis. "Jumat 22:00–02:00" masih berlaku Sabtu 01:00).
-4. Satu baris hanya satu diskon: diskon manual menggantikan promo; di antara promo yang berlaku dipilih diskon terbesar (seri → `id` terkecil).
+4. Satu baris hanya satu diskon: diskon manual menggantikan promo; di antara promo yang dipilih dipilih diskon terbesar (seri → `id` terkecil).
+5. Promo tidak otomatis: layar bayar menampilkan promo yang berjalan dan memotong minimal satu baris (urut hemat terbesar); promo hanya berlaku bila kasir memilihnya, lalu dicek ulang jadwalnya saat order dibuat.
 
 **Open Bill & Split (ADR-015)**
 1. Hanya dine-in; satu open bill per meja. Bill hidup di tablet pembuka dan tidak disinkronkan.
@@ -103,12 +104,25 @@ devices          id, outlet_id, code (A, B, …; unik per outlet), name, platfor
                  last_seen_at, activated_by, revoked_at, timestamps
 users            id, name, email (unik global, nullable untuk kasir), password_hash (argon2, nullable), pin_hash, pin_salt,
                  pin_iterations, is_active, version, timestamps, deleted_at
-outlet_user      outlet_id, user_id, role_id                               -- PK (outlet_id, user_id); ubah → touch users.version
+brands           id, code (unik per tenant), name, logo_key, receipt_header, receipt_footer, is_active,
+                 discount_percentages[], discount_amounts[], allow_custom_discount,
+                 cashier_max_discount_percentage, cashier_max_discount_amount   -- migrasi 0020
+                 version, timestamps, deleted_at           -- ubah → touch outlets.version (ADR-022)
+user_assignments id, user_id, role_id, scope_type (company|brand|outlet), brand_id, outlet_id
+                 -- CHECK owner hanya company, cashier bukan company; FK (outlet_id, brand_id) → outlets;
+                 -- ubah → touch users.version (menggantikan outlet_user, migrasi 0016)
+device_imports   id, device_id, imported_by, file_sha256, accepted, duplicate, flagged,
+                 rejected (jsonb [{id, code}]), created_at   -- audit import darurat (ADR-024)
 roles            id, name (owner|manager|cashier)
 permissions      id, name (mis. order.void, discount.override, shift.close, cash.move)
 role_permissions role_id, permission_id                                    -- PK (role_id, permission_id)
 api_tokens       id, owner_type (device|user|platform_admin), owner_id, token_hash (sha256, unik), abilities (text[]),
                  last_used_at, expires_at (nullable untuk device), revoked_at, created_at
+platform_admins  id, email (unik lower()), name, password_hash (argon2), disabled_at, created_at
+                 -- global, tanpa RLS, hanya poslite_system (migrasi 0008; disabled_at 0021)
+platform_tokens  id, admin_id, token_hash (sha256, unik), expires_at, revoked_at, created_at
+platform_audit_log id, admin_id, action, tenant_id (nullable, referensi), target_id, detail (jsonb), created_at
+                 -- global, append-only (poslite_system hanya SELECT/INSERT), INDEX (tenant_id, created_at) — ADR-025
 audit_logs       id, actor_type, actor_id, action, entity_type, entity_id, before (jsonb), after (jsonb),
                  device_id (nullable), created_at                           -- INDEX (entity_type, entity_id)
 ```
@@ -154,13 +168,25 @@ order_lines      id, order_id, product_id, product_name (snapshot), category_nam
 order_line_modifiers  id, order_line_id, modifier_option_id, name (snapshot), price (snapshot)
 payments         id, order_id, payment_method_id, method_type (snapshot), method_name (snapshot),
                  amount, reference (no. approval EDC / ref QRIS), created_at
-order_voids      id, order_id (unik), reason, voided_by, approved_by, voided_at
+order_voids      order_id (PK), device_id, reason, voided_by, approved_by, voided_at   -- ADR-023
+refunds          id (ulid dari device), outlet_id, brand_id (trigger dari outlet), device_id, shift_id,
+                 order_id, refund_no (unik per outlet), business_date (hari refund), reason,
+                 refunded_by, approved_by, total, flags[], created_at, synced_at
+refund_lines     id, refund_id, order_line_id, product_id, product_name (snapshot), quantity, amount
+refund_payments  id, refund_id, payment_method_id, method_type, method_name, amount, reference
 ```
+
+Semua tabel transaksi (`shifts`, `orders`, `refunds`, `rpt_*`) punya `brand_id` yang diisi trigger
+`fill_brand_from_outlet()` dari outlet — server, bukan payload, yang menentukan brand (ADR-022).
+Kategori, produk, grup pilihan, dan promo punya `brand_id` dari back-office (`X-Brand-Id`); outlet
+punya `brand_id` tetap (tidak bisa pindah brand). Metode bayar tetap tingkat perusahaan; outlet yang
+memakainya ada di `outlet_payment_method (outlet_id, payment_method_id)` (ubah → touch
+`payment_methods.version`).
 
 ### Sync
 
 ```
-sync_events      id (ulid event dari device, PK), device_id, type, aggregate_id,
+sync_events      id (ulid event dari device), device_id, type, aggregate_id,   -- PK (tenant_id, id), migrasi 0006
                  status (accepted|flagged|rejected), error_code, payload (jsonb), attempts,
                  received_at, processed_at
                  INDEX (device_id, received_at)           -- rejected boleh diproses ulang

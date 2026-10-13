@@ -289,7 +289,7 @@ CREATE TRIGGER trg_products_sync_version BEFORE INSERT OR UPDATE ON products
 ```
 
 - Soft delete = UPDATE `deleted_at` → version ikut naik → dikirim sebagai `op: "delete"`.
-- **Tabel relasi tanpa cursor sendiri** (`product_modifier_group`, `outlet_user`, `outlet_payment_method`): perubahan di tabel ini wajib men-*touch* baris induknya (product / user / payment_method) dalam transaksi yang sama, supaya induk ikut terkirim ulang dengan data relasi terbaru.
+- **Tabel relasi tanpa cursor sendiri** (`product_modifier_group`, `user_assignments`, `outlet_payment_method`): perubahan di tabel ini wajib men-*touch* baris induknya (product / user / payment_method) dalam transaksi yang sama, supaya induk ikut terkirim ulang dengan data relasi terbaru.
 - Transaksi back-office harus pendek (lock per tenant dipegang sampai commit). Import massal dipecah per batch ±500 baris.
 - `PullChangesHandler` meng-query tiap entity master `WHERE <outlet scope> AND version > :cursor ORDER BY version LIMIT :n`, merge, sort, potong ke `:n`, return `next_cursor` = version terakhir yang dikirim.
 
@@ -339,7 +339,8 @@ Aturan:
 
 - Token = random 32 byte (`secrets.token_urlsafe`), disimpan **hash SHA-256** di tabel `api_tokens` (id, tenant_id, owner_type, owner_id, abilities, last_used_at, expires_at, revoked_at). Lookup token terjadi sebelum tenant diketahui → dilakukan oleh `poslite_system` lewat satu query sempit, lalu tenant context di-set. Opaque dipilih ketimbang JWT karena harus bisa **revoke instan** per device.
 - Dependency FastAPI: `current_device = Depends(require_ability("device:sync"))`.
-- RBAC sederhana: tabel `roles`, `permissions`, `role_permissions`, `outlet_user(role)`. Permission sensitif: `order.void`, `discount.override`, `shift.close`, `cash.move`.
+- RBAC sederhana: tabel `roles`, `permissions`, `role_permissions`, `user_assignments` (role × scope perusahaan/brand/outlet, ADR-022). Permission sensitif: `order.void`, `order.refund`, `discount.override`, `shift.close`, `cash.move`, `sync.import`.
+- **Akses brand/outlet di back-office** (ADR-022): dependency `identity.Access` menghitung `AccessScope` dari assignment owner/manager; `ReadBrand`/`ManagedBrand` memvalidasi `X-Brand-Id`, `ensure_outlet` memvalidasi outlet, `company_only` untuk halaman perusahaan. Setiap endpoint back-office baru wajib memakainya dan punya test matriks akses (`tests/e2e/organization/test_brand_access.py`).
 - Middleware: catat `last_seen_at` & `app_version` device; tolak `X-App-Version` di bawah minimum (426).
 - Rate limit: Redis (mis. `fastapi-limiter` atau middleware sendiri) — ketat di `/auth/*`, per device di `/sync/*`.
 - Audit: tabel `audit_logs` (actor, action, entity, before/after JSON) untuk perubahan harga, user, device.
