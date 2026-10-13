@@ -1,7 +1,7 @@
 # AGENTS.md — poslite-admin
 
 Back-office web for POSLite owners/managers (menu, prices, users, outlets & devices, sales
-reports) and the SaaS operator console (`/platform`). **Online-only**: it talks to `poslite-api`
+reports). The SaaS operator console is a separate app: `../poslite-operator`. **Online-only**: it talks to `poslite-api`
 directly; no offline storage, no service worker.
 
 Architecture docs: `../poslite-docs/` (01 system & ADR-014, 07 API contract, 08 roadmap).

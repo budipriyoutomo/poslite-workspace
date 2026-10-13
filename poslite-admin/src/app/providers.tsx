@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { API_ORIGIN } from "@/config/env";
 import { useSessionStore } from "@/features/auth";
@@ -21,7 +21,21 @@ export function Providers({ children }: { children: ReactNode }) {
         defaultOptions: { queries: { staleTime: 30_000, retry: 1 }, mutations: { onError: signOutOnUnauthorized } },
       }),
   );
-  const [api] = useState(() => createApi({ origin: API_ORIGIN, getToken: () => useSessionStore.getState().session?.token ?? null }));
+  // Another user (or none) must never see the previous user's cached data, e.g. their brands.
+  useEffect(
+    () =>
+      useSessionStore.subscribe((state, previous) => {
+        if (state.session?.token !== previous.session?.token) queryClient.clear();
+      }),
+    [queryClient],
+  );
+  const [api] = useState(() =>
+    createApi({
+      origin: API_ORIGIN,
+      getToken: () => useSessionStore.getState().session?.token ?? null,
+      getBrandId: () => useSessionStore.getState().session?.brandId ?? null,
+    }),
+  );
   return (
     <QueryClientProvider client={queryClient}>
       <ApiProvider api={api}>

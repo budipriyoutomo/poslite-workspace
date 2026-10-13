@@ -13,7 +13,7 @@ const ROWS = [
 
 function server() {
   return renderWithApi(<PricesScreen />, ({ method, path, body }) => {
-    if (path === "/api/v1/outlets") return envelope([OUTLET]);
+    if (path.startsWith("/api/v1/outlets?brand_id=")) return envelope([OUTLET]);
     if (method === "GET" && path === `/api/v1/outlets/${OUTLET.id}/products`) return envelope(ROWS);
     if (method === "PUT" && path.startsWith(`/api/v1/outlets/${OUTLET.id}/products/`)) return envelope({ ...ROWS[0], ...(body as object) });
     return undefined;

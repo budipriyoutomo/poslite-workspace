@@ -1,0 +1,42 @@
+# CI for the standalone poslite-admin repository (published from the poslite-workspace monorepo with
+# `make repos-push`). In the monorepo this file is inert; the root .github/workflows/admin.yml runs there.
+name: Admin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: poslite-admin
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # Sibling layout as in the workspace: `pnpm api:types` reads ../poslite-api/openapi.json.
+      - uses: actions/checkout@v4
+        with:
+          path: poslite-admin
+      - uses: actions/checkout@v4
+        with:
+          repository: budipriyoutomo/poslite-api
+          path: poslite-api
+          sparse-checkout: openapi.json
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: poslite-admin/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: poslite-admin/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: API types match poslite-api/openapi.json
+        run: pnpm api:types && git diff --exit-code src/shared/api/schema.d.ts
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build

@@ -58,6 +58,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Brands */
+        get: operations["brands_api_v1_brands_get"];
+        put?: never;
+        /** Add Brand */
+        post: operations["add_brand_api_v1_brands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/brands/{brand_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit Brand */
+        put: operations["edit_brand_api_v1_brands__brand_id__put"];
+        post?: never;
+        /**
+         * Remove Brand
+         * @description Only a brand without live outlets: its orders and reports keep pointing at it.
+         */
+        delete: operations["remove_brand_api_v1_brands__brand_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -189,6 +228,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Device Imports */
+        get: operations["device_imports_api_v1_imports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/device-export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Device Export
+         * @description A manager of the outlet pushes a device's export file for it (ADR-024). The file goes
+         *     through the normal push path, so importing it twice changes nothing.
+         */
+        post: operations["import_device_export_api_v1_imports_device_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Access
+         * @description The brands and outlets this user may pick in the back-office (ADR-022).
+         */
+        get: operations["my_access_api_v1_me_access_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/media/images": {
         parameters: {
             query?: never;
@@ -265,6 +362,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lookup Order
+         * @description A device finds an order of its own outlet (any device) to refund it while online.
+         */
+        get: operations["lookup_order_api_v1_orders_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Order */
+        get: operations["get_order_api_v1_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/outlets": {
         parameters: {
             query?: never;
@@ -272,7 +406,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Outlets */
+        /**
+         * Outlets
+         * @description Outlets in the user's scope, optionally of one brand.
+         */
         get: operations["outlets_api_v1_outlets_get"];
         put?: never;
         /** Add Outlet */
@@ -412,6 +549,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payment-methods/{method_id}/outlets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Payment Method Outlets
+         * @description Where the method is taken (doc 11 §3); devices of other outlets drop it on their pull.
+         */
+        put: operations["set_payment_method_outlets_api_v1_payment_methods__method_id__outlets_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payments/qris": {
         parameters: {
             query?: never;
@@ -452,6 +609,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit Log */
+        get: operations["audit_log_api_v1_platform_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/auth/login": {
         parameters: {
             query?: never;
@@ -469,6 +643,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/invoices/{invoice_id}/mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Invoice Paid
+         * @description Payment received outside the gateway (e.g. bank transfer); same effect as the webhook.
+         */
+        post: operations["mark_invoice_paid_api_v1_platform_invoices__invoice_id__mark_paid_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v1_platform_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operators */
+        get: operations["operators_api_v1_platform_operators_get"];
+        put?: never;
+        /** Create Operator */
+        post: operations["create_operator_api_v1_platform_operators_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/operators/{operator_id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable Operator
+         * @description The operator is signed out everywhere and cannot sign in until enabled again.
+         */
+        post: operations["disable_operator_api_v1_platform_operators__operator_id__disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/operators/{operator_id}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable Operator */
+        post: operations["enable_operator_api_v1_platform_operators__operator_id__enable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Summary */
+        get: operations["summary_api_v1_platform_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/tenants": {
         parameters: {
             query?: never;
@@ -476,8 +759,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Tenants */
-        get: operations["tenants_api_v1_platform_tenants_get"];
+        /** Tenant List */
+        get: operations["tenant_list_api_v1_platform_tenants_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tenant Detail */
+        get: operations["tenant_detail_api_v1_platform_tenants__tenant_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -495,8 +795,28 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Activate */
+        /**
+         * Activate
+         * @description Lifts any suspension, a billing one included.
+         */
         post: operations["activate_api_v1_platform_tenants__tenant_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/extend-trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extend Trial */
+        post: operations["extend_trial_api_v1_platform_tenants__tenant_id__extend_trial_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -517,6 +837,82 @@ export interface paths {
          * @description Back-office writes stop; devices keep pushing sales (05 "Multi-tenancy").
          */
         post: operations["suspend_api_v1_platform_tenants__tenant_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate User */
+        post: operations["activate_user_api_v1_platform_tenants__tenant_id__users__user_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deactivate User
+         * @description Signs the user out; the company's last active owner stays (LAST_OWNER).
+         */
+        post: operations["deactivate_user_api_v1_platform_tenants__tenant_id__users__user_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/tenants/{tenant_id}/users/{user_id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Password
+         * @description A temporary password, shown to the operator once; every session of the user ends.
+         *
+         *     Runs in the tenant's own transaction (RLS): a user of another tenant is not found.
+         */
+        post: operations["reset_password_api_v1_platform_tenants__tenant_id__users__user_id__reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Search */
+        get: operations["user_search_api_v1_platform_users_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -598,6 +994,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refunds
+         * @description Refunds paid out at an outlet on a business day (they count on that day, ADR-023).
+         */
+        get: operations["refunds_api_v1_refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/refunds/{refund_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Refund */
+        get: operations["get_refund_api_v1_refunds__refund_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/sales-summary": {
         parameters: {
             query?: never;
@@ -605,7 +1038,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Sales Summary */
+        /**
+         * Get Sales Summary
+         * @description No filter = every outlet in the user's scope; `brand_id` / `outlet_id` narrow it.
+         */
         get: operations["get_sales_summary_api_v1_reports_sales_summary_get"];
         put?: never;
         post?: never;
@@ -701,7 +1137,8 @@ export interface paths {
         put?: never;
         /**
          * Signup
-         * @description New SaaS customer: tenant, owner and first outlet in one transaction, plus a token.
+         * @description New SaaS customer: company, owner, first brand and first outlet in one transaction, plus a
+         *     token (ADR-022).
          */
         post: operations["signup_api_v1_tenants_signup_post"];
         delete?: never;
@@ -744,6 +1181,27 @@ export interface paths {
         post?: never;
         /** Remove */
         delete: operations["remove_api_v1_users__user_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{user_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Assignments */
+        get: operations["assignments_api_v1_users__user_id__assignments_get"];
+        /**
+         * Set Assignments
+         * @description Replace every role of a user (ADR-022); the company keeps at least one owner.
+         */
+        put: operations["set_assignments_api_v1_users__user_id__assignments_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -842,6 +1300,53 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccessBrand */
+        AccessBrand: {
+            /** Code */
+            code: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Outlets */
+            outlets: components["schemas"]["AccessOutlet"][];
+            /**
+             * Role
+             * @description Role over the whole brand; null = access to some of its outlets only
+             */
+            role: ("owner" | "manager" | "cashier") | null;
+        };
+        /** AccessOutlet */
+        AccessOutlet: {
+            /** Code */
+            code: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "manager" | "cashier";
+        };
+        /** AccessTenant */
+        AccessTenant: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+        };
+        /** AccessTree */
+        AccessTree: {
+            /** Brands */
+            brands: components["schemas"]["AccessBrand"][];
+            /** Company Scope */
+            company_scope: boolean;
+            tenant: components["schemas"]["AccessTenant"];
+        };
         /** ActivateRequest */
         ActivateRequest: {
             /** Device Name */
@@ -869,6 +1374,22 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** ApiResponse[AccessTree] */
+        ApiResponse_AccessTree_: {
+            data: components["schemas"]["AccessTree"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[ActivationResult] */
         ApiResponse_ActivationResult_: {
             data: components["schemas"]["ActivationResult"];
@@ -888,6 +1409,22 @@ export interface components {
         /** ApiResponse[AuthResult] */
         ApiResponse_AuthResult_: {
             data: components["schemas"]["AuthResult"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[BrandOut] */
+        ApiResponse_BrandOut_: {
+            data: components["schemas"]["BrandOut"];
             /**
              * Message
              * @default OK
@@ -949,9 +1486,41 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[ExtendTrialOut] */
+        ApiResponse_ExtendTrialOut_: {
+            data: components["schemas"]["ExtendTrialOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[ImageOut] */
         ApiResponse_ImageOut_: {
             data: components["schemas"]["ImageOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[ImportOut] */
+        ApiResponse_ImportOut_: {
+            data: components["schemas"]["ImportOut"];
             /**
              * Message
              * @default OK
@@ -1014,6 +1583,38 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[OperatorOut] */
+        ApiResponse_OperatorOut_: {
+            data: components["schemas"]["OperatorOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[OrderDetailOut] */
+        ApiResponse_OrderDetailOut_: {
+            data: components["schemas"]["OrderDetailOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[OutletOut] */
         ApiResponse_OutletOut_: {
             data: components["schemas"]["OutletOut"];
@@ -1049,6 +1650,22 @@ export interface components {
         /** ApiResponse[OutletSettingsOut] */
         ApiResponse_OutletSettingsOut_: {
             data: components["schemas"]["OutletSettingsOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[PasswordResetOut] */
+        ApiResponse_PasswordResetOut_: {
+            data: components["schemas"]["PasswordResetOut"];
             /**
              * Message
              * @default OK
@@ -1158,6 +1775,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[RefundDetailOut] */
+        ApiResponse_RefundDetailOut_: {
+            data: components["schemas"]["RefundDetailOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[SalesSummaryOut] */
         ApiResponse_SalesSummaryOut_: {
             data: components["schemas"]["SalesSummaryOut"];
@@ -1174,9 +1807,41 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[SummaryOut] */
+        ApiResponse_SummaryOut_: {
+            data: components["schemas"]["SummaryOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[TableOut] */
         ApiResponse_TableOut_: {
             data: components["schemas"]["TableOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[TenantDetailOut] */
+        ApiResponse_TenantDetailOut_: {
+            data: components["schemas"]["TenantDetailOut"];
             /**
              * Message
              * @default OK
@@ -1228,6 +1893,57 @@ export interface components {
             data: {
                 [key: string]: boolean;
             };
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[AssignmentOut]] */
+        ApiResponse_list_AssignmentOut__: {
+            /** Data */
+            data: components["schemas"]["AssignmentOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[AuditEntryOut]] */
+        ApiResponse_list_AuditEntryOut__: {
+            /** Data */
+            data: components["schemas"]["AuditEntryOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[BrandOut]] */
+        ApiResponse_list_BrandOut__: {
+            /** Data */
+            data: components["schemas"]["BrandOut"][];
             /**
              * Message
              * @default OK
@@ -1309,10 +2025,44 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[ImportOut]] */
+        ApiResponse_list_ImportOut__: {
+            /** Data */
+            data: components["schemas"]["ImportOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[ModifierGroupOut]] */
         ApiResponse_list_ModifierGroupOut__: {
             /** Data */
             data: components["schemas"]["ModifierGroupOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[OperatorOut]] */
+        ApiResponse_list_OperatorOut__: {
+            /** Data */
+            data: components["schemas"]["OperatorOut"][];
             /**
              * Message
              * @default OK
@@ -1428,6 +2178,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[RefundOut]] */
+        ApiResponse_list_RefundOut__: {
+            /** Data */
+            data: components["schemas"]["RefundOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[TableOut]] */
         ApiResponse_list_TableOut__: {
             /** Data */
@@ -1445,10 +2212,27 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /** ApiResponse[list[TenantOut]] */
-        ApiResponse_list_TenantOut__: {
+        /** ApiResponse[list[TenantListItem]] */
+        ApiResponse_list_TenantListItem__: {
             /** Data */
-            data: components["schemas"]["poslite__platform_admin__presentation__router__TenantOut"][];
+            data: components["schemas"]["TenantListItem"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[UserHitOut]] */
+        ApiResponse_list_UserHitOut__: {
+            /** Data */
+            data: components["schemas"]["UserHitOut"][];
             /**
              * Message
              * @default OK
@@ -1479,6 +2263,74 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * AssignmentIn
+         * @description `brand_id` of an outlet scope may be left out: it is the outlet's brand.
+         */
+        AssignmentIn: {
+            /** Brand Id */
+            brand_id?: string | null;
+            /** Outlet Id */
+            outlet_id?: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "manager" | "cashier";
+            /**
+             * Scope Type
+             * @enum {string}
+             */
+            scope_type: "company" | "brand" | "outlet";
+        };
+        /** AssignmentOut */
+        AssignmentOut: {
+            /** Brand Id */
+            brand_id: string | null;
+            /** Outlet Id */
+            outlet_id: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "manager" | "cashier";
+            /**
+             * Scope Type
+             * @enum {string}
+             */
+            scope_type: "company" | "brand" | "outlet";
+        };
+        /** AssignmentsIn */
+        AssignmentsIn: {
+            /** Assignments */
+            assignments: components["schemas"]["AssignmentIn"][];
+        };
+        /** AuditEntryOut */
+        AuditEntryOut: {
+            /** Action */
+            action: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Detail */
+            detail: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            /** Operator Id */
+            operator_id: string;
+            /** Operator Name */
+            operator_name: string;
+            /** Target Id */
+            target_id: string | null;
+            /** Tenant Id */
+            tenant_id: string | null;
+            /** Tenant Name */
+            tenant_name: string | null;
+        };
         /** AuthResult */
         AuthResult: {
             /**
@@ -1486,10 +2338,74 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
-            tenant: components["schemas"]["poslite__identity__presentation__schemas__TenantOut"];
+            tenant: components["schemas"]["TenantOut"];
             /** Token */
             token: string;
             user: components["schemas"]["poslite__identity__presentation__schemas__UserOut"];
+        };
+        /** BrandIn */
+        BrandIn: {
+            /** Code */
+            code: string;
+            /**
+             * @default {
+             *       "allow_custom": true,
+             *       "amounts": [
+             *         5000,
+             *         10000,
+             *         25000,
+             *         50000
+             *       ],
+             *       "cashier_max_amount": 50000,
+             *       "cashier_max_percentage": 20,
+             *       "percentages": [
+             *         5,
+             *         10,
+             *         15,
+             *         20
+             *       ]
+             *     }
+             */
+            discount: components["schemas"]["DiscountPolicyIn"];
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Logo Key */
+            logo_key?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Receipt Footer
+             * @default
+             */
+            receipt_footer: string;
+            /**
+             * Receipt Header
+             * @default
+             */
+            receipt_header: string;
+        };
+        /** BrandOut */
+        BrandOut: {
+            /** Code */
+            code: string;
+            discount: components["schemas"]["DiscountPolicyIn"];
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Logo Key */
+            logo_key: string | null;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Name */
+            name: string;
+            /** Receipt Footer */
+            receipt_footer: string;
+            /** Receipt Header */
+            receipt_header: string;
         };
         /** CashierSales */
         CashierSales: {
@@ -1575,6 +2491,8 @@ export interface components {
         };
         /** CreatedEndpointOut */
         CreatedEndpointOut: {
+            /** Brand Ids */
+            brand_ids: string[];
             /** Event Types */
             event_types: string[];
             /** Id */
@@ -1601,6 +2519,10 @@ export interface components {
             net: number;
             /** Order Count */
             order_count: number;
+            /** Refund Amount */
+            refund_amount: number;
+            /** Refund Count */
+            refund_count: number;
             /** Service */
             service: number;
             /** Tax */
@@ -1671,10 +2593,57 @@ export interface components {
             name: string;
             outlet: components["schemas"]["OutletOut"];
         };
+        /**
+         * DiscountPolicyIn
+         * @description Manual-discount rules of a brand (06 Order rule 5).
+         */
+        DiscountPolicyIn: {
+            /**
+             * Allow Custom
+             * @default true
+             */
+            allow_custom: boolean;
+            /**
+             * Amounts
+             * @default [
+             *       5000,
+             *       10000,
+             *       25000,
+             *       50000
+             *     ]
+             */
+            amounts: number[];
+            /**
+             * Cashier Max Amount
+             * @default 50000
+             */
+            cashier_max_amount: number;
+            /**
+             * Cashier Max Percentage
+             * @default 20
+             */
+            cashier_max_percentage: number;
+            /**
+             * Percentages
+             * @default [
+             *       5,
+             *       10,
+             *       15,
+             *       20
+             *     ]
+             */
+            percentages: number[];
+        };
         /** EndpointIn */
         EndpointIn: {
+            /**
+             * Brand Ids
+             * @description Only these brands; empty = all
+             * @default []
+             */
+            brand_ids: string[];
             /** Event Types */
-            event_types: ("order.placed" | "shift.closed")[];
+            event_types: ("order.placed" | "shift.closed" | "order.voided" | "order.refunded")[];
             /**
              * Url
              * Format: uri
@@ -1683,6 +2652,8 @@ export interface components {
         };
         /** EndpointOut */
         EndpointOut: {
+            /** Brand Ids */
+            brand_ids: string[];
             /** Event Types */
             event_types: string[];
             /** Id */
@@ -1708,6 +2679,19 @@ export interface components {
              */
             status: "accepted" | "flagged" | "rejected" | "duplicate";
         };
+        /** ExtendTrialIn */
+        ExtendTrialIn: {
+            /** Days */
+            days: number;
+        };
+        /** ExtendTrialOut */
+        ExtendTrialOut: {
+            /**
+             * Trial Ends At
+             * Format: date-time
+             */
+            trial_ends_at: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1719,6 +2703,23 @@ export interface components {
             key: string;
             /** Url */
             url: string;
+        };
+        /** ImportOut */
+        ImportOut: {
+            /** Accepted */
+            accepted: number;
+            /** Created At */
+            created_at?: string | null;
+            /** Device Id */
+            device_id: string;
+            /** Duplicate */
+            duplicate: number;
+            /** Flagged */
+            flagged: number;
+            /** Import Id */
+            import_id: string;
+            /** Rejected */
+            rejected: components["schemas"]["RejectedEventOut"][];
         };
         /** IncomingEvent */
         IncomingEvent: {
@@ -1794,6 +2795,11 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MethodOutletsIn */
+        MethodOutletsIn: {
+            /** Outlet Ids */
+            outlet_ids: string[];
+        };
         /** ModifierGroupIn */
         ModifierGroupIn: {
             /**
@@ -1824,6 +2830,15 @@ export interface components {
             /** Options */
             options: components["schemas"]["OptionOut"][];
         };
+        /** ModifierOut */
+        ModifierOut: {
+            /** Modifier Option Id */
+            modifier_option_id: string;
+            /** Name */
+            name: string;
+            /** Price */
+            price: number;
+        };
         /** NewOutlet */
         NewOutlet: {
             /** Code */
@@ -1838,6 +2853,8 @@ export interface components {
         };
         /** NewOutletIn */
         NewOutletIn: {
+            /** Brand Id */
+            brand_id: string;
             /** Code */
             code: string;
             /** Name */
@@ -1847,6 +2864,58 @@ export interface components {
              * @default Asia/Jakarta
              */
             timezone: string;
+        };
+        /**
+         * NewPaymentMethodIn
+         * @description Without `outlet_ids` the method is switched on at every outlet.
+         */
+        NewPaymentMethodIn: {
+            /** Logo Url */
+            logo_url?: string | null;
+            /** Name */
+            name: string;
+            /** Outlet Ids */
+            outlet_ids?: string[] | null;
+            /**
+             * Requires Reference
+             * @default false
+             */
+            requires_reference: boolean;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "cash" | "debit" | "qris" | "credit_card" | "voucher" | "other";
+        };
+        /** OperatorIn */
+        OperatorIn: {
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password: string;
+        };
+        /** OperatorOut */
+        OperatorOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Disabled At */
+            disabled_at: string | null;
+            /** Email */
+            email: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** OptionIn */
         OptionIn: {
@@ -1868,6 +2937,87 @@ export interface components {
             name: string;
             /** Price */
             price: number;
+        };
+        /** OrderDetailOut */
+        OrderDetailOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Cashier Id */
+            cashier_id: string;
+            /** Change Amount */
+            change_amount: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device Id */
+            device_id: string;
+            /** Discount Amount */
+            discount_amount: number;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["OrderLineOut"][];
+            /** Order Type */
+            order_type: string;
+            /** Outlet Id */
+            outlet_id: string;
+            /** Paid Amount */
+            paid_amount: number;
+            /** Payments */
+            payments: components["schemas"]["OrderPaymentOut"][];
+            /** Receipt No */
+            receipt_no: string;
+            /** Refunds */
+            refunds: components["schemas"]["RefundRef"][];
+            /** Service Charge */
+            service_charge: number;
+            /** Shift Id */
+            shift_id: string;
+            /** Status */
+            status: string;
+            /** Subtotal */
+            subtotal: number;
+            /** Table Label */
+            table_label: string | null;
+            /** Tax */
+            tax: number;
+            /** Total */
+            total: number;
+            void: components["schemas"]["VoidOut"] | null;
+        };
+        /** OrderLineOut */
+        OrderLineOut: {
+            /** Category Name */
+            category_name: string;
+            /** Discount Amount */
+            discount_amount: number;
+            /** Id */
+            id: string;
+            /** Line Total */
+            line_total: number;
+            /** Modifiers */
+            modifiers: components["schemas"]["ModifierOut"][];
+            /** Notes */
+            notes: string;
+            /** Product Id */
+            product_id: string;
+            /** Product Name */
+            product_name: string;
+            /** Promotion Id */
+            promotion_id: string | null;
+            /** Quantity */
+            quantity: number;
+            /** Refunded Quantity */
+            refunded_quantity: number;
+            /** Unit Price */
+            unit_price: number;
         };
         /** OrderOut */
         OrderOut: {
@@ -1894,8 +3044,23 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** OrderPaymentOut */
+        OrderPaymentOut: {
+            /** Amount */
+            amount: number;
+            /** Id */
+            id: string;
+            /** Method Type */
+            method_type: string;
+            /** Payment Method Id */
+            payment_method_id: string;
+            /** Reference */
+            reference: string | null;
+        };
         /** OutletOut */
         OutletOut: {
+            /** Brand Id */
+            brand_id: string;
             /** Code */
             code: string;
             /** Id */
@@ -1993,6 +3158,11 @@ export interface components {
             /** Timezone */
             timezone: string;
         };
+        /** PasswordResetOut */
+        PasswordResetOut: {
+            /** Password */
+            password: string;
+        };
         /** PaymentMethodIn */
         PaymentMethodIn: {
             /** Logo Url */
@@ -2023,6 +3193,8 @@ export interface components {
             logo_url?: string | null;
             /** Name */
             name: string;
+            /** Outlet Ids */
+            outlet_ids: string[];
             /**
              * Requires Reference
              * @default false
@@ -2049,6 +3221,8 @@ export interface components {
             method_type: string;
             /** Payment Method Id */
             payment_method_id: string;
+            /** Refund Amount */
+            refund_amount: number;
         };
         /** PinIn */
         PinIn: {
@@ -2115,6 +3289,10 @@ export interface components {
             product_name: string;
             /** Quantity */
             quantity: number;
+            /** Refund Amount */
+            refund_amount: number;
+            /** Refund Qty */
+            refund_qty: number;
         };
         /**
          * PromotionIn
@@ -2273,6 +3451,131 @@ export interface components {
              */
             status: "pending" | "paid" | "expired";
         };
+        /** RefundDetailOut */
+        RefundDetailOut: {
+            /** Approved By */
+            approved_by: string | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device Id */
+            device_id: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["RefundLineOut"][];
+            /** Order Id */
+            order_id: string;
+            /** Outlet Id */
+            outlet_id: string;
+            /** Payments */
+            payments: components["schemas"]["RefundPaymentOut"][];
+            /** Reason */
+            reason: string;
+            /** Refund No */
+            refund_no: string;
+            /** Refunded By */
+            refunded_by: string;
+            /** Shift Id */
+            shift_id: string;
+            /** Total */
+            total: number;
+        };
+        /** RefundLineOut */
+        RefundLineOut: {
+            /** Amount */
+            amount: number;
+            /** Order Line Id */
+            order_line_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Product Name */
+            product_name: string;
+            /** Quantity */
+            quantity: number;
+        };
+        /** RefundOut */
+        RefundOut: {
+            /** Approved By */
+            approved_by: string | null;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device Id */
+            device_id: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Order Id */
+            order_id: string;
+            /** Outlet Id */
+            outlet_id: string;
+            /** Reason */
+            reason: string;
+            /** Refund No */
+            refund_no: string;
+            /** Refunded By */
+            refunded_by: string;
+            /** Shift Id */
+            shift_id: string;
+            /** Total */
+            total: number;
+        };
+        /** RefundPaymentOut */
+        RefundPaymentOut: {
+            /** Amount */
+            amount: number;
+            /** Id */
+            id: string;
+            /** Method Name */
+            method_name: string;
+            /** Method Type */
+            method_type: string;
+            /** Payment Method Id */
+            payment_method_id: string;
+            /** Reference */
+            reference: string | null;
+        };
+        /** RefundRef */
+        RefundRef: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Refund No */
+            refund_no: string;
+            /** Total */
+            total: number;
+        };
+        /** RejectedEventOut */
+        RejectedEventOut: {
+            /** Code */
+            code: string | null;
+            /** Id */
+            id: string;
+        };
         /** SalesSummaryOut */
         SalesSummaryOut: {
             /** Cashiers */
@@ -2315,6 +3618,29 @@ export interface components {
              */
             trial_ends_at: string;
         };
+        /** SummaryOut */
+        SummaryOut: {
+            /** Active Tenants */
+            active_tenants: number;
+            /** Devices */
+            devices: number;
+            /** Monthly Recurring Revenue */
+            monthly_recurring_revenue: number;
+            /** Open Invoice Amount */
+            open_invoice_amount: number;
+            /** Outlets */
+            outlets: number;
+            /** Past Due */
+            past_due: number;
+            /** Paying */
+            paying: number;
+            /** Suspended Tenants */
+            suspended_tenants: number;
+            /** Tenants */
+            tenants: number;
+            /** Trialing */
+            trialing: number;
+        };
         /** TableIn */
         TableIn: {
             /**
@@ -2348,98 +3674,94 @@ export interface components {
             /** Sort Order */
             sort_order: number;
         };
-        /** Totals */
-        Totals: {
-            /** Discount */
-            discount: number;
-            /** Gross */
-            gross: number;
-            /** Net */
-            net: number;
-            /** Order Count */
-            order_count: number;
-            /** Service */
-            service: number;
-            /** Tax */
-            tax: number;
-            /** Void Count */
-            void_count: number;
-        };
-        /** UserIn */
-        UserIn: {
-            /** Email */
-            email?: string | null;
-            /** Name */
-            name: string;
-            /** Outlets */
-            outlets: components["schemas"]["OutletRole"][];
-            /** Password */
-            password?: string | null;
-            /** Pin */
-            pin?: string | null;
-        };
-        /** UserUpdate */
-        UserUpdate: {
+        /** TenantDetailOut */
+        TenantDetailOut: {
             /**
-             * Is Active
-             * @default true
+             * Created At
+             * Format: date-time
              */
-            is_active: boolean;
-            /** Name */
-            name: string;
-            /** Outlets */
-            outlets: components["schemas"]["OutletRole"][];
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Context */
-            ctx?: Record<string, never>;
-            /** Input */
-            input?: unknown;
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
-        /** UserOut */
-        poslite__identity__application__schemas__UserOut: {
-            /** Email */
-            email: string | null;
-            /** Has Pin */
-            has_pin: boolean;
+            created_at: string;
+            /** Device Count */
+            device_count: number;
+            /** Devices */
+            devices: components["schemas"]["TenantDeviceOut"][];
             /** Id */
             id: string;
-            /** Is Active */
-            is_active: boolean;
+            /** Invoices */
+            invoices: components["schemas"]["TenantInvoiceOut"][];
             /** Name */
             name: string;
+            /** Outlet Count */
+            outlet_count: number;
             /** Outlets */
-            outlets: components["schemas"]["OutletRole"][];
-        };
-        /** TenantOut */
-        poslite__identity__presentation__schemas__TenantOut: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
+            outlets: components["schemas"]["TenantOutletOut"][];
+            /** Owners */
+            owners: components["schemas"]["TenantOwnerOut"][];
             /** Slug */
             slug: string;
             /** Status */
             status: string;
+            subscription: components["schemas"]["TenantSubscriptionOut"] | null;
+            /** Subscription Status */
+            subscription_status: string | null;
+            /** Suspended At */
+            suspended_at: string | null;
+            /** Suspended Reason */
+            suspended_reason: string | null;
+            /** Users */
+            users: components["schemas"]["TenantUserOut"][];
         };
-        /** UserOut */
-        poslite__identity__presentation__schemas__UserOut: {
+        /** TenantDeviceOut */
+        TenantDeviceOut: {
+            /** App Version */
+            app_version: string | null;
+            /** Code */
+            code: string;
             /** Id */
             id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
             /** Name */
             name: string;
-            /** Role */
-            role: string;
+            /** Outlet Name */
+            outlet_name: string;
+            /** Platform */
+            platform: string;
+            /** Revoked At */
+            revoked_at: string | null;
         };
-        /** TenantOut */
-        poslite__platform_admin__presentation__router__TenantOut: {
+        /** TenantInvoiceOut */
+        TenantInvoiceOut: {
+            /** Amount */
+            amount: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Id */
+            id: string;
+            /** Outlet Count */
+            outlet_count: number;
+            /** Paid At */
+            paid_at: string | null;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Status */
+            status: string;
+            /** Unit Price */
+            unit_price: number;
+        };
+        /** TenantListItem */
+        TenantListItem: {
             /**
              * Created At
              * Format: date-time
@@ -2463,6 +3785,203 @@ export interface components {
             suspended_at: string | null;
             /** Suspended Reason */
             suspended_reason: string | null;
+        };
+        /** TenantOut */
+        TenantOut: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Status */
+            status: string;
+        };
+        /** TenantOutletOut */
+        TenantOutletOut: {
+            /** Brand Name */
+            brand_name: string;
+            /** Code */
+            code: string;
+            /** Device Count */
+            device_count: number;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** TenantOwnerOut */
+        TenantOwnerOut: {
+            /** Email */
+            email: string | null;
+            /** Name */
+            name: string;
+        };
+        /** TenantSubscriptionOut */
+        TenantSubscriptionOut: {
+            /** Current Period End */
+            current_period_end: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Trial Ends At
+             * Format: date-time
+             */
+            trial_ends_at: string;
+        };
+        /** TenantUserOut */
+        TenantUserOut: {
+            /** Email */
+            email: string | null;
+            /** Has Login */
+            has_login: boolean;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /** Roles */
+            roles: string[];
+        };
+        /** Totals */
+        Totals: {
+            /** Discount */
+            discount: number;
+            /** Gross */
+            gross: number;
+            /** Net */
+            net: number;
+            /** Order Count */
+            order_count: number;
+            /** Refund Amount */
+            refund_amount: number;
+            /** Refund Count */
+            refund_count: number;
+            /** Service */
+            service: number;
+            /** Tax */
+            tax: number;
+            /** Void Count */
+            void_count: number;
+        };
+        /** UserHitOut */
+        UserHitOut: {
+            /** Email */
+            email: string | null;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /** Roles */
+            roles: string[];
+            /** Tenant Id */
+            tenant_id: string;
+            /** Tenant Name */
+            tenant_name: string;
+            /** Tenant Slug */
+            tenant_slug: string;
+        };
+        /**
+         * UserIn
+         * @description Roles as `assignments` (ADR-022), or the older per-outlet `outlets`; exactly one of them.
+         */
+        UserIn: {
+            /**
+             * Assignments
+             * @default []
+             */
+            assignments: components["schemas"]["AssignmentIn"][];
+            /** Email */
+            email?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Outlets
+             * @description Deprecated (before ADR-022): roles per outlet. Use `assignments`.
+             * @default []
+             */
+            outlets: components["schemas"]["OutletRole"][];
+            /** Password */
+            password?: string | null;
+            /** Pin */
+            pin?: string | null;
+        };
+        /**
+         * UserUpdate
+         * @description Without `outlets` the roles stay as they are (change them at /users/{id}/assignments).
+         */
+        UserUpdate: {
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Outlets
+             * @description Deprecated (before ADR-022): roles per outlet. Use `assignments`.
+             */
+            outlets?: components["schemas"]["OutletRole"][] | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** VoidOut */
+        VoidOut: {
+            /** Approved By */
+            approved_by: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Voided At
+             * Format: date-time
+             */
+            voided_at: string;
+            /** Voided By */
+            voided_by: string;
+        };
+        /** UserOut */
+        poslite__identity__application__schemas__UserOut: {
+            /** Assignments */
+            assignments: components["schemas"]["AssignmentOut"][];
+            /** Email */
+            email: string | null;
+            /** Has Pin */
+            has_pin: boolean;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Outlets
+             * @description Role at every outlet the assignments cover
+             */
+            outlets: components["schemas"]["OutletRole"][];
+        };
+        /** UserOut */
+        poslite__identity__presentation__schemas__UserOut: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role: string;
         };
     };
     responses: never;
@@ -2546,7 +4065,7 @@ export interface operations {
             };
         };
     };
-    list_categories_api_v1_categories_get: {
+    brands_api_v1_brands_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2561,7 +4080,137 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ApiResponse_list_BrandOut__"];
+                };
+            };
+        };
+    };
+    add_brand_api_v1_brands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_BrandOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_brand_api_v1_brands__brand_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brand_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_BrandOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_brand_api_v1_brands__brand_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brand_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_categories_api_v1_categories_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiResponse_list_CategoryOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2569,7 +4218,9 @@ export interface operations {
     create_category_api_v1_categories_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2602,7 +4253,9 @@ export interface operations {
     update_category_api_v1_categories__category_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 category_id: string;
             };
@@ -2637,7 +4290,9 @@ export interface operations {
     delete_category_api_v1_categories__category_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 category_id: string;
             };
@@ -2721,7 +4376,9 @@ export interface operations {
     revoke_api_v1_devices__device_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 device_id: string;
             };
@@ -2791,10 +4448,87 @@ export interface operations {
             };
         };
     };
-    upload_image_api_v1_media_images_post: {
+    device_imports_api_v1_imports_get: {
+        parameters: {
+            query: {
+                device_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_ImportOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_device_export_api_v1_imports_device_export_post: {
         parameters: {
             query?: never;
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ImportOut_"];
+                };
+            };
+        };
+    };
+    my_access_api_v1_me_access_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_AccessTree_"];
+                };
+            };
+        };
+    };
+    upload_image_api_v1_media_images_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2815,12 +4549,23 @@ export interface operations {
                     "application/json": components["schemas"]["ApiResponse_ImageOut_"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     list_modifier_groups_api_v1_modifier_groups_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2835,12 +4580,23 @@ export interface operations {
                     "application/json": components["schemas"]["ApiResponse_list_ModifierGroupOut__"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_modifier_group_api_v1_modifier_groups_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2873,7 +4629,9 @@ export interface operations {
     update_modifier_group_api_v1_modifier_groups__group_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 group_id: string;
             };
@@ -2908,7 +4666,9 @@ export interface operations {
     delete_modifier_group_api_v1_modifier_groups__group_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 group_id: string;
             };
@@ -2942,7 +4702,9 @@ export interface operations {
                 outlet_id: string;
                 business_date: string;
             };
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2968,9 +4730,75 @@ export interface operations {
             };
         };
     };
-    outlets_api_v1_outlets_get: {
+    lookup_order_api_v1_orders_lookup_get: {
+        parameters: {
+            query: {
+                receipt_no: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OrderDetailOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_order_api_v1_orders__order_id__get: {
         parameters: {
             query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OrderDetailOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outlets_api_v1_outlets_get: {
+        parameters: {
+            query?: {
+                brand_id?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2984,6 +4812,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_list_OutletOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3024,7 +4861,9 @@ export interface operations {
     settings_api_v1_outlets__outlet_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3055,7 +4894,9 @@ export interface operations {
     update_settings_api_v1_outlets__outlet_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3090,7 +4931,9 @@ export interface operations {
     devices_api_v1_outlets__outlet_id__devices_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3121,7 +4964,9 @@ export interface operations {
     list_outlet_products_api_v1_outlets__outlet_id__products_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3152,7 +4997,9 @@ export interface operations {
     set_outlet_product_api_v1_outlets__outlet_id__products__product_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
                 product_id: string;
@@ -3188,7 +5035,9 @@ export interface operations {
     tables_api_v1_outlets__outlet_id__tables_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3219,7 +5068,9 @@ export interface operations {
     add_dining_table_api_v1_outlets__outlet_id__tables_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 outlet_id: string;
             };
@@ -3280,7 +5131,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PaymentMethodIn"];
+                "application/json": components["schemas"]["NewPaymentMethodIn"];
             };
         };
         responses: {
@@ -3370,6 +5221,41 @@ export interface operations {
             };
         };
     };
+    set_payment_method_outlets_api_v1_payment_methods__method_id__outlets_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                method_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodOutletsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_PaymentMethodOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_qris_api_v1_payments_qris_post: {
         parameters: {
             query?: never;
@@ -3434,6 +5320,39 @@ export interface operations {
             };
         };
     };
+    audit_log_api_v1_platform_audit_get: {
+        parameters: {
+            query?: {
+                tenant_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_AuditEntryOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_platform_auth_login_post: {
         parameters: {
             query?: never;
@@ -3467,10 +5386,199 @@ export interface operations {
             };
         };
     };
-    tenants_api_v1_platform_tenants_get: {
+    mark_invoice_paid_api_v1_platform_invoices__invoice_id__mark_paid_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_v1_platform_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+        };
+    };
+    operators_api_v1_platform_operators_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_OperatorOut__"];
+                };
+            };
+        };
+    };
+    create_operator_api_v1_platform_operators_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperatorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disable_operator_api_v1_platform_operators__operator_id__disable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operator_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enable_operator_api_v1_platform_operators__operator_id__enable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operator_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_platform_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SummaryOut_"];
+                };
+            };
+        };
+    };
+    tenant_list_api_v1_platform_tenants_get: {
         parameters: {
             query?: {
                 status?: ("active" | "suspended") | null;
+                q?: string | null;
+                limit?: number;
+                offset?: number;
             };
             header?: never;
             path?: never;
@@ -3484,7 +5592,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponse_list_TenantOut__"];
+                    "application/json": components["schemas"]["ApiResponse_list_TenantListItem__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tenant_detail_api_v1_platform_tenants__tenant_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TenantDetailOut_"];
                 };
             };
             /** @description Validation Error */
@@ -3529,6 +5668,41 @@ export interface operations {
             };
         };
     };
+    extend_trial_api_v1_platform_tenants__tenant_id__extend_trial_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtendTrialIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ExtendTrialOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     suspend_api_v1_platform_tenants__tenant_id__suspend_post: {
         parameters: {
             query?: never;
@@ -3560,10 +5734,139 @@ export interface operations {
             };
         };
     };
-    list_products_api_v1_products_get: {
+    activate_user_api_v1_platform_tenants__tenant_id__users__user_id__activate_post: {
         parameters: {
             query?: never;
             header?: never;
+            path: {
+                tenant_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_user_api_v1_platform_tenants__tenant_id__users__user_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_platform_tenants__tenant_id__users__user_id__reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_PasswordResetOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_search_api_v1_platform_users_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_UserHitOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_products_api_v1_products_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3578,12 +5881,23 @@ export interface operations {
                     "application/json": components["schemas"]["ApiResponse_list_ProductOut__"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_product_api_v1_products_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3616,7 +5930,9 @@ export interface operations {
     update_product_api_v1_products__product_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 product_id: string;
             };
@@ -3651,7 +5967,9 @@ export interface operations {
     delete_product_api_v1_products__product_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 product_id: string;
             };
@@ -3682,7 +6000,9 @@ export interface operations {
     list_promotions_api_v1_promotions_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3697,12 +6017,23 @@ export interface operations {
                     "application/json": components["schemas"]["ApiResponse_list_PromotionOut__"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_promotion_api_v1_promotions_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3735,7 +6066,9 @@ export interface operations {
     update_promotion_api_v1_promotions__promotion_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 promotion_id: string;
             };
@@ -3770,7 +6103,9 @@ export interface operations {
     delete_promotion_api_v1_promotions__promotion_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 promotion_id: string;
             };
@@ -3798,14 +6133,84 @@ export interface operations {
             };
         };
     };
-    get_sales_summary_api_v1_reports_sales_summary_get: {
+    refunds_api_v1_refunds_get: {
         parameters: {
             query: {
                 outlet_id: string;
+                business_date: string;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_RefundOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_refund_api_v1_refunds__refund_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                refund_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_RefundDetailOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sales_summary_api_v1_reports_sales_summary_get: {
+        parameters: {
+            query: {
                 from: string;
                 to: string;
+                outlet_id?: string | null;
+                brand_id?: string | null;
             };
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3834,12 +6239,15 @@ export interface operations {
     export_sales_summary_api_v1_reports_sales_summary_export_get: {
         parameters: {
             query: {
-                outlet_id: string;
                 from: string;
                 to: string;
+                outlet_id?: string | null;
+                brand_id?: string | null;
                 format?: "csv" | "xlsx";
             };
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3933,7 +6341,9 @@ export interface operations {
     update_dining_table_api_v1_tables__table_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 table_id: string;
             };
@@ -3968,7 +6378,9 @@ export interface operations {
     delete_dining_table_api_v1_tables__table_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
             path: {
                 table_id: string;
             };
@@ -4135,6 +6547,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assignments_api_v1_users__user_id__assignments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_AssignmentOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_assignments_api_v1_users__user_id__assignments_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_AssignmentOut__"];
                 };
             };
             /** @description Validation Error */

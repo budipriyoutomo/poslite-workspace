@@ -26,11 +26,11 @@ export function PromotionsScreen() {
   const [editing, setEditing] = useState<Promotion | "new" | null>(null);
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-4">
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold">Promo</h1>
-          <p className="text-sm text-muted-foreground">Dihitung otomatis di kasir (juga saat offline). Per baris dipakai diskon terbesar; diskon manual kasir menggantikan promo.</p>
+          <p className="text-sm text-muted-foreground">Muncul sebagai pilihan di layar bayar kasir (juga saat offline) dan berlaku bila dipilih kasir. Per baris dipakai diskon terbesar; diskon manual kasir menggantikan promo.</p>
         </div>
         <Button size="sm" onClick={() => setEditing("new")}>
           <Plus /> Tambah promo

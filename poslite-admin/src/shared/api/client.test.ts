@@ -37,4 +37,14 @@ describe("createApi", () => {
     expect(request.headers.get("Authorization")).toBe("Bearer tok");
     expect(request.url).toBe("http://api.test/api/v1/outlets");
   });
+
+  it("sends the active brand when there is one (ADR-022)", async () => {
+    const fetchFn = vi.fn<typeof fetch>(async () => json({ data: [], message: "OK", meta: {} }));
+    const withBrand = createApi({ origin: "http://api.test", getToken: () => "tok", getBrandId: () => "B1", fetch: fetchFn });
+    const withoutBrand = createApi({ origin: "http://api.test", getToken: () => "tok", getBrandId: () => null, fetch: fetchFn });
+    await unwrap(withBrand.GET("/api/v1/outlets"));
+    await unwrap(withoutBrand.GET("/api/v1/outlets"));
+    expect((fetchFn.mock.calls[0]![0] as Request).headers.get("X-Brand-Id")).toBe("B1");
+    expect((fetchFn.mock.calls[1]![0] as Request).headers.has("X-Brand-Id")).toBe(false);
+  });
 });

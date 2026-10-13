@@ -17,12 +17,20 @@ export class ApiError extends Error {
   }
 }
 
-export function createApi(options: { origin: string; getToken: () => string | null; fetch?: typeof fetch }): Api {
+export function createApi(options: {
+  origin: string;
+  getToken: () => string | null;
+  /** Active brand for brand-level endpoints (ADR-022: X-Brand-Id). */
+  getBrandId?: () => string | null;
+  fetch?: typeof fetch;
+}): Api {
   const client = createClient<paths>({ baseUrl: options.origin, fetch: options.fetch });
   client.use({
     onRequest({ request }) {
       const token = options.getToken();
       if (token) request.headers.set("Authorization", `Bearer ${token}`);
+      const brandId = options.getBrandId?.();
+      if (brandId) request.headers.set("X-Brand-Id", brandId);
       return request;
     },
   });

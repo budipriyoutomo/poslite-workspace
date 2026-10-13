@@ -18,7 +18,7 @@ export function SubscriptionScreen() {
   const sub = subscription.data;
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-4">
       <h1 className="text-2xl font-bold">Langganan</h1>
       {!sub ? (
         <p className="text-muted-foreground">Langganan sedang disiapkan — masa coba 14 hari dimulai sejak pendaftaran.</p>
@@ -49,30 +49,32 @@ export function SubscriptionScreen() {
 function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
   if (invoices.length === 0) return <p className="text-sm text-muted-foreground">Belum ada tagihan.</p>;
   return (
-    <table aria-label="Tagihan" className="w-full rounded-lg border bg-white text-sm">
-      <tbody>
-        {invoices.map((inv) => (
-          <tr key={inv.id} aria-label={`Periode ${fmt(inv.period_start)} - ${fmt(inv.period_end)}`} className="border-b last:border-0">
-            <td className="px-3 py-2">
-              {fmt(inv.period_start)} – {fmt(inv.period_end)}
-            </td>
-            <td className="px-3 py-2 text-muted-foreground">{`${inv.outlet_count} outlet × ${formatRupiah(inv.unit_price)}`}</td>
-            <td className="px-3 py-2 text-right font-medium tabular-nums">{formatRupiah(inv.amount)}</td>
-            <td className="px-3 py-2">
-              <Badge variant={inv.status === "paid" ? "secondary" : "outline"}>{INVOICE[inv.status] ?? inv.status}</Badge>
-            </td>
-            <td className="px-3 py-2 text-right">
-              {inv.status === "open" && inv.payment_url && (
-                <Button asChild size="sm">
-                  <a href={inv.payment_url} target="_blank" rel="noopener noreferrer">
-                    Bayar
-                  </a>
-                </Button>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="overflow-x-auto rounded-lg border bg-white">
+      <table aria-label="Tagihan" className="w-full text-sm">
+        <tbody>
+          {invoices.map((inv) => (
+            <tr key={inv.id} aria-label={`Periode ${fmt(inv.period_start)} - ${fmt(inv.period_end)}`} className="border-b last:border-0">
+              <td className="px-3 py-2">
+                {fmt(inv.period_start)} – {fmt(inv.period_end)}
+              </td>
+              <td className="px-3 py-2 text-muted-foreground">{`${inv.outlet_count} outlet × ${formatRupiah(inv.unit_price)}`}</td>
+              <td className="px-3 py-2 text-right font-medium tabular-nums">{formatRupiah(inv.amount)}</td>
+              <td className="px-3 py-2">
+                <Badge variant={inv.status === "paid" ? "secondary" : "outline"}>{INVOICE[inv.status] ?? inv.status}</Badge>
+              </td>
+              <td className="px-3 py-2 text-right">
+                {inv.status === "open" && inv.payment_url && (
+                  <Button asChild size="sm">
+                    <a href={inv.payment_url} target="_blank" rel="noopener noreferrer">
+                      Bayar
+                    </a>
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

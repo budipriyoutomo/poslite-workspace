@@ -10,11 +10,14 @@ export interface Session {
   expiresAt: string;
   user: AuthResult["user"];
   tenant: AuthResult["tenant"];
+  /** Active brand (ADR-022); null until the access tree is loaded after sign-in. */
+  brandId: string | null;
 }
 
 interface SessionState {
   session: Session | null;
   signIn: (result: AuthResult) => void;
+  selectBrand: (brandId: string) => void;
   signOut: () => void;
 }
 
@@ -24,7 +27,8 @@ export function createSessionStore() {
     persist(
       (set) => ({
         session: null,
-        signIn: (r) => set({ session: { token: r.token, expiresAt: r.expires_at, user: r.user, tenant: r.tenant } }),
+        signIn: (r) => set({ session: { token: r.token, expiresAt: r.expires_at, user: r.user, tenant: r.tenant, brandId: null } }),
+        selectBrand: (brandId) => set((s) => (s.session ? { session: { ...s.session, brandId } } : s)),
         signOut: () => set({ session: null }),
       }),
       { name: "poslite-admin-session", storage: createJSONStorage(() => localStorage), partialize: (s) => ({ session: s.session }) },

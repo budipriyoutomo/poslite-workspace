@@ -89,3 +89,27 @@ export function useDeleteTable(outletId: string) {
     onSuccess: () => client.invalidateQueries({ queryKey: ["tables", outletId] }),
   });
 }
+
+export type ImportResult = components["schemas"]["ImportOut"];
+
+/** Emergency import of a device export file (ADR-024); the file's JSON is sent as it is. */
+export function useImportExport() {
+  const api = useApi();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const body = JSON.parse(await file.text()) as Record<string, never>;
+      return unwrap(api.POST("/api/v1/imports/device-export", { body }));
+    },
+    onSuccess: (result) => client.invalidateQueries({ queryKey: ["imports", result.device_id] }),
+  });
+}
+
+export function useImports(deviceId: string | null) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["imports", deviceId],
+    enabled: deviceId !== null,
+    queryFn: () => unwrap(api.GET("/api/v1/imports", { params: { query: { device_id: deviceId! } } })),
+  });
+}

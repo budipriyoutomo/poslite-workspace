@@ -68,7 +68,7 @@ export function SignupScreen() {
         </Button>
       </form>
       <p className="text-center text-sm">
-        <Link href="/login" className="text-emerald-700 hover:underline">
+        <Link href="/login" className="font-medium text-primary hover:underline">
           {copy.toLogin}
         </Link>
       </p>

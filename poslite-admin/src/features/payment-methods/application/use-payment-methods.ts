@@ -42,3 +42,11 @@ export function useDeletePaymentMethod() {
   const api = useApi();
   return useRefreshingMutation((id: string) => unwrap(api.DELETE("/api/v1/payment-methods/{method_id}", { params: { path: { method_id: id } } })));
 }
+
+/** Where a method is taken (doc 11 §3); devices of other outlets drop it on their next pull. */
+export function useSetMethodOutlets() {
+  const api = useApi();
+  return useRefreshingMutation(({ id, outletIds }: { id: string; outletIds: string[] }) =>
+    unwrap(api.PUT("/api/v1/payment-methods/{method_id}/outlets", { params: { path: { method_id: id } }, body: { outlet_ids: outletIds } })),
+  );
+}

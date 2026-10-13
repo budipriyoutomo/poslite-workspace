@@ -5,13 +5,31 @@ import { describe, expect, it } from "vitest";
 import { envelope, renderWithApi } from "../../../../tests/support/render";
 import { UsersScreen } from "./UsersScreen";
 
-const KEMANG = { id: "01K5ZO00000000000000000001", code: "JKT01", name: "Kemang", timezone: "Asia/Jakarta" };
-const OWNER = { id: "01K5ZU00000000000000000001", name: "Budi", email: "budi@kopi.id", has_pin: false, is_active: true, outlets: [{ outlet_id: KEMANG.id, role: "owner" }] };
-const SITI = { id: "01K5ZU00000000000000000002", name: "Siti", email: null, has_pin: true, is_active: false, outlets: [{ outlet_id: KEMANG.id, role: "cashier" }] };
+const BRAND = { id: "01K5ZB00000000000000000001", code: "MAHARASA", name: "Maharasa", logo_key: null, logo_url: null, receipt_header: "", receipt_footer: "", is_active: true };
+const KEMANG = { id: "01K5ZO00000000000000000001", brand_id: BRAND.id, code: "JKT01", name: "Kemang", timezone: "Asia/Jakarta" };
+const OWNER = {
+  id: "01K5ZU00000000000000000001",
+  name: "Budi",
+  email: "budi@kopi.id",
+  has_pin: false,
+  is_active: true,
+  assignments: [{ role: "owner", scope_type: "company", brand_id: null, outlet_id: null }],
+  outlets: [{ outlet_id: KEMANG.id, role: "owner" }],
+};
+const SITI = {
+  id: "01K5ZU00000000000000000002",
+  name: "Siti",
+  email: null,
+  has_pin: true,
+  is_active: false,
+  assignments: [{ role: "cashier", scope_type: "outlet", brand_id: BRAND.id, outlet_id: KEMANG.id }],
+  outlets: [{ outlet_id: KEMANG.id, role: "cashier" }],
+};
 
 function server(deleteReply?: { status: number; body: unknown }) {
   return renderWithApi(<UsersScreen />, ({ method, path }) => {
     if (path === "/api/v1/outlets") return envelope([KEMANG]);
+    if (path === "/api/v1/brands") return envelope([BRAND]);
     if (method === "GET" && path === "/api/v1/users") return envelope([OWNER, SITI]);
     if (method === "PUT") return envelope(null);
     if (method === "DELETE") return deleteReply ?? envelope(null);
@@ -22,11 +40,11 @@ function server(deleteReply?: { status: number; body: unknown }) {
 const row = async (name: string) => within((await screen.findByRole("cell", { name })).closest("tr")!);
 
 describe("UsersScreen", () => {
-  it("lists users with role, outlets and status", async () => {
+  it("lists users with their assignments and status", async () => {
     server();
     const siti = await row("Siti");
-    expect(siti.getByText("Kasir")).toBeInTheDocument();
-    expect(siti.getByText("Kemang")).toBeInTheDocument();
+    expect(await siti.findByText("Kasir · Kemang")).toBeInTheDocument();
+    expect((await row("Budi")).getByText("Pemilik · Seluruh perusahaan")).toBeInTheDocument();
     expect(siti.getByText("Nonaktif")).toBeInTheDocument();
     expect((await row("Budi")).getByText("budi@kopi.id")).toBeInTheDocument();
   });
@@ -46,5 +64,13 @@ describe("UsersScreen", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Hapus" }));
 
     expect(await screen.findByText("Tidak bisa menghapus akun sendiri")).toBeInTheDocument();
+  });
+
+  it("explains why the last owner cannot be deleted", async () => {
+    server({ status: 409, body: { message: "The company needs another owner first", code: "LAST_OWNER" } });
+    await userEvent.click((await row("Budi")).getByRole("button", { name: "Hapus Budi" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Hapus" }));
+
+    expect(await screen.findByText("Perusahaan butuh pemilik lain dulu")).toBeInTheDocument();
   });
 });

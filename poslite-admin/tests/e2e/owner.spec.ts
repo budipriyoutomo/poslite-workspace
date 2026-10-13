@@ -39,7 +39,7 @@ test("owner sets up menu, outlet price, cashier, payment method, outlet rates, t
   await page.getByRole("button", { name: "Tambah pengguna" }).click();
   const userDialog = page.getByRole("dialog");
   await userDialog.getByLabel("Nama").fill("Siti");
-  await userDialog.getByRole("checkbox", { name: "Kemang" }).click();
+  await expect(userDialog.getByLabel("Cakupan 1")).toHaveValue(/^outlet:/); // a cashier at the first outlet
   await userDialog.getByLabel("PIN").fill("1234");
   await userDialog.getByRole("button", { name: "Simpan" }).click();
   await expect(page.getByRole("cell", { name: "Siti", exact: true })).toBeVisible();

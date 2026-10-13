@@ -10,6 +10,7 @@ import { selectClass } from "@/shared/ui/form-field";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
 
+import { OutletMatrix } from "./OutletMatrix";
 import {
   METHOD_TYPES,
   type PaymentMethod,
@@ -39,10 +40,10 @@ export function PaymentMethodsScreen() {
   };
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Metode Bayar</h1>
-        <p className="text-sm text-muted-foreground">Berlaku di semua outlet. Perangkat kasir menerima perubahan saat sinkron berikutnya.</p>
+        <p className="text-sm text-muted-foreground">Metode baru langsung berlaku di semua outlet; atur per outlet di tabel bawah. Perangkat kasir menerima perubahan saat sinkron berikutnya.</p>
       </div>
       <form onSubmit={add} className="flex gap-2">
         <Input aria-label="Nama metode baru" placeholder="mis. QRIS BCA" value={name} onChange={(e) => setName(e.target.value)} className="bg-white" />
@@ -74,6 +75,7 @@ export function PaymentMethodsScreen() {
           </li>
         ))}
       </ul>
+      {methods.data && <OutletMatrix methods={methods.data} />}
     </div>
   );
 }

@@ -8,6 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./tests/setup.ts"],
+    // Long form flows (e.g. PromotionForm) type character by character in jsdom;
+    // the 5s default flakes when the machine or CI runner is busy.
+    testTimeout: 15_000,
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],

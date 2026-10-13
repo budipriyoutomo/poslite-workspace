@@ -35,4 +35,18 @@ describe("session store", () => {
     store.getState().signOut();
     expect(store.getState().session).toBeNull();
   });
+
+  it("keeps the active brand, cleared by a new sign-in", async () => {
+    const store = createSessionStore();
+    store.getState().signIn(RESULT);
+    expect(store.getState().session?.brandId).toBeNull();
+
+    store.getState().selectBrand("B1");
+    const reloaded = createSessionStore();
+    await reloaded.persist.rehydrate();
+    expect(reloaded.getState().session?.brandId).toBe("B1");
+
+    store.getState().signIn(RESULT);
+    expect(store.getState().session?.brandId).toBeNull();
+  });
 });

@@ -16,8 +16,19 @@ const ERRORS: Record<string, string> = {
   UNSUPPORTED_IMAGE: "Gambar harus JPG, PNG, atau WebP",
 };
 
-/** Upload + preview (ADR-021). The form keeps only `key`; `url` is just for showing it. */
-export function ProductImageField({ value, onChange }: { value: UploadedImage | null; onChange: (image: UploadedImage | null) => void }) {
+/** Upload + preview (ADR-021). The form keeps only `key`; `url` is just for showing it.
+ * `subject` names what the image is of (product photo, brand logo) for labels. */
+export function ProductImageField({
+  value,
+  onChange,
+  title = "Gambar (opsional)",
+  subject = "gambar produk",
+}: {
+  value: UploadedImage | null;
+  onChange: (image: UploadedImage | null) => void;
+  title?: string;
+  subject?: string;
+}) {
   const upload = useUploadImage();
   const [error, setError] = useState<string | null>(null);
 
@@ -34,11 +45,11 @@ export function ProductImageField({ value, onChange }: { value: UploadedImage | 
 
   return (
     <div className="space-y-2">
-      <span className="text-sm font-medium">Gambar (opsional)</span>
+      <span className="text-sm font-medium">{title}</span>
       <div className="flex items-center gap-3">
         <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-slate-50">
           {value ? (
-            <Image src={value.url} alt="Pratinjau gambar produk" fill unoptimized sizes="96px" className="object-cover" />
+            <Image src={value.url} alt={`Pratinjau ${subject}`} fill unoptimized sizes="96px" className="object-cover" />
           ) : (
             <ImageOff className="size-8 text-slate-300" aria-hidden />
           )}
@@ -49,7 +60,7 @@ export function ProductImageField({ value, onChange }: { value: UploadedImage | 
             <input
               type="file"
               accept={ACCEPT}
-              aria-label="Gambar produk"
+              aria-label={subject.charAt(0).toUpperCase() + subject.slice(1)}
               className="sr-only"
               disabled={upload.isPending}
               onChange={(e) => (choose(e.target.files?.[0]), (e.target.value = ""))}

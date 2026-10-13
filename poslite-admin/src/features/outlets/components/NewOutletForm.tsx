@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 
+import { useSessionStore } from "@/features/auth";
 import { ApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { FormField, selectClass } from "@/shared/ui/form-field";
@@ -13,16 +14,17 @@ const ERRORS: Record<string, string> = { OUTLET_CODE_TAKEN: "Kode outlet sudah d
 
 export function NewOutletForm({ onCreated }: { onCreated: (outletId: string) => void }) {
   const create = useCreateOutlet();
+  const brandId = useSessionStore((s) => s.session?.brandId ?? null); // a new outlet joins the active brand
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState(TIMEZONES[0]!.value);
-  const canSave = /^[A-Z0-9]{2,10}$/.test(code) && name.trim() !== "";
+  const canSave = brandId !== null && /^[A-Z0-9]{2,10}$/.test(code) && name.trim() !== "";
   const error = create.error instanceof ApiError ? (ERRORS[create.error.code] ?? create.error.message) : create.error && "Gagal membuat outlet";
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
-    create.mutate({ code, name: name.trim(), timezone }, { onSuccess: (outlet) => onCreated(outlet.id) });
+    create.mutate({ brand_id: brandId, code, name: name.trim(), timezone }, { onSuccess: (outlet) => onCreated(outlet.id) });
   };
 
   return (

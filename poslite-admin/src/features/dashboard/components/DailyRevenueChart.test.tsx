@@ -25,6 +25,12 @@ describe("DailyRevenueChart", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent("Rp 72.765");
   });
 
+  it("says there were no sales instead of drawing an empty scale", () => {
+    render(<DailyRevenueChart from="2026-09-24" to="2026-09-26" days={[]} />);
+    expect(screen.queryByRole("img", { name: /Pendapatan harian/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Belum ada penjualan pada periode ini.")).toBeInTheDocument();
+  });
+
   it("offers the same numbers as a table", () => {
     render(<DailyRevenueChart from="2026-09-24" to="2026-09-26" days={DAYS} />);
     const table = screen.getByRole("table", { name: "Pendapatan harian (tabel)" });

@@ -13,7 +13,7 @@ function server() {
   return renderWithApi(<PromotionForm onDone={vi.fn()} />, ({ method, path, body }) => {
     if (path === "/api/v1/categories") return envelope([DRINKS]);
     if (path === "/api/v1/products") return envelope([KOPI]);
-    if (path === "/api/v1/outlets") return envelope([KEMANG]);
+    if (path.startsWith("/api/v1/outlets?brand_id=")) return envelope([KEMANG]);
     if (method === "POST") return { status: 201, ...envelope({ id: "01K5ZQ00000000000000000001", ...(body as object) }) };
     return undefined;
   });
