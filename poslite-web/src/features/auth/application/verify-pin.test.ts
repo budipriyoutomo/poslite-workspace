@@ -42,4 +42,18 @@ describe("verifyPin", () => {
     await verifyPin({ userId: IDS.cashier, pin: "1234" }, deps("2026-09-25T03:01:00.000Z"));
     expect((await db.syncState.get("pinLockout"))?.value).toEqual({ failures: 0, lockedUntil: null });
   });
+
+  it("remembers who logged in so the lock screen opens on them next time", async () => {
+    await db.syncState.put({ key: "recentLogins", value: [IDS.manager] });
+
+    await verifyPin({ userId: IDS.cashier, pin: "1234" }, deps());
+
+    expect((await db.syncState.get("recentLogins"))?.value).toEqual([IDS.cashier, IDS.manager]);
+  });
+
+  it("does not remember a wrong PIN", async () => {
+    await verifyPin({ userId: IDS.cashier, pin: "0000" }, deps()).catch(() => undefined);
+
+    expect(await db.syncState.get("recentLogins")).toBeUndefined();
+  });
 });

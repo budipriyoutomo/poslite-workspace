@@ -22,12 +22,13 @@ interface Props {
   timezone: string;
   onResume: (bill: OpenBillRow) => void;
   onCancel: (id: string) => void;
+  onMove: (bill: OpenBillRow) => void;
 }
 
 const gross = (bill: OpenBillRow) => bill.lines.reduce((s, l) => s + (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) * l.quantity, 0);
 const items = (bill: OpenBillRow) => bill.lines.reduce((n, l) => n + l.quantity, 0);
 
-export function OpenBillList({ bills, timezone, onResume, onCancel }: Props) {
+export function OpenBillList({ bills, timezone, onResume, onCancel, onMove }: Props) {
   if (bills.length === 0) return <p className="py-10 text-center text-muted-foreground">{copy.empty}</p>;
   const time = new Intl.DateTimeFormat("id-ID", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
@@ -41,6 +42,9 @@ export function OpenBillList({ bills, timezone, onResume, onCancel }: Props) {
           <div className="flex gap-2">
             <Button className="flex-1" aria-label={copy.resume(b.tableLabel)} onClick={() => onResume(b)}>
               Lanjutkan
+            </Button>
+            <Button variant="outline" aria-label={copy.move(b.tableLabel)} onClick={() => onMove(b)}>
+              Pindah
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>

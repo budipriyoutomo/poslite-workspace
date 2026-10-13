@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import corrections from "../../../../tests/fixtures/correction-events.json";
 import orderVariants from "../../../../tests/fixtures/order-placed-variants.json";
 import events from "../../../../tests/fixtures/sync-events.json";
 import { eventPayloads, orderPlaced } from "./event-payloads";
 
 // Same file as poslite-api's push payload tests: device and server agree on every event shape.
 describe("push payload contract (shared fixture)", () => {
-  it.each(events)("$type is valid", ({ type, payload }) => {
+  it.each([...events, ...corrections])("$type is valid", ({ type, payload }) => {
     expect(eventPayloads[type as keyof typeof eventPayloads].safeParse(payload).success).toBe(true);
   });
 });

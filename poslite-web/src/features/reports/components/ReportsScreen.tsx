@@ -28,8 +28,8 @@ function Table({ title, rows }: { title: string; rows: { name: string; amount: n
             {rows.map((r) => (
               <tr key={r.name} className="border-t">
                 <td className="py-1.5">{r.name}</td>
-                <td className="text-right text-muted-foreground">{r.count}×</td>
-                <td className="text-right font-medium tabular-nums">{formatRupiah(r.amount)}</td>
+                <td className="px-2 text-right whitespace-nowrap text-muted-foreground">{r.count}×</td>
+                <td className="text-right font-medium whitespace-nowrap tabular-nums">{formatRupiah(r.amount)}</td>
               </tr>
             ))}
           </tbody>

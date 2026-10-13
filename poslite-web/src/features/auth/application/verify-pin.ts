@@ -3,6 +3,7 @@ import { getDb, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 
 import { INITIAL_LOCKOUT, isLocked, registerFailure, registerSuccess } from "../domain/pin-lockout";
+import { rememberLogin } from "../domain/recent-logins";
 import { pinMatches } from "../infrastructure/pin-hasher";
 
 export interface VerifyPinDeps {
@@ -18,7 +19,7 @@ export interface SessionUser {
 
 const defaultDeps = (): VerifyPinDeps => ({ db: getDb(), now: () => new Date() });
 
-/** Offline PIN login. The lockout is stored in IndexedDB so a reload does not reset it. */
+/** Offline PIN login. The lockout and the recent logins are stored in IndexedDB so a reload keeps them. */
 export async function verifyPin(input: { userId: string; pin: string }, deps: VerifyPinDeps = defaultDeps()): Promise<SessionUser> {
   const { db } = deps;
   const now = deps.now();
@@ -33,5 +34,6 @@ export async function verifyPin(input: { userId: string; pin: string }, deps: Ve
     throw new AppError("WRONG_PIN");
   }
   await writeState(db, "pinLockout", registerSuccess());
+  await writeState(db, "recentLogins", rememberLogin((await readState(db, "recentLogins")) ?? [], user.id));
   return { id: user.id, name: user.name, role: user.role };
 }

@@ -4,8 +4,11 @@ import { Percent, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { useCart } from "@/features/cart";
+import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
+import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
+import { hasDiscountChoices } from "@/shared/ui/discount-chooser";
 
 import { useCartTotals } from "../application/use-cart-totals";
 import { copy } from "../copy";
@@ -17,6 +20,7 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
   const totals = useCartTotals(rates);
   const setDiscount = useCart((s) => s.setDiscount);
   const [isPicking, setIsPicking] = useState(false);
+  const canDiscount = hasDiscountChoices(useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY);
   const discountLabel = totals.discount?.type === "percentage" ? `${copy.discount} ${totals.discount.value}%` : copy.discount;
 
   const rows: [string, number][] = [[copy.subtotal, totals.subtotal]];
@@ -32,9 +36,11 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
           <X /> {copy.removeDiscount}
         </Button>
       ) : (
-        <Button variant="outline" size="sm" disabled={totals.isEmpty} onClick={() => setIsPicking(true)}>
-          <Percent /> {copy.addDiscount}
-        </Button>
+        canDiscount && (
+          <Button variant="outline" size="sm" disabled={totals.isEmpty} onClick={() => setIsPicking(true)}>
+            <Percent /> {copy.addDiscount}
+          </Button>
+        )
       )}
       <dl className="space-y-1 text-sm">
         {rows.map(([label, value]) => (

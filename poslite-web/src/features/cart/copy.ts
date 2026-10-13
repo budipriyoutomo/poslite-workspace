@@ -11,5 +11,5 @@ export const copy = {
   lineDiscount: (name: string) => `Diskon item ${name}`,
   removeLineDiscount: (name: string) => `Hapus diskon ${name}`,
   lineDiscountTitle: (name: string) => `Diskon untuk ${name}`,
-  lineDiscountHint: "Diskon item menggantikan promo otomatis pada baris ini.",
+  lineDiscountHint: "Diskon item menggantikan promo pada baris ini.",
 } as const;

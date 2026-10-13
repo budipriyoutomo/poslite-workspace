@@ -1,0 +1,78 @@
+[
+  {
+    "name": "one line, three units, no rates: equal thirds",
+    "lines": [{ "gross": 30000, "line_discount": 0, "quantity": 3 }],
+    "order_discount": 0,
+    "total": 30000,
+    "expected_allocation": [30000],
+    "refunds": [
+      { "line": 0, "quantity": 1, "expected_amount": 10000 },
+      { "line": 0, "quantity": 1, "expected_amount": 10000 },
+      { "line": 0, "quantity": 1, "expected_amount": 10000 }
+    ]
+  },
+  {
+    "name": "refund 1+1+1 of qty 3 adds up exactly to the line's share (PB1 10%)",
+    "lines": [{ "gross": 10000, "line_discount": 0, "quantity": 3 }],
+    "order_discount": 0,
+    "total": 11000,
+    "expected_allocation": [11000],
+    "refunds": [
+      { "line": 0, "quantity": 1, "expected_amount": 3667 },
+      { "line": 0, "quantity": 1, "expected_amount": 3666 },
+      { "line": 0, "quantity": 1, "expected_amount": 3667 }
+    ]
+  },
+  {
+    "name": "order discount 10% with service 5% and PB1 10%: a tie goes to the first line",
+    "lines": [
+      { "gross": 25000, "line_discount": 0, "quantity": 1 },
+      { "gross": 15000, "line_discount": 0, "quantity": 2 }
+    ],
+    "order_discount": 4000,
+    "total": 41580,
+    "expected_allocation": [25988, 15592],
+    "refunds": [
+      { "line": 1, "quantity": 1, "expected_amount": 7796 },
+      { "line": 0, "quantity": 1, "expected_amount": 25988 },
+      { "line": 1, "quantity": 1, "expected_amount": 7796 }
+    ]
+  },
+  {
+    "name": "promotion on a line plus a fixed order discount: the remainder goes to the largest fraction",
+    "lines": [
+      { "gross": 20000, "line_discount": 10000, "quantity": 2 },
+      { "gross": 9000, "line_discount": 0, "quantity": 1 }
+    ],
+    "order_discount": 5000,
+    "total": 14000,
+    "expected_allocation": [7368, 6632],
+    "refunds": [
+      { "line": 0, "quantity": 1, "expected_amount": 3684 },
+      { "line": 1, "quantity": 1, "expected_amount": 6632 },
+      { "line": 0, "quantity": 1, "expected_amount": 3684 }
+    ]
+  },
+  {
+    "name": "a free line (fully discounted) gets nothing back",
+    "lines": [
+      { "gross": 5000, "line_discount": 5000, "quantity": 1 },
+      { "gross": 20000, "line_discount": 0, "quantity": 1 }
+    ],
+    "order_discount": 0,
+    "total": 22000,
+    "expected_allocation": [0, 22000],
+    "refunds": [
+      { "line": 0, "quantity": 1, "expected_amount": 0 },
+      { "line": 1, "quantity": 1, "expected_amount": 22000 }
+    ]
+  },
+  {
+    "name": "a 100% discounted order refunds zero",
+    "lines": [{ "gross": 10000, "line_discount": 0, "quantity": 1 }],
+    "order_discount": 10000,
+    "total": 0,
+    "expected_allocation": [0],
+    "refunds": [{ "line": 0, "quantity": 1, "expected_amount": 0 }]
+  }
+]

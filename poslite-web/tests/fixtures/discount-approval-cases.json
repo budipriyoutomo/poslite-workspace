@@ -1,0 +1,50 @@
+[
+  {
+    "name": "a cashier within both limits needs no approval",
+    "role": "cashier",
+    "manual_percentages": [10, 20],
+    "manual_amount": 50000,
+    "limits": { "max_percentage": 20, "max_amount": 50000 },
+    "expected": false
+  },
+  {
+    "name": "a cashier above the percentage limit needs a manager",
+    "role": "cashier",
+    "manual_percentages": [25],
+    "manual_amount": 5000,
+    "limits": { "max_percentage": 20, "max_amount": 50000 },
+    "expected": true
+  },
+  {
+    "name": "a cashier above the amount limit needs a manager, whatever the percentage",
+    "role": "cashier",
+    "manual_percentages": [],
+    "manual_amount": 50001,
+    "limits": { "max_percentage": 20, "max_amount": 50000 },
+    "expected": true
+  },
+  {
+    "name": "a limit of 0 means every manual discount needs a manager",
+    "role": "cashier",
+    "manual_percentages": [5],
+    "manual_amount": 1000,
+    "limits": { "max_percentage": 0, "max_amount": 0 },
+    "expected": true
+  },
+  {
+    "name": "no manual discount needs no approval even with zero limits",
+    "role": "cashier",
+    "manual_percentages": [],
+    "manual_amount": 0,
+    "limits": { "max_percentage": 0, "max_amount": 0 },
+    "expected": false
+  },
+  {
+    "name": "managers and owners approve themselves",
+    "role": "manager",
+    "manual_percentages": [100],
+    "manual_amount": 1000000,
+    "limits": { "max_percentage": 20, "max_amount": 50000 },
+    "expected": false
+  }
+]

@@ -1,17 +1,19 @@
 "use client";
 
-import { formatRupiah } from "@/shared/money";
-import { Button } from "@/shared/ui/button";
+import { useSession } from "@/features/auth";
+import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
+import { useOutletSetting } from "@/shared/hooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { DiscountChooser } from "@/shared/ui/discount-chooser";
 
 import { copy } from "../copy";
 import type { LineDiscount } from "../domain/cart";
 
-// Same presets as the order discount; > 20% will need manager approval (06 Order rule 5).
-const PERCENTAGES = [5, 10, 15, 20];
-const FIXED = [1_000, 2_000, 5_000, 10_000];
-
+/** Same brand presets as the order discount (06 Order rule 5). */
 export function LineDiscountDialog({ name, onChoose, onClose }: { name: string; onChoose: (discount: LineDiscount) => void; onClose: () => void }) {
+  const policy = useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY;
+  const isCashier = useSession((s) => s.user?.role) === "cashier";
+  const cashierLimit = isCashier ? { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } : undefined;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-sm">
@@ -19,20 +21,7 @@ export function LineDiscountDialog({ name, onChoose, onClose }: { name: string; 
           <DialogTitle>{copy.lineDiscountTitle(name)}</DialogTitle>
         </DialogHeader>
         <p className="text-xs text-muted-foreground">{copy.lineDiscountHint}</p>
-        <div className="grid grid-cols-4 gap-2">
-          {PERCENTAGES.map((value) => (
-            <Button key={value} variant="outline" onClick={() => onChoose({ type: "percentage", value })}>
-              {value}%
-            </Button>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {FIXED.map((value) => (
-            <Button key={value} variant="outline" onClick={() => onChoose({ type: "fixed", value })}>
-              {formatRupiah(value)}
-            </Button>
-          ))}
-        </div>
+        <DiscountChooser percentages={policy.percentages} amounts={policy.amounts} allowCustom={policy.allowCustom} cashierLimit={cashierLimit} onChoose={onChoose} />
       </DialogContent>
     </Dialog>
   );

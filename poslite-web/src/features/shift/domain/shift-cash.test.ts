@@ -14,7 +14,7 @@ describe("summarizeShiftCash", () => {
         { type: "out", amount: 20_000 },
       ],
     );
-    expect(summary).toEqual({ openingCash: 200_000, cashSales: 100_000, cashChange: 12_500, cashIn: 50_000, cashOut: 20_000, expectedCash: 317_500 });
+    expect(summary).toEqual({ openingCash: 200_000, cashSales: 100_000, cashChange: 12_500, cashIn: 50_000, cashOut: 20_000, cashRefunds: 0, expectedCash: 317_500 });
   });
 
   it("counts only the cash part of a split payment", () => {
@@ -29,6 +29,18 @@ describe("summarizeShiftCash", () => {
   it("ignores voided orders (their cash was handed back)", () => {
     const summary = summarizeShiftCash(100_000, [{ ...cashSale(50_000, 0), status: "voided" }], []);
     expect(summary.expectedCash).toBe(100_000);
+  });
+});
+
+describe("summarizeShiftCash with refunds (ADR-023)", () => {
+  it("takes cash refunds out of the drawer; non-cash refunds are paid back outside it", () => {
+    const summary = summarizeShiftCash(
+      100_000,
+      [cashSale(50_000, 0)],
+      [],
+      [{ payments: [{ methodType: "cash", amount: 12_000 }] }, { payments: [{ methodType: "qris", amount: 30_000 }] }],
+    );
+    expect(summary).toMatchObject({ cashRefunds: 12_000, expectedCash: 138_000 });
   });
 });
 

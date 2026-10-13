@@ -82,18 +82,20 @@ export async function recordCashMovement(
 /** Counted cash is recorded against the expected amount; a variance never blocks closing. */
 export async function closeShift(input: { closedBy: string; countedCash: number }, deps: ShiftDeps = defaultDeps()): Promise<ShiftRow> {
   const { db } = deps;
-  return db.transaction("rw", [db.shifts, db.orders, db.payments, db.cashMovements, db.openBills, db.outbox], async () => {
+  return db.transaction("rw", [db.shifts, db.orders, db.payments, db.refunds, db.cashMovements, db.openBills, db.outbox], async () => {
     const shift = await requireOpenShift(db);
     // Unpaid bills live only here; closing would strand them outside any shift (ADR-015).
     if ((await db.openBills.count()) > 0) throw new AppError("OPEN_BILLS");
     const orders = await db.orders.where("shiftId").equals(shift.id).toArray();
     const payments = await db.payments.where("orderId").anyOf(orders.map((o) => o.id)).toArray();
     const movements = await db.cashMovements.where("shiftId").equals(shift.id).toArray();
+    const refunds = await db.refunds.where("shiftId").equals(shift.id).toArray(); // ADR-023
 
     const summary = summarizeShiftCash(
       shift.openingCash,
       orders.map((o) => ({ status: o.status, changeAmount: o.changeAmount, payments: payments.filter((p) => p.orderId === o.id) })),
       movements,
+      refunds,
     );
     const { expectedCash, countedCash, variance } = closeShiftCash(summary.expectedCash, input.countedCash);
     const closed: ShiftRow = { ...shift, status: "closed", closedBy: input.closedBy, closedAt: deps.now().toISOString(), expectedCash, countedCash, variance };

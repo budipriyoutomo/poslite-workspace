@@ -60,6 +60,16 @@ describe("payBill", () => {
     ]);
   });
 
+  it("applies the promotions the cashier chose for the bill", async () => {
+    const promo = { id: "01J8Z000000000000000000PQ1", name: "Gudeg hemat", type: "percent_off" as const, percentage: 10, buyQty: null, getQty: null, productIds: [IDS.gudeg], categoryIds: [], daysOfWeek: [], startTime: null, endTime: null, startsOn: null, endsOn: null };
+    await db.promotions.put(promo);
+
+    const order = await payBill(input({ promotionIds: [promo.id] }), testDeps(db));
+
+    expect(order.lines.find((l) => l.productId === IDS.gudeg)).toMatchObject({ promotion: { id: promo.id, name: "Gudeg hemat" } });
+    expect(order.discountAmount).toBe(4_000);
+  });
+
   it("changes nothing when the payment fails", async () => {
     await expect(payBill(input({ payments: [{ paymentMethodId: IDS.cashMethod, amount: 1_000 }] }), testDeps(db))).rejects.toMatchObject({ code: "INSUFFICIENT" });
 

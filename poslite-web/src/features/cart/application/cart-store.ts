@@ -24,8 +24,11 @@ export interface CartBill {
 interface CartState {
   lines: CartLine[];
   discount: CartDiscount | null;
+  /** Promotions the cashier chose at payment (ADR-016); none applies unless chosen. */
+  promotionIds: string[];
   bill: CartBill | null;
-  loadBill: (bill: CartBill, lines: CartLine[], discount: CartDiscount | null) => void;
+  /** Opens a bill; the chosen promotions start empty unless handed over (e.g. after a split payment). */
+  loadBill: (bill: CartBill, lines: CartLine[], discount: CartDiscount | null, promotionIds?: string[]) => void;
   /** Turn the current lines into a dine-in bill, or back into take-away (null). */
   setBill: (bill: CartBill | null) => void;
   add: (line: NewLine) => void;
@@ -34,8 +37,12 @@ interface CartState {
   remove: (key: string) => void;
   setLineDiscount: (key: string, discount: LineDiscount | null) => void;
   setDiscount: (discount: CartDiscount | null) => void;
+  togglePromotion: (id: string) => void;
   clear: () => void;
 }
+
+/** An emptied cart starts the next sale: a promotion chosen for the old one must not carry over. */
+const withLines = (s: CartState, lines: CartLine[]) => ({ lines, promotionIds: lines.length === 0 ? [] : s.promotionIds });
 
 export function createCartStore(storage: StateStorage) {
   return create<CartState>()(
@@ -43,21 +50,23 @@ export function createCartStore(storage: StateStorage) {
       (set) => ({
         lines: [],
         discount: null,
+        promotionIds: [],
         bill: null,
-        loadBill: (bill, lines, discount) => set({ bill, lines, discount }),
+        loadBill: (bill, lines, discount, promotionIds = []) => set({ bill, lines, discount, promotionIds }),
         setBill: (bill) => set({ bill }),
         add: (line) => set((s) => ({ lines: addLine(s.lines, line) })),
-        changeQuantity: (key, delta) => set((s) => ({ lines: changeQuantity(s.lines, key, delta) })),
+        changeQuantity: (key, delta) => set((s) => withLines(s, changeQuantity(s.lines, key, delta))),
         update: (key, change) => set((s) => ({ lines: updateLine(s.lines, key, change) })),
-        remove: (key) => set((s) => ({ lines: removeLine(s.lines, key) })),
+        remove: (key) => set((s) => withLines(s, removeLine(s.lines, key))),
         setLineDiscount: (key, discount) => set((s) => ({ lines: setLineDiscount(s.lines, key, discount) })),
         setDiscount: (discount) => set({ discount }),
-        clear: () => set({ lines: [], discount: null, bill: null }),
+        togglePromotion: (id) => set((s) => ({ promotionIds: s.promotionIds.includes(id) ? s.promotionIds.filter((p) => p !== id) : [...s.promotionIds, id] })),
+        clear: () => set({ lines: [], discount: null, promotionIds: [], bill: null }),
       }),
       {
         name: "cart",
         storage: createJSONStorage(() => storage),
-        partialize: (s) => ({ lines: s.lines, discount: s.discount, bill: s.bill }),
+        partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill }),
       },
     ),
   );

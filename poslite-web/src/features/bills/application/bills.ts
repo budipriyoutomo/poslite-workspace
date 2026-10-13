@@ -33,3 +33,19 @@ export async function saveBill(input: { bill: BillRef; lines: OpenBillLine[]; di
 export async function cancelBill(id: string, deps: BillDeps = defaultDeps()): Promise<void> {
   await deps.db.openBills.delete(id);
 }
+
+/**
+ * Moves an open bill to another table — local only, like the bill itself (ADR-015). Other
+ * devices do not know which tables this one uses; only this device's bills are checked.
+ */
+export async function moveBill(input: { billId: string; table: { id: string | null; label: string } }, deps: BillDeps = defaultDeps()): Promise<void> {
+  const { db } = deps;
+  await db.transaction("rw", db.openBills, async () => {
+    const bill = await db.openBills.get(input.billId);
+    if (!bill) throw new AppError("BILL_NOT_FOUND");
+    const same = input.table.id !== null ? bill.tableId === input.table.id : bill.tableLabel === input.table.label;
+    if (same) throw new AppError("SAME_TABLE");
+    if (input.table.id !== null && (await db.openBills.where("tableId").equals(input.table.id).count()) > 0) throw new AppError("TABLE_OCCUPIED");
+    await db.openBills.update(bill.id, { tableId: input.table.id, tableLabel: input.table.label, updatedAt: deps.now().toISOString() });
+  });
+}

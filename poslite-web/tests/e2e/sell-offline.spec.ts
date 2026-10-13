@@ -53,4 +53,10 @@ test("sell and pay offline, then find the order after a reload", async ({ page, 
   const row = page.getByRole("button", { name: new RegExp(receiptNo) });
   await expect(row).toContainText("Pending");
   await expect(row).toContainText("Rp 46.200");
+
+  // Locking the till: the lock screen opens on Siti, so coming back is just her PIN.
+  await page.getByRole("button", { name: "Kunci" }).click();
+  await expect(page.getByText("Halo Siti, masukkan PIN")).toBeVisible();
+  for (const digit of "1234") await page.getByRole("button", { name: digit, exact: true }).click();
+  await expect(page).toHaveURL(/\/sell$/);
 });

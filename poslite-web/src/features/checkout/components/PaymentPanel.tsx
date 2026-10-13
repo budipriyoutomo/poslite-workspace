@@ -62,7 +62,7 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 [@media(max-height:760px)]:space-y-3">
       <div className="grid grid-cols-3 gap-2">
         {methods.map((m) => (
           <Button key={m.id} variant="outline" className={cn("h-11", m.id === method.id && "border-emerald-600 bg-emerald-50 font-semibold")} onClick={() => choose(m)}>

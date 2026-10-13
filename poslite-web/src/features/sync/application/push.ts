@@ -61,7 +61,7 @@ export async function pushOutbox(deps: PushDeps): Promise<{ sent: number; failed
     }
 
     const byId = new Map(batch.map((row) => [row.id, row]));
-    await db.transaction("rw", [db.outbox, db.orders], async () => {
+    await db.transaction("rw", [db.outbox, db.orders, db.refunds], async () => {
       for (const result of response.results) {
         const row = byId.get(result.id);
         if (!row) continue;
@@ -70,9 +70,9 @@ export async function pushOutbox(deps: PushDeps): Promise<{ sent: number; failed
           continue;
         }
         await db.outbox.delete(row.seq!);
-        if (row.type === "order.placed") {
-          await db.orders.update(row.aggregateId, { syncStatus: "synced", ...(result.flags ? { flags: result.flags } : {}) });
-        }
+        const synced = { syncStatus: "synced" as const, ...(result.flags ? { flags: result.flags } : {}) };
+        if (row.type === "order.placed") await db.orders.update(row.aggregateId, synced);
+        if (row.type === "order.refunded") await db.refunds.update(row.aggregateId, synced);
         sent++;
       }
     });

@@ -17,3 +17,16 @@ it("v4 keeps a product's image as imageKey (ADR-021)", async () => {
   expect(product.imageKey).toBe("https://old.example.com/teh.jpg");
   expect(product).not.toHaveProperty("imageUrl");
 });
+
+it("v5 keeps orders and adds the refunds table (ADR-023)", async () => {
+  const indexedDB = new IDBFactory();
+  const old = new Dexie("poslite-upgrade-5", { indexedDB, IDBKeyRange });
+  old.version(4).stores({ orders: "id, shiftId, status, createdAt, businessDate, receiptNo, syncStatus" });
+  await old.table("orders").put({ id: "O1", shiftId: "S1", status: "paid", createdAt: "2026-10-07", businessDate: "2026-10-07", receiptNo: "A-1", syncStatus: "synced" });
+  old.close();
+
+  const db = new PosDb("poslite-upgrade-5", { indexedDB, IDBKeyRange });
+
+  expect((await db.orders.get("O1"))?.receiptNo).toBe("A-1");
+  expect(await db.refunds.where("orderId").equals("O1").count()).toBe(0);
+});

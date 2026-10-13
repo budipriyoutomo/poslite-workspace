@@ -1,0 +1,103 @@
+{
+  "format": "poslite-device-export",
+  "version": 1,
+  "exported_at": "2026-09-25T09:12:00.000Z",
+  "app_version": "0.1.0",
+  "tenant_id": "01K5ZT00000000000000000001",
+  "outlet_id": "01K5ZO00000000000000000001",
+  "device_id": "01K5ZD00000000000000000001",
+  "device_code": "A",
+  "events": [
+    {
+      "id": "01K5ZE00000000000000000001",
+      "type": "shift.opened",
+      "aggregate_id": "01K5ZS00000000000000000001",
+      "occurred_at": "2026-09-25T01:00:00.000Z",
+      "payload": {
+        "opening_cash": 200000,
+        "opened_by": "01K5ZA00000000000000000001"
+      }
+    },
+    {
+      "id": "01K5ZE00000000000000000002",
+      "type": "cash.moved",
+      "aggregate_id": "01K5ZC00000000000000000001",
+      "occurred_at": "2026-09-25T02:00:00.000Z",
+      "payload": {
+        "shift_id": "01K5ZS00000000000000000001",
+        "type": "out",
+        "amount": 20000,
+        "reason": "Beli es batu",
+        "created_by": "01K5ZA00000000000000000001"
+      }
+    },
+    {
+      "id": "01K5ZE00000000000000000003",
+      "type": "order.placed",
+      "aggregate_id": "01K5ZR00000000000000000001",
+      "occurred_at": "2026-09-25T04:03:00.000Z",
+      "payload": {
+        "shift_id": "01K5ZS00000000000000000001",
+        "receipt_no": "JKT01A-260925-0001",
+        "cashier_id": "01K5ZA00000000000000000001",
+        "order_type": "take_away",
+        "lines": [
+          {
+            "id": "01K5ZN00000000000000000001",
+            "product_id": "01K5ZP00000000000000000001",
+            "product_name": "Nasi Gudeg",
+            "category_name": "Makanan",
+            "unit_price": 25000,
+            "quantity": 2,
+            "notes": "tidak pedas",
+            "modifiers": [
+              {
+                "modifier_option_id": "01K5ZM00000000000000000001",
+                "name": "Tambah Ayam",
+                "price": 10000
+              }
+            ]
+          }
+        ],
+        "discount": {
+          "type": "percentage",
+          "value": 10
+        },
+        "rates": {
+          "service_bps": 500,
+          "tax_bps": 1000
+        },
+        "totals": {
+          "subtotal": 70000,
+          "discount_amount": 7000,
+          "service_charge": 3150,
+          "tax": 6615,
+          "total": 72765
+        },
+        "payments": [
+          {
+            "id": "01K5ZY10000000000000000001",
+            "payment_method_id": "01K5ZY00000000000000000001",
+            "method_type": "cash",
+            "amount": 100000,
+            "reference": null
+          }
+        ],
+        "change_amount": 27235
+      }
+    },
+    {
+      "id": "01K5ZE00000000000000000004",
+      "type": "shift.closed",
+      "aggregate_id": "01K5ZS00000000000000000001",
+      "occurred_at": "2026-09-25T14:00:00.000Z",
+      "payload": {
+        "closed_by": "01K5ZA00000000000000000001",
+        "counted_cash": 250000,
+        "expected_cash": 252765,
+        "variance": -2765
+      }
+    }
+  ],
+  "checksum": "3bc02efb6a539065d3cf4942413c5f7b9727af9503d7b6bf6d6a64511cd5c86a"
+}

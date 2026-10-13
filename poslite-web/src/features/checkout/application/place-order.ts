@@ -3,10 +3,11 @@ import { localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
-import { getDb, readState, writeState } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, getDb, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
+import { manualDiscounts, needsApproval } from "../domain/discount-policy";
 import { settle } from "../domain/payment";
 import type { Discount } from "../domain/pricing";
 import { priceCart } from "./price-cart";
@@ -24,11 +25,15 @@ export interface PlaceOrderInput {
     quantity: number;
     note: string;
     modifiers: { optionId: string; name: string; price: number }[];
-    /** The cashier's manual line discount; otherwise promotions decide (ADR-016). */
+    /** The cashier's manual line discount; otherwise the chosen promotions decide (ADR-016). */
     discount?: Discount | null;
   }[];
   discount: Discount | null;
+  /** Promotions the cashier chose at payment (ADR-016); none applies unless chosen. */
+  promotionIds?: string[];
   payments: { paymentMethodId: string; amount: number; reference?: string | null }[];
+  /** Manager who approved a discount over the brand's cashier limit (06 Order rule 5). */
+  discountApprovedBy?: string | null;
 }
 
 export interface PlaceOrderDeps {
@@ -38,7 +43,7 @@ export interface PlaceOrderDeps {
 }
 
 /** Everything placeOrder writes or reads; an outer transaction must cover all of them. */
-export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.orders, db.payments, db.syncState, db.outbox];
+export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.users, db.orders, db.payments, db.syncState, db.outbox];
 
 const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(), newId });
 
@@ -58,8 +63,11 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
 
     const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps }; // snapshot (ADR-011)
     const now = deps.now();
-    // Promotions are decided now, at payment, in outlet time (ADR-016).
-    const { lines: applied, totals } = priceCart(input.lines, input.discount, rates, await db.promotions.toArray(), localMoment(now, outlet.timezone));
+    // Only the promotions the cashier chose, checked again now in outlet time (ADR-016).
+    const chosen = (await db.promotions.toArray()).filter((p) => input.promotionIds?.includes(p.id));
+    const priced = priceCart(input.lines, input.discount, rates, chosen, localMoment(now, outlet.timezone));
+    const { lines: applied, totals } = priced;
+    const approvedBy = await checkDiscount(db, input, priced, outlet.discountPolicy ?? DEFAULT_DISCOUNT_POLICY);
 
     const methods = await db.paymentMethods.bulkGet(input.payments.map((p) => p.paymentMethodId));
     const tendered = input.payments.map((p, i) => {
@@ -124,10 +132,30 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       type: "order.placed",
       aggregateId: order.id,
       occurredAt: createdAt,
-      payload: toOrderPlacedPayload(order, payments),
+      payload: { ...toOrderPlacedPayload(order, payments), discount_approved_by: approvedBy },
     });
     return order;
   });
+}
+
+/**
+ * A manual discount over the brand's cashier limit needs a manager (06 Order rule 5): the
+ * cashier is one, or a manager approved it with their PIN. Returns who approved, if anyone.
+ */
+async function checkDiscount(
+  db: PosDb,
+  input: PlaceOrderInput,
+  priced: ReturnType<typeof priceCart>,
+  policy: { cashierMaxPercentage: number; cashierMaxAmount: number },
+): Promise<string | null> {
+  const { percentages, amount } = manualDiscounts(priced.lines, input.discount, priced.orderDiscount);
+  const role = (await db.users.get(input.cashier.id))?.role ?? "cashier";
+  if (!needsApproval({ role, manualPercentages: percentages, manualAmount: amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } })) {
+    return null;
+  }
+  const approver = input.discountApprovedBy ? await db.users.get(input.discountApprovedBy) : undefined;
+  if (!approver || approver.role === "cashier") throw new AppError("DISCOUNT_APPROVAL_REQUIRED");
+  return approver.id;
 }
 
 function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {

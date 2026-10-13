@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyPromotions, isScheduled, localMoment, type Promotion, type PromoLine } from "./promotion-engine";
+import { applyPromotions, availablePromotions, isScheduled, localMoment, type Promotion, type PromoLine } from "./promotion-engine";
 
 const DRINKS = "01K5ZC00000000000000000001";
 const FOOD = "01K5ZC00000000000000000002";
@@ -125,5 +125,31 @@ describe("localMoment", () => {
   it("reads date, time and ISO weekday in the outlet's time zone", () => {
     // 2026-09-25T17:30Z = Saturday 00:30 in Jakarta (UTC+7)
     expect(localMoment(new Date("2026-09-25T17:30:00Z"), "Asia/Jakarta")).toEqual({ date: "2026-09-26", time: "00:30", weekday: 6 });
+  });
+});
+
+describe("availablePromotions", () => {
+  const happy = promo({ id: "01K5ZQ00000000000000000001", name: "Happy hour", percentage: 20, categoryIds: [DRINKS] });
+  const nasi = promo({ id: "01K5ZQ00000000000000000002", name: "Nasi hemat", percentage: 10, productIds: [NASI] });
+
+  it("offers the running promotions that cut the price of some line, biggest saving first", () => {
+    const lines = [line(), line({ productId: NASI, categoryId: FOOD, unitPrice: 30000 })];
+
+    expect(availablePromotions(lines, [nasi, happy], FRI_15)).toEqual([
+      { promotion: { id: happy.id, name: "Happy hour" }, amount: 3600 },
+      { promotion: { id: nasi.id, name: "Nasi hemat" }, amount: 3000 },
+    ]);
+  });
+
+  it("leaves out promotions outside their schedule or with nothing to discount", () => {
+    const later = promo({ ...happy, startTime: "17:00", endTime: "19:00" });
+
+    expect(availablePromotions([line({ productId: NASI, categoryId: FOOD })], [later, happy], FRI_15)).toEqual([]);
+  });
+
+  it("does not count lines the cashier discounted by hand", () => {
+    const lines = [line({ manualDiscount: { type: "percentage", value: 5 } }), line({ productId: "01K5ZP00000000000000000003" })];
+
+    expect(availablePromotions(lines, [happy], FRI_15)).toEqual([{ promotion: { id: happy.id, name: "Happy hour" }, amount: 3600 }]);
   });
 });

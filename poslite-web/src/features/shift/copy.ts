@@ -13,6 +13,8 @@ export const copy = {
   cashIn: "Kas masuk",
   cashOut: "Kas keluar",
   expectedCash: "Seharusnya di laci",
+  cashRefunds: "Refund tunai",
+  corrections: (voids: number, voidTotal: string, refunds: number, refundTotal: string) => `Void ${voids} (${voidTotal}) · Refund ${refunds} (${refundTotal})`,
   cashInButton: "Kas Masuk",
   cashOutButton: "Kas Keluar",
   movementTitle: (type: "in" | "out") => (type === "in" ? "Kas Masuk" : "Kas Keluar"),

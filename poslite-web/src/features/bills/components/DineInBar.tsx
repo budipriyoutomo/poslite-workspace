@@ -44,7 +44,7 @@ export function DineInBar() {
 
   if (!cart.bill) {
     return (
-      <div className="mb-2 flex gap-2">
+      <div className="mb-2 flex items-center gap-2">
         <Badge variant="secondary" className="gap-1">
           <ShoppingBag className="size-3" /> Bawa pulang
         </Badge>

@@ -12,7 +12,11 @@ export interface PayBillInput {
   /** What stays on the bill; empty closes it. */
   remaining: OpenBillLine[];
   discount: Discount | null;
+  /** Promotions the cashier chose at payment (ADR-016). */
+  promotionIds?: string[];
   payments: { paymentMethodId: string; amount: number; reference?: string | null }[];
+  /** Manager who approved a discount over the brand's cashier limit (06 Order rule 5). */
+  discountApprovedBy?: string | null;
 }
 
 const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(), newId });
@@ -31,7 +35,9 @@ export async function payBill(input: PayBillInput, deps: PlaceOrderDeps = defaul
         tableLabel: input.bill.tableLabel,
         lines: input.paying,
         discount: input.discount,
+        promotionIds: input.promotionIds ?? [],
         payments: input.payments,
+        discountApprovedBy: input.discountApprovedBy ?? null,
       },
       deps,
     );

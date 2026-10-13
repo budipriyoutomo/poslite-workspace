@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { OpenBillLine, PosDb } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
-import { cancelBill, saveBill } from "./bills";
+import { cancelBill, moveBill, saveBill } from "./bills";
 
 let db: PosDb;
 beforeEach(() => {
@@ -47,5 +47,31 @@ describe("cancelBill", () => {
     await cancelBill("B1", { db, now: () => NOW });
 
     expect(await db.openBills.count()).toBe(0);
+  });
+});
+
+describe("moveBill (doc 11 §2)", () => {
+  const save = (id: string, tableId: string, tableLabel: string) => saveBill({ bill: { ...bill(id, tableId), tableLabel }, lines: [kopi], discount: null }, { db, now: () => NOW });
+  const deps = () => ({ db, now: () => new Date("2026-09-25T04:00:00.000Z") });
+
+  it("moves an open bill to a free table, keeping its lines", async () => {
+    await save("B1", "T1", "A1");
+
+    await moveBill({ billId: "B1", table: { id: "T2", label: "B2" } }, deps());
+
+    expect(await db.openBills.get("B1")).toMatchObject({ tableId: "T2", tableLabel: "B2", lines: [kopi], updatedAt: "2026-09-25T04:00:00.000Z" });
+  });
+
+  it("refuses a table that has another open bill on this device", async () => {
+    await save("B1", "T1", "A1");
+    await save("B2", "T2", "B2");
+
+    await expect(moveBill({ billId: "B1", table: { id: "T2", label: "B2" } }, deps())).rejects.toMatchObject({ code: "TABLE_OCCUPIED" });
+  });
+
+  it("refuses the table it is already on", async () => {
+    await save("B1", "T1", "A1");
+
+    await expect(moveBill({ billId: "B1", table: { id: "T1", label: "A1" } }, deps())).rejects.toMatchObject({ code: "SAME_TABLE" });
   });
 });

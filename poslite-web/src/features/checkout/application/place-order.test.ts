@@ -143,10 +143,13 @@ describe("placeOrder — line discounts, promotions and dine-in (Fase 4)", () =>
   };
   const plain = { ...gudegWithAyam, modifiers: [], quantity: 1 }; // 25.000
 
-  it("applies a running promotion at payment time and sends its snapshot", async () => {
+  it("applies a running promotion the cashier chose at payment and sends its snapshot", async () => {
     await db.promotions.put(PROMO);
 
-    const placed = await placeOrder(order({ lines: [plain], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }), testDeps(db));
+    const placed = await placeOrder(
+      order({ lines: [plain], discount: null, promotionIds: [PROMO.id], payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }),
+      testDeps(db),
+    );
 
     // 25.000 − 20% = 20.000; service 1.000; PB1 2.100 → 23.100
     expect(placed).toMatchObject({ subtotal: 25_000, discountAmount: 5_000, total: 23_100 });
@@ -155,10 +158,22 @@ describe("placeOrder — line discounts, promotions and dine-in (Fase 4)", () =>
     expect((event!.payload as { lines: unknown[] }).lines[0]).toMatchObject({ discount: { type: "percentage", value: 20 }, promotion: { id: PROMO.id, name: "Pagi hemat" } });
   });
 
-  it("does not apply a promotion outside its hours", async () => {
-    await db.promotions.put({ ...PROMO, startTime: "14:00", endTime: "17:00" });
+  it("does not apply a running promotion the cashier did not choose", async () => {
+    await db.promotions.put(PROMO);
 
     const placed = await placeOrder(order({ lines: [plain], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }), testDeps(db));
+
+    expect(placed.discountAmount).toBe(0);
+    expect(placed.lines[0]).toMatchObject({ discount: null, promotion: null });
+  });
+
+  it("does not apply a chosen promotion outside its hours", async () => {
+    await db.promotions.put({ ...PROMO, startTime: "14:00", endTime: "17:00" });
+
+    const placed = await placeOrder(
+      order({ lines: [plain], discount: null, promotionIds: [PROMO.id], payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }),
+      testDeps(db),
+    );
 
     expect(placed.discountAmount).toBe(0);
     expect(placed.lines[0]).toMatchObject({ discount: null, promotion: null });
@@ -168,7 +183,7 @@ describe("placeOrder — line discounts, promotions and dine-in (Fase 4)", () =>
     await db.promotions.put(PROMO);
 
     const placed = await placeOrder(
-      order({ lines: [{ ...plain, discount: { type: "fixed", value: 1_000 } }], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }),
+      order({ lines: [{ ...plain, discount: { type: "fixed", value: 1_000 } }], discount: null, promotionIds: [PROMO.id], payments: [{ paymentMethodId: IDS.cashMethod, amount: 30_000 }] }),
       testDeps(db),
     );
 
@@ -182,5 +197,41 @@ describe("placeOrder — line discounts, promotions and dine-in (Fase 4)", () =>
     expect(placed).toMatchObject({ orderType: "dine_in", tableLabel: "A1" });
     const [event] = await nonShiftEvents();
     expect(event!.payload).toMatchObject({ order_type: "dine_in", table_label: "A1" });
+  });
+});
+
+describe("placeOrder discount approval (06 Order rule 5)", () => {
+  const MANAGER = { id: IDS.manager, name: "Bu Rina", role: "manager" as const, pinHash: "", pinSalt: "", pinIterations: 1 };
+  const strict = async () => {
+    const outlet = (await db.settings.get("outlet"))!.value;
+    await db.settings.put({ key: "outlet", value: { ...outlet, discountPolicy: { percentages: [5, 10], amounts: [5_000], allowCustom: false, cashierMaxPercentage: 10, cashierMaxAmount: 20_000 } } });
+    await db.users.put(MANAGER);
+  };
+
+  it("refuses a cashier's discount over the brand limit without a manager", async () => {
+    await strict();
+
+    await expect(placeOrder(order({ discount: { type: "percentage", value: 15 } }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
+  });
+
+  it("records the manager who approved it in order.placed", async () => {
+    await strict();
+
+    await placeOrder(order({ discount: { type: "percentage", value: 15 }, discountApprovedBy: IDS.manager }), testDeps(db));
+
+    const [event] = await nonShiftEvents();
+    expect(event!.payload).toMatchObject({ discount_approved_by: IDS.manager });
+  });
+
+  it("lets a manager give it alone", async () => {
+    await strict();
+
+    const placed = await placeOrder(order({ cashier: { id: IDS.manager, name: "Bu Rina" }, discount: { type: "percentage", value: 15 } }), testDeps(db));
+
+    expect(placed.status).toBe("paid");
+  });
+
+  it("keeps the old 20% limit on an outlet synced before brands had a policy", async () => {
+    await expect(placeOrder(order({ discount: { type: "percentage", value: 25 } }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
   });
 });

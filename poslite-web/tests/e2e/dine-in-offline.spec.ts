@@ -35,8 +35,15 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await page.getByRole("button", { name: "Simpan bill" }).click();
   await expect(page.getByText("Keranjang kosong").first()).toBeVisible();
 
-  // Later: resume the bill and add a drink
+  // The guests change tables (A1 → A2) and back again: the bill follows, offline (doc 11 §2)
   await page.getByRole("link", { name: "Bill" }).click();
+  await page.getByRole("button", { name: "Pindah meja A1" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: /A2/ }).click();
+  await expect(page.getByRole("listitem", { name: "Meja A2" })).toContainText("2 item");
+  await page.getByRole("button", { name: "Pindah meja A2" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: /A1/ }).click();
+
+  // Later: resume the bill and add a drink
   await expect(page.getByRole("listitem", { name: "Meja A1" })).toContainText("2 item");
   await page.getByRole("button", { name: "Lanjutkan A1" }).click();
   await expect(page).toHaveURL(/\/sell$/);

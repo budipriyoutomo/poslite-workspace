@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, ShoppingCart, Wifi, WifiOff } from "lucide-react";
+import { BarChart3, Clock, History, Lock, ReceiptText, RefreshCw, ShoppingCart, Store, Wifi, WifiOff } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
@@ -14,12 +14,12 @@ import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/ui/utils";
 
 const NAV = [
-  { href: "/sell", label: "Jual" },
-  { href: "/bills", label: "Bill" },
-  { href: "/orders", label: "Riwayat" },
-  { href: "/shift", label: "Shift" },
-  { href: "/reports", label: "Laporan" },
-  { href: "/sync", label: "Sync" },
+  { href: "/sell", label: "Jual", icon: ShoppingCart },
+  { href: "/bills", label: "Bill", icon: ReceiptText },
+  { href: "/orders", label: "Riwayat", icon: History },
+  { href: "/shift", label: "Shift", icon: Clock },
+  { href: "/reports", label: "Laporan", icon: BarChart3 },
+  { href: "/sync", label: "Sync", icon: RefreshCw },
 ] as const;
 
 // Selling needs an open shift (06-domain-and-database.md, Shift rule 2); history and reports don't.
@@ -59,27 +59,42 @@ export function PosShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-dvh flex-col bg-slate-50">
-      <header className="flex items-center gap-3 border-b bg-slate-900 px-4 py-2 text-white">
-        <ShoppingCart className="size-5 text-emerald-400" />
-        <span className="font-bold">POSLite</span>
-        <nav className="ml-4 flex gap-1">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn("rounded-md px-3 py-1.5 text-sm", pathname === item.href ? "bg-white/15 font-semibold" : "text-slate-300 hover:bg-white/10")}
-            >
-              {item.label}
-            </Link>
-          ))}
+      <header className="flex items-center gap-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 px-3 py-2 text-white shadow-md lg:gap-3 lg:px-4">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm shadow-emerald-500/30">
+          <Store className="size-4" />
+        </span>
+        <span className="hidden font-bold tracking-tight sm:inline">POSLite</span>
+        <nav className="ml-1 flex gap-0.5 rounded-xl bg-white/5 p-1 lg:ml-3 lg:gap-1">
+          {NAV.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm transition-colors lg:px-3",
+                  active ? "bg-emerald-500 font-semibold text-white shadow-sm shadow-emerald-900/40" : "text-slate-300 hover:bg-white/10 hover:text-white",
+                )}
+              >
+                <Icon aria-hidden className="hidden size-4 xl:block" />
+                {label}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 lg:gap-3">
           <SyncBadge />
           <Badge variant="outline" className={cn("gap-1 border-transparent", isOnline ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-300")}>
             {isOnline ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
             {isOnline ? "Online" : "Offline"}
           </Badge>
-          <span className="hidden text-sm text-slate-300 sm:inline">{user.name}</span>
+          <span className="hidden items-center gap-2 text-sm text-slate-300 lg:flex">
+            <span aria-hidden className="flex size-7 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
+              {user.name.trim().charAt(0).toUpperCase()}
+            </span>
+            {user.name}
+          </span>
           <Button size="sm" variant="secondary" onClick={lock}>
             <Lock /> {authCopy.lock}
           </Button>

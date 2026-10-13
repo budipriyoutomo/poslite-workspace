@@ -11,6 +11,7 @@ import type {
   OutboxRow,
   PaymentMethodRow,
   PaymentRow,
+  RefundRow,
   PrinterConfigRow,
   PrintJobRow,
   ProductRow,
@@ -38,6 +39,7 @@ export class PosDb extends Dexie {
   shifts!: Table<ShiftRow, string>;
   orders!: Table<OrderRow, string>;
   payments!: Table<PaymentRow, string>;
+  refunds!: Table<RefundRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
   /** Unpaid dine-in bills: device-local, never synced or pushed (ADR-015). */
   openBills!: Table<OpenBillRow, string>;
@@ -82,6 +84,8 @@ export class PosDb extends Dexie {
           delete p.imageUrl;
         }),
     );
+    // v5 (ADR-023): refund documents; void and refund state on orders needs no index.
+    this.version(5).stores({ refunds: "id, orderId, shiftId, businessDate, createdAt, syncStatus" });
   }
 }
 

@@ -3,8 +3,11 @@
 import { Minus, Pencil, Percent, Plus, ShoppingCart, X } from "lucide-react";
 import { useState } from "react";
 
+import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
+import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
+import { hasDiscountChoices } from "@/shared/ui/discount-chooser";
 
 import { useCart } from "../application/cart-store";
 import { copy } from "../copy";
@@ -23,6 +26,7 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
   const setLineDiscount = useCart((s) => s.setLineDiscount);
   const [discounting, setDiscounting] = useState<string | null>(null);
   const discountingLine = lines.find((l) => l.key === discounting);
+  const canDiscount = hasDiscountChoices(useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY);
 
   if (lines.length === 0) {
     return (
@@ -62,9 +66,11 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
                 <X className="size-3" /> Hapus diskon
               </Button>
             ) : (
-              <Button variant="link" size="sm" className="h-auto p-0 text-xs" aria-label={copy.lineDiscount(line.name)} onClick={() => setDiscounting(line.key)}>
-                <Percent className="size-3" /> Diskon item
-              </Button>
+              canDiscount && (
+                <Button variant="link" size="sm" className="h-auto p-0 text-xs" aria-label={copy.lineDiscount(line.name)} onClick={() => setDiscounting(line.key)}>
+                  <Percent className="size-3" /> Diskon item
+                </Button>
+              )
             )}
           </div>
           <div className="flex items-center gap-1 self-center">

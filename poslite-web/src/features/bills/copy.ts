@@ -8,6 +8,9 @@ export const copy = {
   openedAt: (time: string) => `Dibuka ${time}`,
   resume: (label: string) => `Lanjutkan ${label}`,
   cancel: (label: string) => `Batalkan ${label}`,
+  move: (label: string) => `Pindah meja ${label}`,
+  moved: (from: string, to: string) => `Bill meja ${from} dipindah ke meja ${to}`,
+  localTables: "Status meja hanya dari tablet ini.",
   cancelTitle: (label: string) => `Batalkan bill meja ${label}?`,
   cancelHint: "Pesanan di bill ini dihapus. Belum ada pembayaran, jadi tidak ada transaksi yang dibatalkan.",
   cancelConfirm: "Batalkan bill",
@@ -19,6 +22,7 @@ export const copy = {
   noTables: "Outlet belum punya daftar meja — ketik nomor meja.",
   errors: {
     TABLE_OCCUPIED: "Meja ini sudah punya bill terbuka",
+    SAME_TABLE: "Bill sudah di meja ini",
     EMPTY_BILL: "Bill masih kosong",
     CART_BUSY: "Simpan atau kosongkan pesanan yang sedang dibuka dulu",
   } as Record<string, string>,

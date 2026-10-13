@@ -1,18 +1,20 @@
 "use client";
 
+import { useSession } from "@/features/auth";
 import { useCart } from "@/features/cart";
-import { formatRupiah } from "@/shared/money";
-import { Button } from "@/shared/ui/button";
+import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
+import { useOutletSetting } from "@/shared/hooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { DiscountChooser } from "@/shared/ui/discount-chooser";
 
 import { copy } from "../copy";
 
-// Prototype presets; all within a cashier's limit (> 20% will need manager approval — 06 Order rule 5).
-const PERCENTAGES = [5, 10, 15, 20];
-const FIXED = [5_000, 10_000, 25_000, 50_000];
-
 export function DiscountPicker({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const setDiscount = useCart((s) => s.setDiscount);
+  // The brand's presets (06 Order rule 5); above its cashier limit, checkout asks for a manager.
+  const policy = useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY;
+  const isCashier = useSession((s) => s.user?.role) === "cashier";
+  const cashierLimit = isCashier ? { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } : undefined;
   const choose = (discount: { type: "percentage" | "fixed"; value: number }) => {
     setDiscount(discount);
     onOpenChange(false);
@@ -24,22 +26,7 @@ export function DiscountPicker({ open, onOpenChange }: { open: boolean; onOpenCh
         <DialogHeader>
           <DialogTitle>{copy.discountTitle}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm font-medium">{copy.percentage}</p>
-        <div className="grid grid-cols-4 gap-2">
-          {PERCENTAGES.map((value) => (
-            <Button key={value} variant="outline" onClick={() => choose({ type: "percentage", value })}>
-              {value}%
-            </Button>
-          ))}
-        </div>
-        <p className="text-sm font-medium">{copy.fixed}</p>
-        <div className="grid grid-cols-2 gap-2">
-          {FIXED.map((value) => (
-            <Button key={value} variant="outline" onClick={() => choose({ type: "fixed", value })}>
-              {formatRupiah(value)}
-            </Button>
-          ))}
-        </div>
+        <DiscountChooser percentages={policy.percentages} amounts={policy.amounts} allowCustom={policy.allowCustom} cashierLimit={cashierLimit} onChoose={choose} />
       </DialogContent>
     </Dialog>
   );

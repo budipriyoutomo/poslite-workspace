@@ -9,7 +9,7 @@ const bills = [{ id: "B1", tableId: "T1", tableLabel: "A1", lines: [line], disco
 
 describe("OpenBillList", () => {
   it("shows each open bill with its table, items and value before tax", () => {
-    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} />);
+    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={vi.fn()} />);
 
     const a1 = within(screen.getByRole("listitem", { name: "Meja A1" }));
     expect(a1.getByText("2 item · Rp 36.000")).toBeInTheDocument();
@@ -18,7 +18,7 @@ describe("OpenBillList", () => {
 
   it("resumes a bill", async () => {
     const onResume = vi.fn();
-    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={onResume} onCancel={vi.fn()} />);
+    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={onResume} onCancel={vi.fn()} onMove={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Lanjutkan A1" }));
 
@@ -27,7 +27,7 @@ describe("OpenBillList", () => {
 
   it("cancels a bill after confirmation", async () => {
     const onCancel = vi.fn();
-    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={onCancel} />);
+    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={onCancel} onMove={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Batalkan A1" }));
     await userEvent.click(await screen.findByRole("button", { name: "Batalkan bill" }));
@@ -35,8 +35,17 @@ describe("OpenBillList", () => {
     expect(onCancel).toHaveBeenCalledWith("B1");
   });
 
+  it("asks to move a bill to another table", async () => {
+    const onMove = vi.fn();
+    render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={onMove} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Pindah meja A1" }));
+
+    expect(onMove).toHaveBeenCalledWith(bills[0]);
+  });
+
   it("says when there is nothing open", () => {
-    render(<OpenBillList bills={[]} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} />);
+    render(<OpenBillList bills={[]} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={vi.fn()} />);
 
     expect(screen.getByText("Tidak ada bill terbuka")).toBeInTheDocument();
   });

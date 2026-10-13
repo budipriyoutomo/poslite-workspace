@@ -47,6 +47,24 @@ describe("pullAll", () => {
     expect((await db.syncState.get("pullCursor"))?.value).toBe(9);
   });
 
+  it("keeps the outlet's brand (ADR-022); a server before brands sends none", async () => {
+    const brand = { id: ULID("B", 1), code: "SUSHI", name: "Maharasa Sushi", logo_key: "T/products/logo.png" };
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, brand } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.brand).toEqual({ id: brand.id, code: "SUSHI", name: "Maharasa Sushi", logoKey: "T/products/logo.png" });
+
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.brand).toBeUndefined();
+  });
+
+  it("keeps the brand's discount policy (06 Order rule 5)", async () => {
+    const policy = { percentages: [5], amounts: [2_000], allow_custom: false, cashier_max_percentage: 5, cashier_max_amount: 2_000 };
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, discount_policy: policy } }, ...rest], 9))));
+
+    expect((await db.settings.get("outlet"))?.value.discountPolicy).toEqual({ percentages: [5], amounts: [2_000], allowCustom: false, cashierMaxPercentage: 5, cashierMaxAmount: 2_000 });
+  });
+
   it("keeps image keys and the server's current media base URL (ADR-021)", async () => {
     await pullAll(deps(vi.fn(async () => page(MENU, 9))));
 

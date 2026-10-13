@@ -15,6 +15,9 @@ declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
+  // POS pages keep their state in query params (/orders?id=…, ADR-002) and read them on the
+  // client: any query string is served by the precached page, so detail views open offline.
+  precacheOptions: { ignoreURLParametersMatching: [/.*/] },
   // A new version waits until the app tells it to activate (only when the cart is empty,
   // 02-frontend-architecture.md "Update flow"), so a sale in progress is never disrupted.
   skipWaiting: false,

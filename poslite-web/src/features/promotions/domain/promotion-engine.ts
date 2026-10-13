@@ -1,6 +1,6 @@
 import { divRoundHalfUp } from "@/shared/money";
 
-// Automatic promotions, evaluated offline at payment time (ADR-016, 06 "Promo").
+// Promotions the cashier chooses at payment, evaluated offline (ADR-016, 06 "Promo").
 
 export interface Promotion {
   id: string;
@@ -95,7 +95,7 @@ function offer(p: Promotion, line: PromoLine): { discount: Discount; amount: num
   return free > 0 ? { discount: { type: "fixed", value: free * unit }, amount: free * unit } : null;
 }
 
-/** One discount per line: the cashier's manual one, else the promotion worth the most (tie → smaller id). */
+/** One discount per line: the cashier's manual one, else the chosen promotion worth the most (tie → smaller id). */
 export function applyPromotions(lines: PromoLine[], promotions: Promotion[], at: Moment): AppliedDiscount[] {
   const running = promotions.filter((p) => isScheduled(p, at)).sort((a, b) => (a.id < b.id ? -1 : 1));
   return lines.map((line) => {
@@ -108,4 +108,24 @@ export function applyPromotions(lines: PromoLine[], promotions: Promotion[], at:
     }
     return best ? { discount: best.discount, promotion: { id: best.promotion.id, name: best.promotion.name } } : { discount: null, promotion: null };
   });
+}
+
+export interface AvailablePromotion {
+  promotion: { id: string; name: string };
+  amount: number;
+}
+
+/**
+ * Promotions the cashier may apply at payment: running now and cutting the price of at least one
+ * line the cashier did not discount by hand. `amount` = the saving if it were the only one chosen.
+ */
+export function availablePromotions(lines: PromoLine[], promotions: Promotion[], at: Moment): AvailablePromotion[] {
+  return promotions
+    .filter((p) => isScheduled(p, at))
+    .map((p) => ({
+      promotion: { id: p.id, name: p.name },
+      amount: lines.filter((l) => !l.manualDiscount && inScope(p, l)).reduce((sum, l) => sum + (offer(p, l)?.amount ?? 0), 0),
+    }))
+    .filter((a) => a.amount > 0)
+    .sort((a, b) => b.amount - a.amount || (a.promotion.id < b.promotion.id ? -1 : 1));
 }

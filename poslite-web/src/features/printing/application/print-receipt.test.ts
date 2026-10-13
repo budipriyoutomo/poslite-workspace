@@ -52,4 +52,14 @@ describe("printReceipt", () => {
     expect(await db.printJobs.toArray()).toMatchObject([{ status: "failed", lastError: "printer offline" }]);
     expect((await db.orders.get(order.id))?.status).toBe("paid");
   });
+
+  it("heads the receipt with the brand name when no receipt header is set (ADR-022)", async () => {
+    const outlet = (await db.settings.get("outlet"))!.value;
+    await db.settings.put({ key: "outlet", value: { ...outlet, receiptHeader: "", brand: { id: "B", code: "SUSHI", name: "Maharasa Sushi", logoKey: null } } });
+    const { printer, printed } = fakePrinter();
+
+    await printReceipt(order.id, { db, printer, now: () => new Date(), newId: () => "01J8Z00000000000000000JOB3" });
+
+    expect(printed[0]!.slice(0, 2).join("\n")).toContain("Maharasa Sushi");
+  });
 });

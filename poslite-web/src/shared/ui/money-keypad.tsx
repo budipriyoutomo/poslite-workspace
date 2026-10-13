@@ -26,7 +26,7 @@ export function MoneyKeypad({ label, value, onChange }: { label: string; value: 
       <div className="grid grid-cols-4 gap-2">
         <div className="col-span-3 grid grid-cols-3 gap-2">
           {KEYS.map(({ key, label: text }) => (
-            <Button key={key} type="button" variant="outline" className="h-12 text-lg" onClick={() => onChange(pressCashKey(value, key))}>
+            <Button key={key} type="button" variant="outline" className="h-12 text-lg [@media(max-height:760px)]:h-10" onClick={() => onChange(pressCashKey(value, key))}>
               {text}
             </Button>
           ))}

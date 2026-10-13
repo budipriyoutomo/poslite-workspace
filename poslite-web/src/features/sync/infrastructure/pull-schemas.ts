@@ -22,6 +22,18 @@ export const changeSchema = z.union([
       service_rate_bps: rupiah,
       receipt_header: z.string(),
       receipt_footer: z.string(),
+      // ADR-022: the outlet's brand; optional so a server from before brands still syncs.
+      brand: z.object({ id: ulid, code: z.string(), name: z.string(), logo_key: z.string().nullable() }).optional(),
+      // The brand's manual-discount rules (06 Order rule 5); optional for older servers.
+      discount_policy: z
+        .object({
+          percentages: z.array(z.number().int()),
+          amounts: z.array(z.number().int()),
+          allow_custom: z.boolean(),
+          cashier_max_percentage: z.number().int(),
+          cashier_max_amount: z.number().int(),
+        })
+        .optional(),
     }),
   ),
   upsert("category", z.object({ name: z.string(), sort_order: z.number().int(), print_role: z.enum(["receipt", "kitchen", "bar"]) })),

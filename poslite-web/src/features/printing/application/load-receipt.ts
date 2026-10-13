@@ -15,7 +15,8 @@ export async function loadReceiptLines(db: PosDb, orderId: string): Promise<stri
   ]);
   if (!order || !outlet) return undefined;
   const doc = buildReceipt({
-    header: outlet.value.receiptHeader,
+    // With no receipt text set for the outlet or its brand, the brand name heads the receipt.
+    header: outlet.value.receiptHeader || (outlet.value.brand?.name ?? ""),
     footer: outlet.value.receiptFooter,
     timezone: outlet.value.timezone,
     order,

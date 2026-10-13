@@ -62,6 +62,14 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
           taxBps: d.tax_rate_bps,
           receiptHeader: d.receipt_header,
           receiptFooter: d.receipt_footer,
+          brand: d.brand && { id: d.brand.id, code: d.brand.code, name: d.brand.name, logoKey: d.brand.logo_key },
+          discountPolicy: d.discount_policy && {
+            percentages: d.discount_policy.percentages,
+            amounts: d.discount_policy.amounts,
+            allowCustom: d.discount_policy.allow_custom,
+            cashierMaxPercentage: d.discount_policy.cashier_max_percentage,
+            cashierMaxAmount: d.discount_policy.cashier_max_amount,
+          },
         },
       }));
     }

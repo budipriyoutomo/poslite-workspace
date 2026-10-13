@@ -19,4 +19,11 @@ describe("pull contract (shared fixture)", () => {
       ["category", "dining_table", "modifier_group", "modifier_option", "outlet_setting", "payment_method", "product", "promotion", "user"],
     );
   });
+
+  it("accepts an outlet_setting without a brand (server before ADR-022)", () => {
+    const setting = page.changes.find((c) => c.entity === "outlet_setting")!;
+    const data: Record<string, unknown> = { ...setting.data };
+    delete data.brand;
+    expect(changeSchema.safeParse({ ...setting, data }).error).toBeUndefined();
+  });
 });

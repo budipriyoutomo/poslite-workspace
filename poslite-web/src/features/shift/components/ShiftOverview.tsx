@@ -25,6 +25,7 @@ export function ShiftOverview({ shift }: { shift: ShiftRow }) {
         [copy.cashChange, -summary.cashChange],
         [copy.cashIn, summary.cashIn],
         [copy.cashOut, -summary.cashOut],
+        [copy.cashRefunds, -summary.cashRefunds],
       ]
     : [];
 
@@ -47,6 +48,11 @@ export function ShiftOverview({ shift }: { shift: ShiftRow }) {
           <dt className="border-t pt-2 font-semibold">{copy.expectedCash}</dt>
           <dd className="border-t pt-2 text-right text-lg font-bold tabular-nums">{formatRupiah(summary?.expectedCash ?? 0)}</dd>
         </dl>
+        {summary && (summary.voids.count > 0 || summary.refunds.count > 0) && (
+          <p role="status" aria-label="Koreksi" className="text-sm text-muted-foreground">
+            {copy.corrections(summary.voids.count, formatRupiah(summary.voids.total), summary.refunds.count, formatRupiah(summary.refunds.total))}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" onClick={() => setMovement("in")}>
             <ArrowDownToLine /> {copy.cashInButton}

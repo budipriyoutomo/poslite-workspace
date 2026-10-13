@@ -67,13 +67,41 @@ export const orderPlaced = z.strictObject({
     )
     .min(1),
   change_amount: rupiah,
+  // Manager who approved a discount over the brand's cashier limit (06 Order rule 5); optional for older devices.
+  discount_approved_by: ulid.nullable().optional(),
 });
 
-const orderVoided = z.strictObject({
+export const orderVoided = z.strictObject({
   reason: z.string().min(1).max(200),
   voided_by: ulid,
   approved_by: ulid.nullable(),
 });
+
+// A refund is its own document (ADR-023): lines by order line, amounts from the shared allocation.
+export const orderRefunded = z
+  .strictObject({
+    order_id: ulid,
+    shift_id: ulid,
+    refund_no: z.string().min(1).max(40),
+    reason: z.string().min(1).max(200),
+    refunded_by: ulid,
+    approved_by: ulid.nullable(),
+    lines: z.array(z.strictObject({ order_line_id: ulid, quantity: z.number().int().positive(), amount: rupiah })).min(1),
+    total: rupiah,
+    payments: z
+      .array(
+        z.strictObject({
+          id: ulid,
+          payment_method_id: ulid,
+          method_type: paymentMethodType,
+          method_name: z.string().min(1).max(100),
+          amount: rupiah,
+          reference: z.string().max(64).nullable(),
+        }),
+      )
+      .min(1),
+  })
+  .refine((r) => r.payments.reduce((s, p) => s + p.amount, 0) === r.total, { message: "payments must add up to the refund total", path: ["payments"] });
 
 export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "shift.opened": shiftOpened,
@@ -81,6 +109,9 @@ export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "cash.moved": cashMoved,
   "order.placed": orderPlaced,
   "order.voided": orderVoided,
+  "order.refunded": orderRefunded,
 };
 
 export type OrderPlacedPayload = z.infer<typeof orderPlaced>;
+export type OrderVoidedPayload = z.infer<typeof orderVoided>;
+export type OrderRefundedPayload = z.infer<typeof orderRefunded>;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { OrderRow, OutboxRow, PosDb } from "@/shared/db";
+import type { OrderRow, OutboxRow, PosDb, RefundRow } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
 import { pushOutbox } from "./push";
@@ -52,6 +52,16 @@ describe("pushOutbox", () => {
 
     expect(await db.outbox.count()).toBe(0);
     expect(await db.orders.get(orderId)).toMatchObject({ syncStatus: "synced", flags: ["TOTAL_MISMATCH"] });
+  });
+
+  it("marks a refund synced with the server's flags (ADR-023)", async () => {
+    const refundId = "01K5ZF00000000000000000001";
+    await db.refunds.add({ id: refundId, orderId: "O", shiftId: "S", businessDate: "2026-09-26", createdAt: "x", syncStatus: "pending", flags: [] } as unknown as RefundRow);
+    await db.outbox.add(event(1, "order.refunded", refundId));
+
+    await run(async () => results([{ id: event(1).id, status: "flagged", flags: ["REFUND_EXCEEDS_ORDER"] }]));
+
+    expect(await db.refunds.get(refundId)).toMatchObject({ syncStatus: "synced", flags: ["REFUND_EXCEEDS_ORDER"] });
   });
 
   it("parks a rejected event as dead with the server's reason", async () => {

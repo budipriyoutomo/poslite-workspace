@@ -13,8 +13,35 @@ export interface OutletSetting {
   businessDayCutoff: string; // HH:MM
   serviceBps: number;
   taxBps: number;
-  receiptHeader: string;
+  receiptHeader: string; // already resolved by the server: the outlet's own text, else the brand's
   receiptFooter: string;
+  brand?: BrandIdentityRow; // ADR-022; missing on a device set up by a server before brands
+  discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
+}
+
+/** A brand's manual-discount rules (06 Order rule 5). */
+export interface DiscountPolicyRow {
+  percentages: number[];
+  amounts: number[];
+  allowCustom: boolean;
+  cashierMaxPercentage: number;
+  cashierMaxAmount: number;
+}
+
+/** What a device used before brands had a policy: the old presets and a 20% / Rp 50.000 limit. */
+export const DEFAULT_DISCOUNT_POLICY: DiscountPolicyRow = {
+  percentages: [5, 10, 15, 20],
+  amounts: [5_000, 10_000, 25_000, 50_000],
+  allowCustom: true,
+  cashierMaxPercentage: 20,
+  cashierMaxAmount: 50_000,
+};
+
+export interface BrandIdentityRow {
+  id: string;
+  code: string;
+  name: string;
+  logoKey: string | null; // object key; URL = mediaBaseUrl + key (ADR-021)
 }
 
 export type SettingRow = { key: "outlet"; value: OutletSetting };
@@ -116,6 +143,28 @@ export interface OrderRow {
   paidAmount: number;
   changeAmount: number;
   status: "paid" | "voided";
+  /** Set by a void (ADR-023); the order's amounts never change. */
+  voidedAt?: string;
+  voidReason?: string;
+  syncStatus: "pending" | "synced";
+  flags: string[];
+  createdAt: string;
+}
+
+/** A refund document made on this device (ADR-023): counted on its own shift and business day. */
+export interface RefundRow {
+  id: string;
+  orderId: string;
+  receiptNo: string; // of the refunded order, for the history list
+  shiftId: string;
+  refundNo: string; // {OUTLET}{DEVICE}-R{YYMMDD}-{SEQ}
+  businessDate: string;
+  reason: string;
+  refundedBy: string;
+  approvedBy: string | null;
+  lines: { orderLineId: string; productName: string; quantity: number; amount: number }[];
+  total: number;
+  payments: { id: string; paymentMethodId: string; methodType: PaymentMethodType; methodName: string; amount: number; reference: string | null }[];
   syncStatus: "pending" | "synced";
   flags: string[];
   createdAt: string;
@@ -144,7 +193,7 @@ export interface CashMovementRow {
 
 // ── Infrastructure ──────────────────────────────────────────────────────────────────────────
 
-export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "cash.moved";
+export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved";
 
 export interface OutboxRow {
   seq?: number; // local auto-increment → send order
@@ -164,13 +213,15 @@ export interface OutboxRow {
 /** Device-local state that is never pulled from the server. */
 export type SyncStateRow =
   | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
+  | { key: "refundCounter"; value: { businessDate: string; seq: number } } // ADR-023
   | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } }
   | { key: "cart"; value: string } // serialized by the cart store (survives reload / tablet restart)
   | { key: "session"; value: string } // serialized by the session store (logged-in cashier)
   | { key: "device"; value: DeviceState }
   | { key: "pullCursor"; value: number }
   | { key: "lastSyncAt"; value: string }
-  | { key: "mediaBaseUrl"; value: string }; // from every pull page: follows an S3 vendor switch
+  | { key: "mediaBaseUrl"; value: string } // from every pull page: follows an S3 vendor switch
+  | { key: "recentLogins"; value: string[] }; // user ids, most recent first: the lock screen opens on the first
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =

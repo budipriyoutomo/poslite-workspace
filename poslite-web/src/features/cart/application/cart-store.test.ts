@@ -40,4 +40,49 @@ describe("cart store", () => {
     useCart.getState().clear();
     expect(useCart.getState().bill).toBeNull();
   });
+
+  it("toggles the promotions chosen at payment and forgets them on clear", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+    useCart.getState().togglePromotion("PR1");
+    useCart.getState().togglePromotion("PR2");
+    useCart.getState().togglePromotion("PR1");
+    expect(useCart.getState().promotionIds).toEqual(["PR2"]);
+
+    useCart.getState().clear();
+    expect(useCart.getState().promotionIds).toEqual([]);
+  });
+
+  it("keeps the chosen promotions after a reload", async () => {
+    const db = createTestDb();
+    const before = createCartStore(cartStorage(() => db));
+    before.getState().togglePromotion("PR1");
+    await new Promise((r) => setTimeout(r, 20));
+
+    const after = createCartStore(cartStorage(() => db));
+    await after.persist.rehydrate();
+    expect(after.getState().promotionIds).toEqual(["PR1"]);
+  });
+
+  it("forgets the chosen promotions when the last line is removed", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+    useCart.getState().togglePromotion("PR1");
+
+    useCart.getState().changeQuantity(useCart.getState().lines[0]!.key, -1);
+
+    expect(useCart.getState().promotionIds).toEqual([]);
+  });
+
+  it("opens a bill with no promotion chosen unless they are handed over", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    const bill = { id: "B1", tableId: "T1", tableLabel: "A1", openedBy: "U1", openedAt: "2026-09-25T02:00:00.000Z" };
+    useCart.getState().togglePromotion("PR1");
+
+    useCart.getState().loadBill(bill, [{ ...gudeg, key: "g", quantity: 1 }], null);
+    expect(useCart.getState().promotionIds).toEqual([]);
+
+    useCart.getState().loadBill(bill, [{ ...gudeg, key: "g", quantity: 1 }], null, ["PR2"]);
+    expect(useCart.getState().promotionIds).toEqual(["PR2"]);
+  });
 });

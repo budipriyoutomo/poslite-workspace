@@ -117,5 +117,73 @@
       ],
       "change_amount": 27235
     }
+  },
+  {
+    "name": "discount over the cashier limit, approved by a manager (06 Order rule 5)",
+    "payload": {
+      "shift_id": "01K5ZS00000000000000000001",
+      "receipt_no": "JKT01A-260925-0002",
+      "cashier_id": "01K5ZA00000000000000000001",
+      "order_type": "dine_in",
+      "table_label": "A1",
+      "lines": [
+        {
+          "id": "01K5ZX00000000000000000011",
+          "product_id": "01K5ZP00000000000000000002",
+          "product_name": "Kopi Susu",
+          "category_name": "Minuman",
+          "unit_price": 18000,
+          "quantity": 3,
+          "notes": "",
+          "modifiers": [],
+          "discount": {
+            "type": "fixed",
+            "value": 18000
+          },
+          "promotion": {
+            "id": "01K5ZQ00000000000000000001",
+            "name": "Beli 2 gratis 1"
+          }
+        },
+        {
+          "id": "01K5ZX00000000000000000012",
+          "product_id": "01K5ZP00000000000000000001",
+          "product_name": "Es Teh",
+          "category_name": "Minuman",
+          "unit_price": 5000,
+          "quantity": 1,
+          "notes": "",
+          "modifiers": [],
+          "discount": {
+            "type": "percentage",
+            "value": 10
+          },
+          "promotion": null
+        }
+      ],
+      "discount": null,
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000
+      },
+      "totals": {
+        "subtotal": 59000,
+        "discount_amount": 18500,
+        "service_charge": 2025,
+        "tax": 4253,
+        "total": 46778
+      },
+      "payments": [
+        {
+          "id": "01K5ZY00000000000000000012",
+          "payment_method_id": "01K5ZY00000000000000000002",
+          "method_type": "qris",
+          "amount": 46778,
+          "reference": "QR123"
+        }
+      ],
+      "change_amount": 0,
+      "discount_approved_by": "01K5ZA00000000000000000002"
+    }
   }
 ]

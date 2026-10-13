@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { useSession } from "@/features/auth";
 import { useCart } from "@/features/cart";
-import type { OrderRow } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, type OrderRow } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
@@ -15,11 +15,14 @@ import { Button } from "@/shared/ui/button";
 
 import { payBill } from "../application/pay-bill";
 import { placeOrder } from "../application/place-order";
-import { usePricing } from "../application/use-cart-totals";
+import { useAvailablePromotions, usePricing } from "../application/use-cart-totals";
 import { usePaymentMethods } from "../application/use-payment-methods";
 import { useQrisClient } from "../application/use-qris-client";
 import { copy } from "../copy";
+import { manualDiscounts, needsApproval } from "../domain/discount-policy";
 import { canSplit, splitLines } from "../domain/split";
+import { DiscountApproval } from "./DiscountApproval";
+import { PromotionPicker } from "./PromotionPicker";
 import { OrderPlacedDialog } from "./OrderPlacedDialog";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentPanel, type TenderedInput } from "./PaymentPanel";
@@ -40,16 +43,23 @@ export function CheckoutScreen() {
   const outlet = useOutletSetting();
   const methods = usePaymentMethods();
   const qris = useQrisClient();
-  const { lines, discount, bill, clear, loadBill } = useCart();
+  const { lines, discount, promotionIds, togglePromotion, bill, clear, loadBill } = useCart();
   const rates = {
     serviceBps: outlet?.serviceBps ?? 0,
     taxBps: outlet?.taxBps ?? 0,
   };
   const [take, setTake] = useState<Record<string, number> | null>(null);
   const { paying, remaining } = toPay(lines, take);
-  const totals = usePricing(paying, discount, rates);
+  const totals = usePricing(paying, discount, rates, promotionIds);
+  const promotions = useAvailablePromotions(paying);
   const [placed, setPlaced] = useState<OrderRow | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
+  const [discountApprovedBy, setDiscountApprovedBy] = useState<string | null>(null);
+  const policy = outlet?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY;
+  const manual = manualDiscounts(totals.lines, discount, totals.orderDiscount);
+  const needsManager =
+    !!user &&
+    needsApproval({ role: user.role, manualPercentages: manual.percentages, manualAmount: manual.amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } });
 
   const confirm = async (payments: TenderedInput[]) => {
     if (!user) return;
@@ -62,12 +72,15 @@ export function CheckoutScreen() {
             paying,
             remaining,
             discount,
+            promotionIds,
             payments,
+            discountApprovedBy,
           })
-        : await placeOrder({ cashier: user, lines, discount, payments });
-      if (bill && remaining.length > 0) loadBill(bill, remaining, discount);
+        : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy });
+      if (bill && remaining.length > 0) loadBill(bill, remaining, discount, promotionIds);
       else clear();
       setTake(null);
+      setDiscountApprovedBy(null);
       setPlaced(order);
     } catch (e) {
       toast.error(e instanceof AppError ? (copy.errors[e.code] ?? e.code) : String(e));
@@ -119,7 +132,11 @@ export function CheckoutScreen() {
       </section>
       <section className="rounded-xl border bg-white p-4">
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
-        {paying.length > 0 && <PaymentPanel key={totals.total} total={totals.total} methods={methods} onConfirm={confirm} isBusy={isPlacing} qris={qris} />}
+        <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
+        {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}
+        {paying.length > 0 && (!needsManager || discountApprovedBy) && (
+          <PaymentPanel key={totals.total} total={totals.total} methods={methods} onConfirm={confirm} isBusy={isPlacing} qris={qris} />
+        )}
       </section>
       <OrderPlacedDialog order={placed} />
     </div>
