@@ -24,6 +24,8 @@ docker compose ps                 # migrate = exited (0); api, worker, postgres,
 curl https://$API_DOMAIN/api/v1/health
 ```
 
+Image `poslite-api:staging` selalu di-build di VPS dari `../../poslite-api` (service `migrate`, `pull_policy: build`); `api` dan `worker` memakai image lokal itu (`pull_policy: never`) — tidak ada yang di-pull dari Docker Hub. Karena itu VPS harus clone **monorepo** (bukan repo per-app).
+
 Urutan start: `postgres` → `migrate` (`alembic upgrade head`, sekali jalan) → `api` + `worker` → `caddy`. Role database (`poslite`, `poslite_app`, `poslite_system`, ADR-013) dibuat oleh `initdb/01-roles.sh` hanya saat volume `postgres` masih kosong.
 
 Akun operator SaaS (untuk `poslite-operator`), password diminta tanpa echo:

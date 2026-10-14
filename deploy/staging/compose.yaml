@@ -60,9 +60,12 @@ services:
       retries: 20
     logging: *logging
 
+  # poslite-api is always built on the VPS from ../../poslite-api, never pulled from a registry:
+  # migrate builds the image, api and worker reuse that local image (pull_policy: never).
   migrate:
     build: ../../poslite-api
     image: poslite-api:staging
+    pull_policy: build
     command: ["alembic", "upgrade", "head"]
     environment: *api-env
     depends_on:
@@ -71,6 +74,7 @@ services:
 
   api:
     image: poslite-api:staging
+    pull_policy: never
     restart: unless-stopped
     environment: *api-env
     volumes:
@@ -88,6 +92,7 @@ services:
   # Outbox relay → reports & outgoing webhooks every few seconds, daily billing (ADR-012, ADR-018).
   worker:
     image: poslite-api:staging
+    pull_policy: never
     restart: unless-stopped
     command: ["arq", "poslite.worker.WorkerSettings"]
     environment: *api-env
