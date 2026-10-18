@@ -2603,6 +2603,21 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** DayCashOut */
+        DayCashOut: {
+            /** Counted Cash */
+            counted_cash: number;
+            /** Expected Cash */
+            expected_cash: number;
+            /** Open Shift Count */
+            open_shift_count: number;
+            /** Opening Cash */
+            opening_cash: number;
+            /** Shift Count */
+            shift_count: number;
+            /** Variance */
+            variance: number;
+        };
         /** DayClosingOut */
         DayClosingOut: {
             /**
@@ -2625,10 +2640,7 @@ export interface components {
             notes: string;
             /** Outlet Id */
             outlet_id: string;
-            /** Snapshot */
-            snapshot: {
-                [key: string]: unknown;
-            };
+            snapshot: components["schemas"]["DaySnapshotOut"];
         };
         /** DayClosingRowOut */
         DayClosingRowOut: {
@@ -2679,6 +2691,15 @@ export interface components {
             /** Void Count */
             void_count: number;
         };
+        /** DaySnapshotOut */
+        DaySnapshotOut: {
+            cash: components["schemas"]["DayCashOut"];
+            /** Payment Methods */
+            payment_methods: components["schemas"]["PaymentMethodSales"][];
+            totals: components["schemas"]["Totals"];
+            /** Warnings */
+            warnings: components["schemas"]["DayWarningOut"][];
+        };
         /** DayStatusOut */
         DayStatusOut: {
             /**
@@ -2689,14 +2710,23 @@ export interface components {
             /** Changed Since Close */
             changed_since_close: boolean;
             closing: components["schemas"]["DayClosingOut"] | null;
-            /** Current */
-            current: {
-                [key: string]: unknown;
-            };
+            current: components["schemas"]["DaySnapshotOut"];
             /** Day Ended */
             day_ended: boolean;
             /** Outlet Id */
             outlet_id: string;
+        };
+        /** DayWarningOut */
+        DayWarningOut: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "OPEN_SHIFTS" | "DEVICES_NOT_SYNCED";
+            /** Count */
+            count?: number | null;
+            /** Devices */
+            devices?: components["schemas"]["StaleDeviceOut"][] | null;
         };
         /** DeliveryOut */
         DeliveryOut: {
@@ -3771,6 +3801,17 @@ export interface components {
             password: string;
             /** Slug */
             slug: string;
+        };
+        /** StaleDeviceOut */
+        StaleDeviceOut: {
+            /** Code */
+            code: string;
+            /** Id */
+            id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            /** Name */
+            name: string;
         };
         /** SubscriptionOut */
         SubscriptionOut: {

@@ -2206,6 +2206,44 @@
         "title": "CreatedEndpointOut",
         "type": "object"
       },
+      "DayCashOut": {
+        "properties": {
+          "counted_cash": {
+            "title": "Counted Cash",
+            "type": "integer"
+          },
+          "expected_cash": {
+            "title": "Expected Cash",
+            "type": "integer"
+          },
+          "open_shift_count": {
+            "title": "Open Shift Count",
+            "type": "integer"
+          },
+          "opening_cash": {
+            "title": "Opening Cash",
+            "type": "integer"
+          },
+          "shift_count": {
+            "title": "Shift Count",
+            "type": "integer"
+          },
+          "variance": {
+            "title": "Variance",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shift_count",
+          "open_shift_count",
+          "opening_cash",
+          "expected_cash",
+          "counted_cash",
+          "variance"
+        ],
+        "title": "DayCashOut",
+        "type": "object"
+      },
       "DayClosingOut": {
         "properties": {
           "business_date": {
@@ -2239,9 +2277,7 @@
             "type": "string"
           },
           "snapshot": {
-            "additionalProperties": true,
-            "title": "Snapshot",
-            "type": "object"
+            "$ref": "#/components/schemas/DaySnapshotOut"
           }
         },
         "required": [
@@ -2361,6 +2397,38 @@
         "title": "DaySales",
         "type": "object"
       },
+      "DaySnapshotOut": {
+        "properties": {
+          "cash": {
+            "$ref": "#/components/schemas/DayCashOut"
+          },
+          "payment_methods": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethodSales"
+            },
+            "title": "Payment Methods",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/Totals"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/DayWarningOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "totals",
+          "payment_methods",
+          "cash",
+          "warnings"
+        ],
+        "title": "DaySnapshotOut",
+        "type": "object"
+      },
       "DayStatusOut": {
         "properties": {
           "business_date": {
@@ -2383,9 +2451,7 @@
             ]
           },
           "current": {
-            "additionalProperties": true,
-            "title": "Current",
-            "type": "object"
+            "$ref": "#/components/schemas/DaySnapshotOut"
           },
           "day_ended": {
             "title": "Day Ended",
@@ -2405,6 +2471,48 @@
           "changed_since_close"
         ],
         "title": "DayStatusOut",
+        "type": "object"
+      },
+      "DayWarningOut": {
+        "properties": {
+          "code": {
+            "enum": [
+              "OPEN_SHIFTS",
+              "DEVICES_NOT_SYNCED"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StaleDeviceOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "DayWarningOut",
         "type": "object"
       },
       "DeliveryOut": {
@@ -5233,6 +5341,42 @@
           "outlet"
         ],
         "title": "SignupRequest",
+        "type": "object"
+      },
+      "StaleDeviceOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "last_seen_at"
+        ],
+        "title": "StaleDeviceOut",
         "type": "object"
       },
       "SubscriptionOut": {

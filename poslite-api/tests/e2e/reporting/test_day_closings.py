@@ -102,7 +102,7 @@ async def test_records_open_shifts_as_a_warning_without_blocking(api: AsyncClien
 
     assert response.status_code == 201, response.text
     snapshot = response.json()["data"]["snapshot"]
-    assert snapshot["warnings"] == [{"code": "OPEN_SHIFTS", "count": 1}]
+    assert snapshot["warnings"] == [{"code": "OPEN_SHIFTS", "count": 1, "devices": None}]
     assert snapshot["cash"]["open_shift_count"] == 1
 
 

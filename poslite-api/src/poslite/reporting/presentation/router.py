@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from pydantic import BaseModel, Field
@@ -175,15 +175,44 @@ class DayClosingRowOut(BaseModel):
     notes: str
 
 
+class DayCashOut(BaseModel):
+    shift_count: int
+    open_shift_count: int
+    opening_cash: int
+    expected_cash: int  # closed shifts only
+    counted_cash: int
+    variance: int
+
+
+class StaleDeviceOut(BaseModel):
+    id: str
+    code: str
+    name: str
+    last_seen_at: datetime | None
+
+
+class DayWarningOut(BaseModel):
+    code: Literal["OPEN_SHIFTS", "DEVICES_NOT_SYNCED"]
+    count: int | None = None  # OPEN_SHIFTS
+    devices: list[StaleDeviceOut] | None = None  # DEVICES_NOT_SYNCED
+
+
+class DaySnapshotOut(BaseModel):
+    totals: Totals
+    payment_methods: list[PaymentMethodSales]
+    cash: DayCashOut
+    warnings: list[DayWarningOut]
+
+
 class DayClosingOut(DayClosingRowOut):
-    snapshot: dict[str, Any]  # {totals, payment_methods, cash, warnings} — 13-day-closing.md
+    snapshot: DaySnapshotOut  # 13-day-closing.md
 
 
 class DayStatusOut(BaseModel):
     outlet_id: str
     business_date: date
     day_ended: bool
-    current: dict[str, Any]
+    current: DaySnapshotOut
     closing: DayClosingOut | None
     changed_since_close: bool
 
