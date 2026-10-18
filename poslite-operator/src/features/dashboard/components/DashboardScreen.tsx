@@ -8,7 +8,7 @@ import { useSummary } from "../application/use-summary";
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border bg-white p-4">
+    <div className="rounded-lg border bg-card p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p aria-label={label} className="mt-1 text-2xl font-bold tabular-nums">
         {value}

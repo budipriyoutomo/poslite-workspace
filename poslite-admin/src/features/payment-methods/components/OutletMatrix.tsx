@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { useAllOutlets } from "@/features/outlets";
 import { Checkbox } from "@/shared/ui/checkbox";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { type PaymentMethod, useSetMethodOutlets } from "../application/use-payment-methods";
 
@@ -22,7 +23,7 @@ export function OutletMatrix({ methods }: { methods: PaymentMethod[] }) {
   return (
     <div className="space-y-2">
       <h2 className="font-semibold">Dipakai di outlet</h2>
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      <TableFrame>
         <table aria-label="Metode bayar per outlet" className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
@@ -47,7 +48,7 @@ export function OutletMatrix({ methods }: { methods: PaymentMethod[] }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableFrame>
     </div>
   );
 }

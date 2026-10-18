@@ -68,12 +68,28 @@ Target sentuh: pada perangkat sentuh (`pointer: coarse`) tombol dan kontrol mini
 - [x] Lock / PinPad: varian `short:` (tinggi ≤ 500px) — HP landscape menampilkan logo kiri + PIN pad kanan tanpa scroll. Activation (sekali pakai) cukup bisa di-scroll
 
 ### Fase 5 — Admin & Operator (polish)
-- [ ] Tabel (`shared/ui/table.tsx`): scroll horizontal atau tampilan kartu di HP
-- [ ] Form & dialog edit: satu kolom di HP, tombol aksi menempel di bawah
-- [ ] Operator: ganti `bg-slate-100` hardcoded ke token tema
+- [x] Tabel: semua tabel admin & operator di dalam `TableFrame` (`shared/ui/table-frame.tsx`) — scroll horizontal, header tidak terlipat
+- [x] Form: grid 1 kolom di HP (field pendek tetap 2 kolom), hari promo & baris input "Tambah" boleh turun baris, header halaman bertumpuk di HP, input/select lebar tetap jadi penuh di HP. `EditDialog` jadi bottom sheet di HP (`mobileSheet`)
+- [x] Admin & operator: `bg-white`/`bg-slate-*`/`text-red-*`/`bg-red-50` → token (`bg-card`, `bg-muted`, `text-destructive`). Sidebar gelap operator & tile dashboard berwarna sengaja dipertahankan; admin/operator belum punya tombol dark mode
 
 ### Fase 6 — QA
-- [ ] Project viewport Playwright: iPhone (390), iPad portrait (820), iPad landscape (1180)
-- [ ] Cek a11y: kontras, fokus keyboard, `aria-*` pada navigasi baru
-- [ ] Uji manual PWA terpasang di Android & iPad (safe-area, orientasi)
-- [ ] `make check` & e2e lolos (selector e2e yang bergantung pada nav lama diperbarui)
+- [x] Project Playwright kasir: `chromium` (desktop), `tablet` (Galaxy Tab S9 landscape), `phone` (Pixel 7) dan `tablet-portrait` (iPad Pro 11, Chromium). Langkah khusus HP ada di `tests/e2e/layout.ts` (buka drawer pesanan, tutup sheet, buka rincian checkout) — di layar lain tidak melakukan apa-apa
+- [x] Temuan dari e2e HP/tablet portrait yang diperbaiki di aplikasi: nama kasir selalu terlihat di header; rincian checkout hanya dilipat di HP (< `md`) agar tombol Diskon terlihat di tablet; drawer pesanan menutup sendiri saat keranjang kosong (setelah simpan bill); panel pesanan dirender di satu tempat saja (`useMediaQuery`)
+- [x] Kontras WCAG AA (≥ 4,5) semua pasangan token, light & dark — `destructive` digeser (light `oklch(0.54 0.21 27)`, dark `oklch(0.8 0.14 22)`) dan tombol varian destructive memakai latar `/10` di dark mode. Diterapkan di kasir, admin & operator
+- [x] a11y: label tombol tutup dialog/sheet "Close" → "Tutup" (bahasa halaman `id`); navigasi punya `aria-label`, `aria-current` untuk layar aktif, "Lainnya" dengan `aria-haspopup`; fokus otomatis ke "Pesanan Baru" setelah bayar
+- [x] Typecheck, lint & unit test lolos (kasir 97 file/572 test, admin 147, operator 58); e2e kasir 28/28 (7 alur × 4 project), admin 4/4, operator 2/2
+- [ ] Uji manual PWA terpasang (lihat checklist di bawah)
+
+### Checklist uji manual PWA (perangkat asli)
+
+Pasang dari Chrome (Android) / Safari "Add to Home Screen" (iPad/iPhone), lalu cek:
+
+1. **HP portrait**: aplikasi tidak dipaksa miring; header tidak tertutup notch; bottom nav tidak tertutup home bar/gesture bar.
+2. **HP landscape**: layar PIN muat tanpa scroll (logo kiri, PIN pad kanan); layar Jual tetap bisa dipakai.
+3. **Tablet portrait & landscape**: rail kiri, panel pesanan di kanan; memutar tablet tidak menghapus keranjang.
+4. **Alur kasir di HP**: tambah produk (badge jumlah + getar singkat), "Lihat pesanan" → Bayar → nominal cepat → Selesaikan → "Pesanan Baru".
+5. **Dine-in di HP**: tambah item → Lihat pesanan → Makan di tempat → pilih meja → Simpan bill (drawer menutup sendiri).
+6. **Riwayat di HP**: ketuk transaksi → struk muncul dari bawah → Cetak Ulang / Void / Refund.
+7. **Offline**: mode pesawat → banner kuning "Sedang offline" muncul; transaksi tetap bisa dibayar.
+8. **Dark mode**: tombol bulan/matahari di header; semua layar terbaca, termasuk dialog dan struk (struk tetap putih).
+9. **Sentuh**: tombol, chip kategori dan keypad nyaman diketuk (≥ 44px), tidak ada zoom saat double-tap.

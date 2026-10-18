@@ -11,7 +11,7 @@ export function OutletSelect() {
   if (!outlets.data || !selected) return null;
   return (
     <Select value={selected.id} onValueChange={choose}>
-      <SelectTrigger aria-label="Outlet" className="w-56 bg-white">
+      <SelectTrigger aria-label="Outlet" className="w-full bg-card sm:w-56">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

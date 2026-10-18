@@ -18,7 +18,7 @@ export function PosHeader({ cashierName, isOnline, onLock }: Props) {
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm shadow-emerald-500/30">
           <Store className="size-4" />
         </span>
-        <span className="font-bold tracking-tight">POSLite</span>
+        <span className="hidden font-bold tracking-tight sm:inline">POSLite</span>
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <SyncBadge />
           <span
@@ -32,11 +32,12 @@ export function PosHeader({ cashierName, isOnline, onLock }: Props) {
             <span className={cn(isOnline && "max-sm:sr-only")}>{isOnline ? "Online" : "Offline"}</span>
           </span>
           <ThemeToggle className="text-slate-300 hover:bg-white/10 hover:text-white dark:hover:bg-white/10" />
-          <span className="hidden items-center gap-2 text-sm text-slate-300 lg:flex">
+          {/* Who is on the till stays visible on every screen size. */}
+          <span className="flex min-w-0 items-center gap-2 text-sm text-slate-300">
             <span aria-hidden className="flex size-7 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
               {cashierName.trim().charAt(0).toUpperCase()}
             </span>
-            <span>{cashierName}</span>
+            <span className="max-w-24 truncate sm:max-w-40">{cashierName}</span>
           </span>
           <Button size="sm" variant="secondary" onClick={onLock}>
             <Lock /> <span className="max-sm:sr-only">{authCopy.lock}</span>

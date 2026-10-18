@@ -27,7 +27,7 @@ export function PromotionsScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Promo</h1>
           <p className="text-sm text-muted-foreground">Muncul sebagai pilihan di layar bayar kasir (juga saat offline) dan berlaku bila dipilih kasir. Per baris dipakai diskon terbesar; diskon manual kasir menggantikan promo.</p>
@@ -37,7 +37,7 @@ export function PromotionsScreen() {
         </Button>
       </div>
       {promotions.data?.length === 0 && <p className="text-sm text-muted-foreground">Belum ada promo.</p>}
-      <ul className="divide-y rounded-lg border bg-white">
+      <ul className="divide-y rounded-lg border bg-card">
         {promotions.data?.map((p) => (
           <li key={p.id} aria-label={p.name} className="flex items-center gap-3 px-3 py-2">
             <div className="flex-1">

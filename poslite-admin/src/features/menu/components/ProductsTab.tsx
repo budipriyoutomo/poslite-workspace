@@ -9,6 +9,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { ConfirmDelete } from "@/shared/ui/confirm-delete";
 import { EditDialog } from "@/shared/ui/edit-dialog";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { type Product, useCategories, useDeleteProduct, useProducts } from "../application/use-menu";
 import { ProductForm } from "./ProductForm";
@@ -26,7 +27,7 @@ export function ProductsTab() {
         <Plus /> Tambah produk
       </Button>
       {categories.data?.length === 0 && <p className="text-sm text-muted-foreground">Buat kategori dulu sebelum menambah produk.</p>}
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      <TableFrame>
         <table aria-label="Produk" className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
@@ -45,7 +46,7 @@ export function ProductsTab() {
                     {p.image_url ? (
                       <Image src={p.image_url} alt={`Gambar ${p.name}`} width={32} height={32} unoptimized className="size-8 rounded object-cover" />
                     ) : (
-                      <span className="size-8 rounded bg-slate-100" />
+                      <span className="size-8 rounded bg-muted" />
                     )}
                     {p.name} {!p.is_available && <Badge variant="secondary">Habis</Badge>}
                   </span>
@@ -63,7 +64,7 @@ export function ProductsTab() {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableFrame>
       <EditDialog title={editing === "new" ? "Produk baru" : "Ubah produk"} open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <ProductForm product={editing === "new" || editing === null ? undefined : editing} onDone={() => setEditing(null)} />
       </EditDialog>

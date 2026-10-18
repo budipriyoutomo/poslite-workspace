@@ -29,7 +29,7 @@ export function ImportPanel() {
   const error = importFile.error instanceof ApiError ? (ERRORS[importFile.error.code] ?? importFile.error.message) : importFile.error && "Gagal mengimpor file";
 
   return (
-    <section className="space-y-3 rounded-xl border bg-white p-4">
+    <section className="space-y-3 rounded-xl border bg-card p-4">
       <div>
         <h2 className="font-semibold">Import data darurat</h2>
         <p className="text-sm text-muted-foreground">Untuk tablet yang tidak bisa sinkron (rusak, dicabut, lama offline): pilih file dari menu Sync → Export data darurat di tablet.</p>
@@ -55,7 +55,7 @@ export function ImportPanel() {
         </p>
       )}
       {result && (
-        <section aria-label="Hasil import" className="space-y-2 rounded-md bg-slate-50 p-3 text-sm">
+        <section aria-label="Hasil import" className="space-y-2 rounded-md bg-muted/50 p-3 text-sm">
           <p className="font-medium">
             {result.accepted} diterima · {result.duplicate} sudah ada · {result.flagged} ditandai · {result.rejected.length} ditolak
           </p>

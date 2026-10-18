@@ -23,7 +23,7 @@ export function OutletsScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Outlet, Meja & Perangkat</h1>
           <p className="text-sm text-muted-foreground">Pilih brand dan outlet di bagian atas untuk melihat pengaturan dan perangkatnya. Header/footer struk yang kosong memakai teks brand.</p>

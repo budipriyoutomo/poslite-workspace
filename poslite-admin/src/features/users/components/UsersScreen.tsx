@@ -10,6 +10,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { ConfirmDelete } from "@/shared/ui/confirm-delete";
 import { EditDialog } from "@/shared/ui/edit-dialog";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { type User, useDeleteUser, useUsers } from "../application/use-users";
 import { describeAssignment } from "../domain/assignments";
@@ -31,7 +32,7 @@ export function UsersScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pengguna</h1>
           <p className="text-sm text-muted-foreground">Kasir masuk di perangkat dengan PIN; manajer dan pemilik juga bisa masuk ke back-office. Penugasan menentukan brand dan outlet yang bisa dilihat.</p>
@@ -45,7 +46,7 @@ export function UsersScreen() {
           {deleteError}
         </p>
       )}
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      <TableFrame>
         <table aria-label="Pengguna" className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
@@ -81,7 +82,7 @@ export function UsersScreen() {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableFrame>
       <EditDialog title={editing === "new" ? "Pengguna baru" : "Ubah pengguna"} open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <UserForm user={editing === "new" || editing === null ? undefined : editing} onDone={() => setEditing(null)} />
       </EditDialog>

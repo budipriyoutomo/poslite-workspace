@@ -3,6 +3,7 @@
 import { formatRupiah } from "@/shared/money";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { type Invoice, useSubscription } from "../application/use-subscription";
 
@@ -24,7 +25,7 @@ export function SubscriptionScreen() {
         <p className="text-muted-foreground">Langganan sedang disiapkan — masa coba 14 hari dimulai sejak pendaftaran.</p>
       ) : (
         <>
-          <div className="flex items-center gap-3 rounded-lg border bg-white p-4">
+          <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
             <Badge variant={sub.status === "past_due" ? "destructive" : "default"}>{STATUS[sub.status] ?? sub.status}</Badge>
             <span className="text-sm text-muted-foreground">
               {sub.status === "trialing"
@@ -35,7 +36,7 @@ export function SubscriptionScreen() {
             </span>
           </div>
           {sub.status === "past_due" && (
-            <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               Tagihan belum dibayar: perubahan di back-office dikunci sampai lunas. Kasir tetap bisa berjualan.
             </p>
           )}
@@ -49,7 +50,7 @@ export function SubscriptionScreen() {
 function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
   if (invoices.length === 0) return <p className="text-sm text-muted-foreground">Belum ada tagihan.</p>;
   return (
-    <div className="overflow-x-auto rounded-lg border bg-white">
+    <TableFrame>
       <table aria-label="Tagihan" className="w-full text-sm">
         <tbody>
           {invoices.map((inv) => (
@@ -75,6 +76,6 @@ function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableFrame>
   );
 }

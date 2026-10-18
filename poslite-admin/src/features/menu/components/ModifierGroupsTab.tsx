@@ -23,7 +23,7 @@ export function ModifierGroupsTab() {
       <Button size="sm" onClick={() => setEditing("new")}>
         <Plus /> Tambah grup pilihan
       </Button>
-      <ul className="divide-y rounded-lg border bg-white">
+      <ul className="divide-y rounded-lg border bg-card">
         {groups.data?.map((g) => (
           <li key={g.id} className="flex items-start gap-3 px-3 py-3">
             <div className="flex-1">

@@ -8,7 +8,7 @@ import { CartLines, useCart } from "@/features/cart";
 import { LineEditorDialog, type LineChoice, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
 import { OrderSummary, useCartTotals } from "@/features/checkout";
 import type { ProductRow } from "@/shared/db";
-import { useOutletSetting } from "@/shared/hooks";
+import { useMediaQuery, useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
@@ -33,6 +33,8 @@ export function SellScreen() {
   const totals = useCartTotals(rates);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  // The order renders in one place only: the side panel from tablet width, a drawer on phones.
+  const isWide = useMediaQuery("(min-width: 768px)", true);
 
   if (!catalog) return <ProductGridSkeleton />;
   const groupsOf = (p: ProductRow) => p.modifierGroupIds.flatMap((id) => catalog.groupsById.get(id) ?? []);
@@ -56,6 +58,8 @@ export function SellScreen() {
   };
   const editingLine = editing?.lineKey ? cart.lines.find((l) => l.key === editing.lineKey) : undefined;
   const itemCount = cart.lines.reduce((n, l) => n + l.quantity, 0);
+  // A saved bill or cleared cart leaves nothing to show: close the phone drawer with it.
+  if (isCartOpen && itemCount === 0) setIsCartOpen(false);
   const quantities: Record<string, number> = {};
   for (const l of cart.lines) quantities[l.productId] = (quantities[l.productId] ?? 0) + l.quantity;
 
@@ -76,12 +80,15 @@ export function SellScreen() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
       <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} />
-      <aside className="hidden w-80 shrink-0 flex-col border-l bg-card p-4 md:flex lg:w-96">
-        <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
-        {cartPanel}
-      </aside>
-      <CartBar className="md:hidden" itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
-      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+      {isWide ? (
+        <aside className="flex w-80 shrink-0 flex-col border-l bg-card p-4 lg:w-96">
+          <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
+          {cartPanel}
+        </aside>
+      ) : (
+        <CartBar itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
+      )}
+      <Sheet open={isCartOpen && !isWide} onOpenChange={setIsCartOpen}>
         <SheetContent side="bottom" aria-describedby={undefined} className="h-[88dvh] gap-2 rounded-t-2xl p-4 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <span aria-hidden className="mx-auto mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="p-0">

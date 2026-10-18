@@ -101,7 +101,7 @@ export function UserForm({ user, onDone }: { user?: User; onDone: () => void }) 
         </Button>
       </fieldset>
       {needsLogin && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <FormField id="user-email" label="Email">
             <Input id="user-email" type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} />
           </FormField>

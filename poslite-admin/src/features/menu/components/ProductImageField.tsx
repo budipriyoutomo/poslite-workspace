@@ -47,15 +47,15 @@ export function ProductImageField({
     <div className="space-y-2">
       <span className="text-sm font-medium">{title}</span>
       <div className="flex items-center gap-3">
-        <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-slate-50">
+        <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/50">
           {value ? (
             <Image src={value.url} alt={`Pratinjau ${subject}`} fill unoptimized sizes="96px" className="object-cover" />
           ) : (
-            <ImageOff className="size-8 text-slate-300" aria-hidden />
+            <ImageOff className="size-8 text-muted-foreground/40" aria-hidden />
           )}
         </div>
         <div className="flex flex-col gap-2">
-          <label className="cursor-pointer text-sm font-medium text-emerald-700 hover:underline">
+          <label className="cursor-pointer text-sm font-medium text-primary hover:underline">
             {upload.isPending ? "Mengunggah…" : value ? "Ganti gambar" : "Pilih gambar"}
             <input
               type="file"
@@ -75,7 +75,7 @@ export function ProductImageField({
         </div>
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}

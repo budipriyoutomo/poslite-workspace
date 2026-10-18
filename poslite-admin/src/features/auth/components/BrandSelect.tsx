@@ -20,7 +20,7 @@ export function BrandSelect() {
   return (
     <select
       aria-label="Brand"
-      className={`${selectClass} w-48 bg-white`}
+      className={`${selectClass} w-full bg-card sm:w-48`}
       value={active.id}
       onChange={(e) => {
         selectBrand(e.target.value);
