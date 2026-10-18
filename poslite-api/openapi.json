@@ -861,6 +861,29 @@
         "title": "ApiResponse[SalesSummaryOut]",
         "type": "object"
       },
+      "ApiResponse_ShiftDetailOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShiftDetailOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[ShiftDetailOut]",
+        "type": "object"
+      },
       "ApiResponse_SummaryOut_": {
         "properties": {
           "data": {
@@ -1496,6 +1519,33 @@
         "title": "ApiResponse[list[RefundOut]]",
         "type": "object"
       },
+      "ApiResponse_list_ShiftOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[ShiftOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_TableOut__": {
         "properties": {
           "data": {
@@ -1962,6 +2012,50 @@
           "discount"
         ],
         "title": "BrandOut",
+        "type": "object"
+      },
+      "CashMovementOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_by_name": {
+            "title": "Created By Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "amount",
+          "reason",
+          "created_by",
+          "created_by_name",
+          "created_at"
+        ],
+        "title": "CashMovementOut",
         "type": "object"
       },
       "CashierSales": {
@@ -5295,6 +5389,270 @@
           "cashiers"
         ],
         "title": "SalesSummaryOut",
+        "type": "object"
+      },
+      "ShiftDetailOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "cash_movements": {
+            "items": {
+              "$ref": "#/components/schemas/CashMovementOut"
+            },
+            "title": "Cash Movements",
+            "type": "array"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "closed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By"
+          },
+          "closed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By Name"
+          },
+          "counted_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counted Cash"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "device_name": {
+            "title": "Device Name",
+            "type": "string"
+          },
+          "expected_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Cash"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "title": "Opened By",
+            "type": "string"
+          },
+          "opened_by_name": {
+            "title": "Opened By Name",
+            "type": "string"
+          },
+          "opening_cash": {
+            "title": "Opening Cash",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "variance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance"
+          }
+        },
+        "required": [
+          "id",
+          "device_id",
+          "device_name",
+          "business_date",
+          "status",
+          "opened_by",
+          "opened_by_name",
+          "opened_at",
+          "opening_cash",
+          "closed_by",
+          "closed_by_name",
+          "closed_at",
+          "expected_cash",
+          "counted_cash",
+          "variance",
+          "cash_movements"
+        ],
+        "title": "ShiftDetailOut",
+        "type": "object"
+      },
+      "ShiftOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "closed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By"
+          },
+          "closed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By Name"
+          },
+          "counted_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counted Cash"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "device_name": {
+            "title": "Device Name",
+            "type": "string"
+          },
+          "expected_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Cash"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "title": "Opened By",
+            "type": "string"
+          },
+          "opened_by_name": {
+            "title": "Opened By Name",
+            "type": "string"
+          },
+          "opening_cash": {
+            "title": "Opening Cash",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "variance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance"
+          }
+        },
+        "required": [
+          "id",
+          "device_id",
+          "device_name",
+          "business_date",
+          "status",
+          "opened_by",
+          "opened_by_name",
+          "opened_at",
+          "opening_cash",
+          "closed_by",
+          "closed_by_name",
+          "closed_at",
+          "expected_cash",
+          "counted_cash",
+          "variance"
+        ],
+        "title": "ShiftOut",
         "type": "object"
       },
       "SignupRequest": {
@@ -10669,6 +11027,145 @@
         "summary": "Export Sales Summary",
         "tags": [
           "reporting"
+        ]
+      }
+    },
+    "/api/v1/shifts": {
+      "get": {
+        "description": "Shifts of one outlet and business day (back-office; devices only push).",
+        "operationId": "shifts_api_v1_shifts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "business_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Business Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_ShiftOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Shifts",
+        "tags": [
+          "shift"
+        ]
+      }
+    },
+    "/api/v1/shifts/{shift_id}": {
+      "get": {
+        "operationId": "shift_api_v1_shifts__shift_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shift_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Shift Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ShiftDetailOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Shift",
+        "tags": [
+          "shift"
         ]
       }
     },

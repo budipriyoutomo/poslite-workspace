@@ -27,6 +27,7 @@ from poslite.shared.infrastructure.database import create_engine, session_factor
 from poslite.shared.infrastructure.gateways import build_gateway
 from poslite.shared.infrastructure.object_storage import build_storage
 from poslite.shared.presentation.errors import install_error_handlers
+from poslite.shift.presentation.router import router as shift_router
 from poslite.sync.presentation.router import router as sync_router
 from poslite.tenancy.api import tenant_status
 from poslite.tenancy.presentation.router import router as tenancy_router
@@ -78,6 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         billing_router,
         gateway_router,
         sync_router,
+        shift_router,
         reporting_router,
         sales_router,
         platform_router,
