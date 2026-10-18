@@ -59,7 +59,7 @@ export function SignupScreen() {
           </Field>
         ))}
         {signup.isError && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-destructive">
             {errorMessage(signup.error)}
           </p>
         )}

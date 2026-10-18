@@ -5,7 +5,7 @@ import { Input } from "@/shared/ui/input";
 import { copy } from "../copy";
 import { REASONS, type Reason } from "../domain/void-rules";
 
-const selectClass = "h-10 w-full rounded-md border bg-white px-3 text-sm";
+const selectClass = "h-10 w-full rounded-md border bg-card px-3 text-sm";
 
 export function ReasonField({ reason, other, onChange }: { reason: Reason | ""; other: string; onChange: (reason: Reason | "", other: string) => void }) {
   return (

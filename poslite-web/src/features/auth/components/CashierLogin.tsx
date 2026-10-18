@@ -56,15 +56,15 @@ export function CashierLogin({
 
   return (
     <>
-      <div className="mb-8 text-center">
+      <div className="mb-8 text-center short:mb-0 short:flex-1">
         {header}
         <p className="mt-1 text-sm text-slate-400">{selected ? copy.enterPin(selected.name) : copy.pickCashier}</p>
       </div>
-      <div className="rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-md">
+      <div className="rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-md short:flex-1 short:p-4">
         {selected ? (
           <>
             <PinPad onComplete={submit} disabled={isChecking} error={isChecking ? copy.checking : error} />
-            <button type="button" className="mt-5 w-full text-sm text-slate-300 hover:text-white" onClick={() => (setPicked(null), setError(undefined))}>
+            <button type="button" className="mt-5 w-full text-sm short:mt-2 text-slate-300 hover:text-white" onClick={() => (setPicked(null), setError(undefined))}>
               {copy.back}
             </button>
           </>

@@ -29,11 +29,11 @@ export function NewOutletForm({ onCreated }: { onCreated: (outletId: string) => 
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <FormField id="new-outlet-code" label="Kode">
           <Input id="new-outlet-code" placeholder="BDG01" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10))} />
         </FormField>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <FormField id="new-outlet-name" label="Nama outlet">
             <Input id="new-outlet-name" value={name} onChange={(e) => setName(e.target.value)} />
           </FormField>

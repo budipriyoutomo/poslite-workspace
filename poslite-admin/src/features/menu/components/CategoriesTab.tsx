@@ -32,12 +32,12 @@ export function CategoriesTab() {
   return (
     <div className="max-w-2xl space-y-3">
       <form onSubmit={add} className="flex gap-2">
-        <Input aria-label="Nama kategori baru" placeholder="Nama kategori" value={name} onChange={(e) => setName(e.target.value)} className="bg-white" />
+        <Input aria-label="Nama kategori baru" placeholder="Nama kategori" value={name} onChange={(e) => setName(e.target.value)} className="bg-card" />
         <Button type="submit" size="sm" disabled={!name.trim()}>
           <Plus /> Tambah
         </Button>
       </form>
-      <ul className="divide-y rounded-lg border bg-white">
+      <ul className="divide-y rounded-lg border bg-card">
         {categories.data?.map((c) => (
           <li key={c.id} className="flex items-center gap-3 px-3 py-2">
             <span className="flex-1 font-medium">{c.name}</span>

@@ -11,4 +11,4 @@ export function FormField({ id, label, children }: { id: string; label: string; 
   );
 }
 
-export const selectClass = "h-9 w-full rounded-md border bg-white px-3 text-sm";
+export const selectClass = "h-9 w-full rounded-md border bg-card px-3 text-sm";

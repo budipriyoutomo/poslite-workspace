@@ -13,7 +13,7 @@ export type ChosenDiscount = { type: "percentage" | "fixed"; value: number };
 export const hasDiscountChoices = (policy: { percentages: number[]; amounts: number[]; allowCustom: boolean }): boolean =>
   policy.percentages.length > 0 || policy.amounts.length > 0 || policy.allowCustom;
 
-const overLimit = <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] font-semibold text-amber-800">PIN</span>;
+const overLimit = <span className="ml-1 rounded bg-warning/15 px-1 text-[10px] font-semibold text-warning">PIN</span>;
 
 /**
  * Presets from the brand's discount policy, plus a typed value when the brand allows it. With a

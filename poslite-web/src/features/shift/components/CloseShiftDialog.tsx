@@ -31,7 +31,7 @@ export function CloseShiftDialog({ open, expectedCash, onClose }: { open: boolea
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent mobileSheet>
         <DialogHeader>
           <DialogTitle>{copy.closeTitle}</DialogTitle>
         </DialogHeader>
@@ -40,7 +40,7 @@ export function CloseShiftDialog({ open, expectedCash, onClose }: { open: boolea
           <dt className="text-muted-foreground">{copy.expectedCash}</dt>
           <dd className="text-right font-medium">{formatRupiah(expectedCash)}</dd>
           <dt className="text-muted-foreground">{copy.variance}</dt>
-          <dd className={`text-right font-bold ${variance < 0 ? "text-red-600" : "text-emerald-700"}`}>{formatRupiah(variance)}</dd>
+          <dd className={`text-right font-bold tabular-nums ${variance < 0 ? "text-destructive" : "text-success"}`}>{formatRupiah(variance)}</dd>
         </dl>
         <DialogFooter>
           <Button variant="destructive" onClick={confirm}>

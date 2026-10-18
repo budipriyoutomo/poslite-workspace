@@ -50,11 +50,11 @@ export function SyncScreen() {
             <dt className="text-muted-foreground">Menunggu dikirim</dt>
             <dd className="text-right font-semibold">{status.pending}</dd>
             <dt className="text-muted-foreground">Gagal (perlu tindakan)</dt>
-            <dd className="text-right font-semibold text-red-600">{status.dead}</dd>
+            <dd className="text-right font-semibold text-destructive">{status.dead}</dd>
             <dt className="text-muted-foreground">Terakhir sinkron</dt>
             <dd className="text-right">{status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleString("id-ID") : "—"}</dd>
           </dl>
-          {status.lastError && <p className="rounded bg-amber-50 p-2 text-amber-800">Terakhir gagal: {status.lastError}</p>}
+          {status.lastError && <p className="rounded bg-warning/10 p-2 text-warning">Terakhir gagal: {status.lastError}</p>}
           <Button onClick={kickSync} disabled={status.isSyncing}>
             <RefreshCw className={status.isSyncing ? "animate-spin" : undefined} /> Sync sekarang
           </Button>
@@ -72,7 +72,7 @@ export function SyncScreen() {
                   <p className="font-medium">
                     {TYPE_LABEL[e.type] ?? e.type} · {new Date(e.occurredAt).toLocaleString("id-ID")}
                   </p>
-                  <p className="text-red-700">{e.lastError}</p>
+                  <p className="text-destructive">{e.lastError}</p>
                 </li>
               ))}
             </ul>

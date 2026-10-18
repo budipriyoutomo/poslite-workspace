@@ -96,7 +96,7 @@ export function DailyRevenueChart({ from, to, days }: { from: string; to: string
         {current && active !== null && (
           <div
             role="tooltip"
-            className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-md border bg-white px-2.5 py-1.5 text-xs shadow-sm"
+            className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-md border bg-card px-2.5 py-1.5 text-xs shadow-sm"
             style={{ left: `${((PAD.left + (active + 0.5) * slot) / W) * 100}%`, top: `${(y(current.net) / H) * 100}%` }}
           >
             <p className="font-semibold tabular-nums">{formatRupiah(current.net)}</p>
@@ -106,22 +106,24 @@ export function DailyRevenueChart({ from, to, days }: { from: string; to: string
       </div>
       <details className="text-sm">
         <summary className="cursor-pointer text-muted-foreground">Lihat tabel</summary>
-        <table aria-label="Pendapatan harian (tabel)" className="mt-2 w-full">
-          <thead>
-            <tr className="text-left text-muted-foreground">
-              <th className="py-1 font-medium">Tanggal</th>
-              <th className="py-1 text-right font-medium">Pendapatan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {series.map((d) => (
-              <tr key={d.date} className="border-t">
-                <td className="py-1">{shortDate(d.date)}</td>
-                <td className="py-1 text-right tabular-nums">{formatRupiah(d.net)}</td>
+        <div className="overflow-x-auto">
+          <table aria-label="Pendapatan harian (tabel)" className="mt-2 w-full">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-1 font-medium">Tanggal</th>
+                <th className="py-1 text-right font-medium">Pendapatan</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {series.map((d) => (
+                <tr key={d.date} className="border-t">
+                  <td className="py-1">{shortDate(d.date)}</td>
+                  <td className="py-1 text-right tabular-nums">{formatRupiah(d.net)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </details>
     </figure>
   );

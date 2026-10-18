@@ -45,8 +45,8 @@ export function PaymentMethodsScreen() {
         <h1 className="text-2xl font-bold">Metode Bayar</h1>
         <p className="text-sm text-muted-foreground">Metode baru langsung berlaku di semua outlet; atur per outlet di tabel bawah. Perangkat kasir menerima perubahan saat sinkron berikutnya.</p>
       </div>
-      <form onSubmit={add} className="flex gap-2">
-        <Input aria-label="Nama metode baru" placeholder="mis. QRIS BCA" value={name} onChange={(e) => setName(e.target.value)} className="bg-white" />
+      <form onSubmit={add} className="flex flex-wrap gap-2">
+        <Input aria-label="Nama metode baru" placeholder="mis. QRIS BCA" value={name} onChange={(e) => setName(e.target.value)} className="min-w-40 flex-1 bg-card" />
         <select aria-label="Jenis" className={`${selectClass} w-40`} value={type} onChange={(e) => setType(e.target.value as PaymentMethodType)}>
           {METHOD_TYPES.map((t) => (
             <option key={t.value} value={t.value}>
@@ -58,7 +58,7 @@ export function PaymentMethodsScreen() {
           <Plus /> Tambah
         </Button>
       </form>
-      <ul className="divide-y rounded-lg border bg-white">
+      <ul className="divide-y rounded-lg border bg-card">
         {methods.data?.map((m) => (
           <li key={m.id} aria-label={m.name} className="flex items-center gap-3 px-3 py-2">
             <span className="flex-1 font-medium">{m.name}</span>

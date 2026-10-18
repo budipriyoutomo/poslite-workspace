@@ -28,7 +28,7 @@ export function PromotionPicker({ available, chosenIds, onToggle }: { available:
               onClick={() => onToggle(promotion.id)}
               className={cn(
                 "flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
-                isChosen ? "border-emerald-600 bg-emerald-50 text-emerald-800" : "hover:bg-muted",
+                isChosen ? "border-primary bg-accent text-accent-foreground" : "hover:bg-muted",
               )}
             >
               {isChosen ? <Check className="size-4" /> : <Tag className="size-4" />}

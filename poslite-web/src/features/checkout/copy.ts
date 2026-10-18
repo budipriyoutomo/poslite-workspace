@@ -26,6 +26,8 @@ export const copy = {
   removePayment: (name: string) => `Hapus pembayaran ${name}`,
   back: "Kembali ke pesanan",
   checkoutTitle: "Pembayaran",
+  orderDetails: "Rincian pesanan",
+  itemsAndTotal: (count: number, total: string) => `${count} item · ${total}`,
   qrisDynamic: "QR dinamis",
   qrisTitle: "Scan QRIS",
   qrisCreating: "Membuat QR…",

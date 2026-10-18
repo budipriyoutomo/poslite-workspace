@@ -15,6 +15,10 @@ export default defineConfig({
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], channel } },
     { name: "tablet", use: { ...devices["Galaxy Tab S9 landscape"], channel } },
+    // Responsive layouts (poslite-docs/12-responsive-ui.md): bottom navigation and sheets on a phone,
+    // rail with the cart beside the grid on a portrait tablet. Chromium so PW_CHANNEL applies.
+    { name: "phone", use: { ...devices["Pixel 7"], channel } },
+    { name: "tablet-portrait", use: { ...devices["iPad Pro 11"], defaultBrowserType: "chromium", channel } },
   ],
   webServer: {
     // Start next directly: via `pnpm start` the server outlives Playwright's teardown.

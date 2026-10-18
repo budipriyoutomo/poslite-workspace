@@ -8,7 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    orientation: "landscape",
+    // Phones run the POS in portrait; tablets may rotate either way.
+    orientation: "any",
     background_color: "#0f172a",
     theme_color: "#0f172a",
     icons: [

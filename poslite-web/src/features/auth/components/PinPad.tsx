@@ -11,7 +11,7 @@ const PIN_LENGTH = 4;
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 const keyClass =
-  "h-14 rounded-xl border border-white/10 bg-white/10 text-xl font-semibold text-white transition-colors hover:bg-white/20 active:bg-white/30 disabled:opacity-40";
+  "h-14 short:h-10 rounded-xl border border-white/10 bg-white/10 text-xl font-semibold text-white transition-colors hover:bg-white/20 active:bg-white/30 disabled:opacity-40";
 
 export function PinPad({ onComplete, disabled = false, error }: { onComplete: (pin: string) => void; disabled?: boolean; error?: string }) {
   const [pin, setPin] = useState("");
@@ -25,7 +25,7 @@ export function PinPad({ onComplete, disabled = false, error }: { onComplete: (p
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 short:space-y-2.5">
       <div role="status" aria-label={copy.pinProgress(pin.length, PIN_LENGTH)} className="flex justify-center gap-4">
         {Array.from({ length: PIN_LENGTH }, (_, i) => (
           <span

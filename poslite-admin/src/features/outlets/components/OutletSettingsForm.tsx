@@ -40,11 +40,11 @@ function SettingsFields({ outletId, initial }: { outletId: string; initial: Outl
   };
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-lg border bg-white p-4">
+    <form onSubmit={submit} className="space-y-4 rounded-lg border bg-card p-4">
       <h2 className="font-semibold">
         Pengaturan <span className="text-muted-foreground">({initial.code})</span>
       </h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField id="outlet-name" label="Nama">
           <Input id="outlet-name" value={name} onChange={(e) => setName(e.target.value)} />
         </FormField>

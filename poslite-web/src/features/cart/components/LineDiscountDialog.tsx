@@ -16,7 +16,7 @@ export function LineDiscountDialog({ name, onChoose, onClose }: { name: string; 
   const cashierLimit = isCashier ? { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } : undefined;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent mobileSheet className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{copy.lineDiscountTitle(name)}</DialogTitle>
         </DialogHeader>

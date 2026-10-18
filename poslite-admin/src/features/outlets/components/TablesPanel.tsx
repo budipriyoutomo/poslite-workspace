@@ -30,14 +30,14 @@ export function TablesPanel({ outletId }: { outletId: string }) {
   };
 
   return (
-    <section className="space-y-3 rounded-lg border bg-white p-4">
+    <section className="space-y-3 rounded-lg border bg-card p-4">
       <div>
         <h2 className="font-semibold">Meja</h2>
         <p className="text-xs text-muted-foreground">Dipakai kasir untuk open bill dine-in. Perangkat menerima perubahan saat sinkron berikutnya.</p>
       </div>
-      <form onSubmit={submit} className="flex gap-2">
+      <form onSubmit={submit} className="flex flex-wrap gap-2">
         <Input aria-label="Label meja" placeholder="A1" value={label} maxLength={30} onChange={(e) => setLabel(e.target.value)} className="w-24" />
-        <Input aria-label="Area" placeholder="Area (opsional)" value={area} maxLength={50} onChange={(e) => setArea(e.target.value)} />
+        <Input aria-label="Area" placeholder="Area (opsional)" value={area} maxLength={50} onChange={(e) => setArea(e.target.value)} className="min-w-32 flex-1" />
         <Input aria-label="Kursi" inputMode="numeric" placeholder="Kursi" value={seats} onChange={(e) => setSeats(e.target.value.replace(/\D/g, "").slice(0, 2))} className="w-20" />
         <Button type="submit" size="sm" disabled={!label.trim() || add.isPending} aria-label="Tambah meja">
           <Plus /> Tambah

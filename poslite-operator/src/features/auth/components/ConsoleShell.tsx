@@ -32,7 +32,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const current = NAV.find(({ href }) => isActive(pathname, href));
 
   return (
-    <div className="flex min-h-dvh bg-slate-100">
+    <div className="flex min-h-dvh bg-muted">
       {navOpen && <button type="button" aria-label="Tutup menu" className="fixed inset-0 z-30 bg-slate-950/50 md:hidden" onClick={() => setNavOpen(false)} />}
       <aside
         id="console-sidebar"
@@ -78,7 +78,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center gap-2 border-b bg-white/90 px-4 py-2.5 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-20 flex items-center gap-2 border-b bg-card/90 px-4 py-2.5 backdrop-blur md:hidden">
           <Button variant="ghost" size="icon" aria-label="Buka menu" aria-expanded={navOpen} aria-controls="console-sidebar" onClick={() => setNavOpen(true)}>
             <Menu />
           </Button>

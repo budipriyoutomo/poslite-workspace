@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { openOrder } from "./layout";
+
 // Fase 1 DoD: open shift → sell → pay → receipt with no internet; data survives a reload.
 
 async function logIn(page: Page, name: string, pin: string) {
@@ -30,6 +32,7 @@ test("sell and pay offline, then find the order after a reload", async ({ page, 
   await page.getByRole("button", { name: /^Tambah ·/ }).click();
 
   // 5.000 + 35.000 = 40.000; service 5% 2.000; PB1 10% 4.200 → 46.200
+  await openOrder(page);
   const pay = page.getByRole("link", { name: /Bayar · Rp 46\.200/ });
   await expect(pay).toBeVisible();
   await pay.click();

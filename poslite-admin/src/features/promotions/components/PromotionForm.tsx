@@ -68,7 +68,7 @@ export function PromotionForm({ promotion, onDone }: { promotion?: Promotion; on
       <FormField id="promo-name" label="Nama promo">
         <Input id="promo-name" value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
       </FormField>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <FormField id="promo-type" label="Jenis promo">
           <select id="promo-type" className={selectClass} value={type} onChange={(e) => setType(e.target.value as typeof type)}>
             <option value="percent_off">Diskon persen</option>
@@ -93,14 +93,14 @@ export function PromotionForm({ promotion, onDone }: { promotion?: Promotion; on
       <p className="text-xs text-muted-foreground">
         {isPercent ? "Tanpa kategori/produk dipilih = berlaku untuk semua menu." : "Beli X gratis Y berlaku per baris (produk & pilihan yang sama); wajib pilih produk atau kategori."}
       </p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <CheckList legend="Kategori" prefix="Kategori" items={categories.data ?? []} selected={categoryIds} onChange={setCategoryIds} />
         <CheckList legend="Produk" prefix="Produk" items={products.data ?? []} selected={productIds} onChange={setProductIds} />
       </div>
       <CheckList legend="Outlet (kosong = semua outlet)" prefix="Outlet" items={outlets.data ?? []} selected={outletIds} onChange={setOutletIds} />
       <fieldset className="space-y-1">
         <legend className="text-sm font-medium">Hari</legend>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
           {DAYS.map((d) => (
             <label key={d.value} className="flex items-center gap-1 text-sm">
               <Checkbox aria-label={d.label} checked={days.includes(d.value)} onCheckedChange={(on) => setDays((all) => (on ? [...all, d.value] : all.filter((x) => x !== d.value)))} />
@@ -109,7 +109,7 @@ export function PromotionForm({ promotion, onDone }: { promotion?: Promotion; on
           ))}
         </div>
       </fieldset>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <FormField id="promo-start" label="Jam mulai">
           <Input id="promo-start" type="time" value={start} onChange={(e) => setStart(e.target.value)} />
         </FormField>

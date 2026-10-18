@@ -26,7 +26,7 @@ export function OperatorLogin() {
   return (
     <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-slate-950 p-4">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(50rem_28rem_at_15%_-10%,rgb(99_102_241/0.35),transparent),radial-gradient(40rem_24rem_at_110%_110%,rgb(139_92_246/0.25),transparent)]" />
-      <form onSubmit={submit} className="relative w-full max-w-sm space-y-4 rounded-2xl bg-white p-8 shadow-2xl shadow-black/40">
+      <form onSubmit={submit} className="relative w-full max-w-sm space-y-4 rounded-2xl bg-card p-8 shadow-2xl shadow-black/40">
         <div className="space-y-2 text-center">
           <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
             <ShieldCheck className="size-6" />
@@ -41,7 +41,7 @@ export function OperatorLogin() {
           <Input id="op-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </FormField>
         {login.isError && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-destructive">
             {message(login.error)}
           </p>
         )}

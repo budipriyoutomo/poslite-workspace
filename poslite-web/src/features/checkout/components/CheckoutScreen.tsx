@@ -25,6 +25,7 @@ import { canSplit, splitLines } from "../domain/split";
 import { DiscountApproval } from "./DiscountApproval";
 import { PromotionPicker } from "./PromotionPicker";
 import { OrderPlacedDialog } from "./OrderPlacedDialog";
+import { OrderReview } from "./OrderReview";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentPanel, type TenderedInput } from "./PaymentPanel";
 import { SplitPicker } from "./SplitPicker";
@@ -95,8 +96,8 @@ export function CheckoutScreen() {
 
   if (!outlet || !methods) return null;
   return (
-    <div className="grid flex-1 gap-4 p-4 lg:grid-cols-[1fr_28rem]">
-      <section className="rounded-xl border bg-white p-4">
+    <div className="grid flex-1 content-start gap-3 p-3 sm:gap-4 sm:p-4 lg:grid-cols-[1fr_28rem] lg:content-stretch">
+      <section className="rounded-xl border bg-card p-3 sm:p-4">
         <Button asChild variant="ghost" size="sm" className="mb-2">
           <Link href="/sell">
             <ArrowLeft /> {copy.back}
@@ -111,30 +112,32 @@ export function CheckoutScreen() {
           </div>
         )}
         {bill && !canSplit(discount) && <p className="mb-2 text-xs text-muted-foreground">{copy.splitNeedsPercent}</p>}
-        {take ? (
-          <SplitPicker lines={lines} take={take} onChange={setTake} />
-        ) : (
-          <ul className="divide-y text-sm">
-            {lines.map((l) => (
-              <li key={l.key} className="py-2">
-                <span className="font-medium">
-                  {l.quantity}× {l.name}
-                </span>
-                {l.modifiers.length > 0 && <span className="text-muted-foreground"> · {l.modifiers.map((m) => m.name).join(", ")}</span>}
-              </li>
-            ))}
-          </ul>
-        )}
-        {take ? (
-          <p className="mt-3 flex justify-between border-t pt-3 text-lg font-bold">
-            <span>{copy.payingNow}</span>
-            <span className="tabular-nums">{formatRupiah(totals.total)}</span>
-          </p>
-        ) : (
-          <OrderSummary rates={rates} />
-        )}
+        <OrderReview itemCount={paying.reduce((n, l) => n + l.quantity, 0)} total={totals.total} forceOpen={take !== null}>
+          {take ? (
+            <SplitPicker lines={lines} take={take} onChange={setTake} />
+          ) : (
+            <ul className="divide-y text-sm">
+              {lines.map((l) => (
+                <li key={l.key} className="py-2">
+                  <span className="font-medium">
+                    {l.quantity}× {l.name}
+                  </span>
+                  {l.modifiers.length > 0 && <span className="text-muted-foreground"> · {l.modifiers.map((m) => m.name).join(", ")}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {take ? (
+            <p className="mt-3 flex justify-between border-t pt-3 text-lg font-bold">
+              <span>{copy.payingNow}</span>
+              <span className="tabular-nums">{formatRupiah(totals.total)}</span>
+            </p>
+          ) : (
+            <OrderSummary rates={rates} />
+          )}
+        </OrderReview>
       </section>
-      <section className="rounded-xl border bg-white p-4">
+      <section className="self-start rounded-xl border bg-card p-3 pb-0 sm:p-4 sm:pb-0">
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
         <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
         {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}

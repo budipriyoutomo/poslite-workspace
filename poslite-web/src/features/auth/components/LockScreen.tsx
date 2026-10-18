@@ -32,7 +32,8 @@ export function LockScreen() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
-      <div className="w-full max-w-sm">
+      {/* A phone on its side: brand on the left, PIN pad on the right, so nothing scrolls. */}
+      <div className="w-full max-w-sm short:flex short:max-w-3xl short:items-center short:gap-10">
         {lockScreen && (
           <CashierLogin
             users={lockScreen.users}

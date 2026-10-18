@@ -41,7 +41,7 @@ export function IntegrationsScreen() {
           Kirim transaksi ke sistem lain (inventory, ERP) lewat webhook. Setiap kiriman ditandatangani HMAC-SHA256 di header <code>X-Poslite-Signature</code> dan diulang otomatis bila gagal.
         </p>
       </div>
-      <form onSubmit={submit} className="space-y-2 rounded-lg border bg-white p-4">
+      <form onSubmit={submit} className="space-y-2 rounded-lg border bg-card p-4">
         <Input aria-label="URL webhook" placeholder="https://…" value={url} onChange={(e) => setUrl(e.target.value)} />
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           {EVENT_TYPES.map((t) => (
@@ -69,7 +69,7 @@ export function IntegrationsScreen() {
       </form>
       <ul className="space-y-2">
         {webhooks.data?.map((w) => (
-          <li key={w.id} className="space-y-2 rounded-lg border bg-white p-3">
+          <li key={w.id} className="space-y-2 rounded-lg border bg-card p-3">
             <div className="flex items-center gap-2">
               <span className="flex-1 truncate font-mono text-sm">{w.url}</span>
               <span className="text-xs text-muted-foreground">{w.event_types.join(", ")}</span>

@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { openOrder, showOrderDetails } from "./layout";
+
 // 06 Order rule 5: a cashier's discount over the brand limit (default 20%) needs a manager's PIN,
 // offline; the sale goes through once approved.
 
@@ -19,7 +21,9 @@ test("a discount over the cashier limit waits for a manager's PIN", async ({ pag
 
   await page.getByRole("button", { name: /Nasi Gudeg/ }).click();
   await page.getByRole("button", { name: /^Tambah ·/ }).click();
+  await openOrder(page);
   await page.getByRole("link", { name: /^Bayar ·/ }).click();
+  await showOrderDetails(page);
   await page.getByRole("button", { name: "Diskon", exact: true }).click();
   await page.getByLabel("Diskon lain").fill("25");
   await page.getByRole("button", { name: "Pakai %" }).click();

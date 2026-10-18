@@ -44,11 +44,11 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <FormField id="brand-code" label="Kode">
           <Input id="brand-code" placeholder="SUSHI" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20))} />
         </FormField>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <FormField id="brand-name" label="Nama brand">
             <Input id="brand-name" value={name} onChange={(e) => setName(e.target.value)} />
           </FormField>

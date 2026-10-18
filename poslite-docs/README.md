@@ -20,6 +20,7 @@ Sumber awal: prototype `budipriyoutomo/maharasa-pos` (Next.js 15 + shadcn/ui, di
 | 09 | [09-scope-and-status.md](./09-scope-and-status.md) | Lingkup project (termasuk / tidak termasuk), status pekerjaan, sisa pekerjaan & prioritas |
 | 10 | [10-multi-company-brand.md](./10-multi-company-brand.md) | **Fase 6**: hierarki Perusahaan → Brand → Outlet, hak akses user, konteks aktif, schema & migrasi (ADR-022) |
 | 11 | [11-trial-features.md](./11-trial-features.md) | **Fase 6**: void & refund (ADR-023), pindah meja, metode bayar per outlet, export/import darurat (ADR-024) |
+| 12 | [12-responsive-ui.md](./12-responsive-ui.md) | UI responsive HP/tablet & modern: breakpoint, aturan warna/token, TODO per fase |
 
 ## Keputusan Utama (TL;DR)
 

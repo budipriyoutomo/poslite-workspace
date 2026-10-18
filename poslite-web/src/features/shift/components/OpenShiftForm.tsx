@@ -40,7 +40,7 @@ export function OpenShiftForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         <MoneyKeypad label={copy.openingCash} value={openingCash} onChange={setOpeningCash} />
-        <Button className="h-12 w-full bg-emerald-600 text-base hover:bg-emerald-700" disabled={isSaving} onClick={submit}>
+        <Button className="h-12 w-full text-base" disabled={isSaving} onClick={submit}>
           {copy.open}
         </Button>
       </CardContent>

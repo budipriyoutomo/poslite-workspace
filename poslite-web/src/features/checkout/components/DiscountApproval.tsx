@@ -20,8 +20,8 @@ async function isManagerPin(userId: string, pin: string): Promise<boolean> {
 export function DiscountApproval({ approvedBy, onApproved }: { approvedBy: string | null; onApproved: (userId: string) => void }) {
   const approvers = useLiveQuery(async () => (await getDb().users.toArray()).filter((u) => u.role !== "cashier").map((u) => ({ id: u.id, name: u.name })), []) ?? [];
   return (
-    <div role="group" aria-label="Persetujuan diskon" className="mb-3 space-y-2 rounded-md bg-amber-50 p-3 text-sm">
-      <p className="text-amber-800">{copy.discountNeedsApproval}</p>
+    <div role="group" aria-label="Persetujuan diskon" className="mb-3 space-y-2 rounded-md bg-warning/10 p-3 text-sm">
+      <p className="text-warning">{copy.discountNeedsApproval}</p>
       <ApprovalField approvers={approvers} verifyApprover={isManagerPin} approvedBy={approvedBy} onApproved={onApproved} />
     </div>
   );

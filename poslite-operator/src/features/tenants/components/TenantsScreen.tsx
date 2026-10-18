@@ -10,6 +10,7 @@ import { Button } from "@/shared/ui/button";
 import { selectClass } from "@/shared/ui/form-field";
 import { Input } from "@/shared/ui/input";
 import { Pager } from "@/shared/ui/pager";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { PAGE_SIZE, type TenantStatus, useSetTenantStatus, useTenants } from "../application/use-tenants";
 import { subscriptionLabel } from "../domain/labels";
@@ -35,12 +36,12 @@ export function TenantsScreen() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-2xl font-bold">Tenant</h1>
         <div className="flex flex-wrap items-center gap-3">
-          <form role="search" onSubmit={search} className="flex items-center gap-2">
+          <form role="search" onSubmit={search} className="flex w-full items-center gap-2 sm:w-auto">
             <Input
               type="search"
               aria-label="Cari tenant"
               placeholder="Nama, slug, atau email"
-              className="w-64 bg-white"
+              className="w-full bg-card sm:w-64"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
             />
@@ -63,57 +64,59 @@ export function TenantsScreen() {
           </label>
         </div>
       </div>
-      <table aria-label="Tenant" className="w-full rounded-lg border bg-white text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="px-3 py-2 font-medium">Nama</th>
-            <th className="px-3 py-2 font-medium">Slug</th>
-            <th className="px-3 py-2 text-right font-medium">Outlet</th>
-            <th className="px-3 py-2 text-right font-medium">Perangkat</th>
-            <th className="px-3 py-2 font-medium">Daftar</th>
-            <th className="px-3 py-2 font-medium">Langganan</th>
-            <th className="px-3 py-2 font-medium">Status</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {tenants.data?.rows.map((t) => (
-            <tr key={t.id} className="border-b last:border-0">
-              <td className="px-3 py-2 font-medium">
-                <Link href={`/tenants/${t.id}`} className="text-blue-700 hover:underline">
-                  {t.name}
-                </Link>
-              </td>
-              <td className="px-3 py-2 text-muted-foreground">{t.slug}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{t.outlet_count}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{t.device_count}</td>
-              <td className="px-3 py-2">{formatDate(t.created_at)}</td>
-              <td className="px-3 py-2" aria-label="Langganan">
-                {subscriptionLabel(t.subscription_status)}
-              </td>
-              <td className="px-3 py-2" aria-label="Status">
-                <TenantStatusBadge status={t.status} reason={t.suspended_reason} />
-              </td>
-              <td className="px-3 py-2 text-right">
-                {t.status === "suspended" ? (
-                  <Button size="sm" variant="outline" aria-label={`Aktifkan ${t.name}`} onClick={() => change(t.id, "active")}>
-                    Aktifkan
-                  </Button>
-                ) : (
-                  <SuspendButton name={t.name} onConfirm={() => change(t.id, "suspended")} />
-                )}
-              </td>
+      <TableFrame>
+        <table aria-label="Tenant" className="w-full text-sm">
+          <thead>
+            <tr className="border-b text-left text-muted-foreground">
+              <th className="px-3 py-2 font-medium">Nama</th>
+              <th className="px-3 py-2 font-medium">Slug</th>
+              <th className="px-3 py-2 text-right font-medium">Outlet</th>
+              <th className="px-3 py-2 text-right font-medium">Perangkat</th>
+              <th className="px-3 py-2 font-medium">Daftar</th>
+              <th className="px-3 py-2 font-medium">Langganan</th>
+              <th className="px-3 py-2 font-medium">Status</th>
+              <th />
             </tr>
-          ))}
-          {tenants.isSuccess && tenants.data.rows.length === 0 && (
-            <tr>
-              <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
-                Tidak ada tenant yang cocok.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tenants.data?.rows.map((t) => (
+              <tr key={t.id} className="border-b last:border-0">
+                <td className="px-3 py-2 font-medium">
+                  <Link href={`/tenants/${t.id}`} className="text-blue-700 hover:underline">
+                    {t.name}
+                  </Link>
+                </td>
+                <td className="px-3 py-2 text-muted-foreground">{t.slug}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{t.outlet_count}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{t.device_count}</td>
+                <td className="px-3 py-2">{formatDate(t.created_at)}</td>
+                <td className="px-3 py-2" aria-label="Langganan">
+                  {subscriptionLabel(t.subscription_status)}
+                </td>
+                <td className="px-3 py-2" aria-label="Status">
+                  <TenantStatusBadge status={t.status} reason={t.suspended_reason} />
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {t.status === "suspended" ? (
+                    <Button size="sm" variant="outline" aria-label={`Aktifkan ${t.name}`} onClick={() => change(t.id, "active")}>
+                      Aktifkan
+                    </Button>
+                  ) : (
+                    <SuspendButton name={t.name} onConfirm={() => change(t.id, "suspended")} />
+                  )}
+                </td>
+              </tr>
+            ))}
+            {tenants.isSuccess && tenants.data.rows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
+                  Tidak ada tenant yang cocok.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </TableFrame>
       <Pager page={page} pageSize={PAGE_SIZE} total={tenants.data?.total ?? 0} onPage={setPage} />
     </div>
   );

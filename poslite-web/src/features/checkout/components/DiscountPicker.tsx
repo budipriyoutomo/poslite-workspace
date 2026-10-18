@@ -22,7 +22,7 @@ export function DiscountPicker({ open, onOpenChange }: { open: boolean; onOpenCh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent mobileSheet className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{copy.discountTitle}</DialogTitle>
         </DialogHeader>

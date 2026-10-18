@@ -8,6 +8,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { ConfirmDelete } from "@/shared/ui/confirm-delete";
 import { EditDialog } from "@/shared/ui/edit-dialog";
+import { TableFrame } from "@/shared/ui/table-frame";
 
 import { type Brand, useBrands, useDeleteBrand } from "../application/use-brands";
 import { BrandForm } from "./BrandForm";
@@ -22,7 +23,7 @@ export function BrandsScreen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Brand</h1>
           <p className="text-sm text-muted-foreground">Setiap brand punya menu, promo, dan outlet sendiri.</p>
@@ -36,7 +37,7 @@ export function BrandsScreen() {
           {deleteError}
         </p>
       )}
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      <TableFrame>
         <table aria-label="Brand" className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
@@ -64,7 +65,7 @@ export function BrandsScreen() {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableFrame>
       <EditDialog title={editing === "new" ? "Brand baru" : "Ubah brand"} open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <BrandForm brand={editing === "new" || editing === null ? undefined : editing} onDone={() => setEditing(null)} />
       </EditDialog>

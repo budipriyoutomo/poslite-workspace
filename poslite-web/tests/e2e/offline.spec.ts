@@ -16,11 +16,11 @@ test("app shell loads offline after reload", async ({ page, context }) => {
   await expect(page.getByRole("heading", { name: "Aktivasi Perangkat" })).toBeVisible();
 });
 
-test("web app manifest is installable (standalone, landscape, 192/512 icons)", async ({ request }) => {
+test("web app manifest is installable (standalone, any orientation, 192/512 icons)", async ({ request }) => {
   const res = await request.get("/manifest.webmanifest");
   expect(res.ok()).toBe(true);
   const manifest = await res.json();
-  expect(manifest).toMatchObject({ display: "standalone", orientation: "landscape", start_url: "/" });
+  expect(manifest).toMatchObject({ display: "standalone", orientation: "any", start_url: "/" });
   const sizes = manifest.icons.map((i: { sizes: string }) => i.sizes);
   expect(sizes).toEqual(expect.arrayContaining(["192x192", "512x512"]));
 });

@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { closeSheet, openOrder } from "./layout";
+
 // Fase 6b (ADR-023): a cashier voids a sale and refunds another one with a manager's PIN, all
 // offline; the shift's expected cash follows both.
 
@@ -14,6 +16,7 @@ async function sellGudeg(page: Page) {
   await page.getByRole("checkbox", { name: "Tambah Ayam" }).click();
   await page.getByRole("button", { name: /^Tambah ·/ }).click();
   // 35.000 + service 1.750 + PB1 3.675 = 40.425
+  await openOrder(page);
   await page.getByRole("link", { name: /Bayar · Rp 40\.425/ }).click();
   await page.getByRole("button", { name: "Rp 50.000" }).click();
   await page.getByRole("button", { name: "Selesaikan" }).click();
@@ -49,6 +52,7 @@ test("void and refund offline with a manager's PIN; the drawer adds up", async (
   await page.getByRole("dialog").getByLabel("Alasan").selectOption("Salah input");
   await approve(page);
   await page.getByRole("button", { name: "Void transaksi" }).click();
+  await closeSheet(page);
   await expect(page.getByRole("button", { name: new RegExp(voided) })).toContainText("VOID");
 
   await page.getByRole("button", { name: new RegExp(refunded) }).click();
@@ -57,6 +61,7 @@ test("void and refund offline with a manager's PIN; the drawer adds up", async (
   await page.getByRole("dialog").getByLabel("Alasan").selectOption("Pelanggan batal");
   await approve(page);
   await page.getByRole("button", { name: "Refund Rp 40.425" }).click();
+  await closeSheet(page);
   await expect(page.getByRole("button", { name: new RegExp(refunded) })).toContainText("REFUND PENUH");
 
   // 200.000 opening + 2 × 50.000 − 2 × 9.575 change − 40.425 voided sale − 40.425 refunded

@@ -20,7 +20,7 @@ export function PricesScreen() {
         </p>
       </div>
       {prices.data && (
-        <div className="rounded-lg border bg-white">
+        <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

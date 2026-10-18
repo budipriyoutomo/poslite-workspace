@@ -58,7 +58,7 @@ export function DiscountPolicyFields({ draft, onChange }: { draft: PolicyDraft; 
       <label className="flex items-center gap-2 text-sm">
         <Checkbox aria-label="Kasir boleh mengetik nilai sendiri" checked={draft.allow_custom} onCheckedChange={(on) => set({ allow_custom: on === true })} /> Kasir boleh mengetik nilai sendiri
       </label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField id="discount-max-pct" label="Batas kasir (%)">
           <Input id="discount-max-pct" inputMode="numeric" value={draft.cashier_max_percentage} onChange={(e) => set({ cashier_max_percentage: e.target.value.replace(/\D/g, "").slice(0, 3) })} />
         </FormField>

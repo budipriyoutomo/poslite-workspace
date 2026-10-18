@@ -51,7 +51,7 @@ export function NewOperatorDialog() {
           </FormField>
           <p className="text-sm text-muted-foreground">Minimal {MIN_PASSWORD} karakter. Sampaikan ke operator baru lewat kanal yang aman.</p>
           {create.isError && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-destructive">
               {message(create.error)}
             </p>
           )}

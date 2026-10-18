@@ -26,35 +26,37 @@ export function DevicesPanel({ outletId }: { outletId: string }) {
   const revoke = useRevokeDevice(outletId);
 
   return (
-    <section className="space-y-2 rounded-lg border bg-white p-4">
+    <section className="space-y-2 rounded-lg border bg-card p-4">
       <h2 className="font-semibold">Perangkat kasir</h2>
       <p className="text-xs text-muted-foreground">Tablet diaktifkan dari aplikasi kasir dengan email & password manajer.</p>
       {devices.data?.length === 0 && <p className="text-sm text-muted-foreground">Belum ada perangkat.</p>}
       {devices.data && devices.data.length > 0 && (
-        <table aria-label="Perangkat" className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-muted-foreground">
-              <th className="py-2 font-medium">Nama</th>
-              <th className="py-2 font-medium">Kode</th>
-              <th className="py-2 font-medium">Terakhir sinkron</th>
-              <th className="py-2 font-medium">Status</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {devices.data.map((d) => (
-              <tr key={d.id} className="border-b last:border-0">
-                <td className="py-2 font-medium">{d.name}</td>
-                <td className="py-2">{d.code}</td>
-                <td className="py-2 text-muted-foreground">{seen(d.last_seen_at)}</td>
-                <td className="py-2">{d.revoked_at ? <Badge variant="secondary">Dicabut</Badge> : <Badge>Aktif</Badge>}</td>
-                <td className="py-2 text-right">
-                  {!d.revoked_at && <RevokeButton device={d} onConfirm={() => revoke.mutate(d.id, { onError: () => toast.error("Gagal mencabut perangkat") })} />}
-                </td>
+        <div className="overflow-x-auto">
+          <table aria-label="Perangkat" className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground">
+                <th className="py-2 font-medium">Nama</th>
+                <th className="py-2 font-medium">Kode</th>
+                <th className="py-2 font-medium">Terakhir sinkron</th>
+                <th className="py-2 font-medium">Status</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {devices.data.map((d) => (
+                <tr key={d.id} className="border-b last:border-0">
+                  <td className="py-2 font-medium">{d.name}</td>
+                  <td className="py-2">{d.code}</td>
+                  <td className="py-2 text-muted-foreground">{seen(d.last_seen_at)}</td>
+                  <td className="py-2">{d.revoked_at ? <Badge variant="secondary">Dicabut</Badge> : <Badge>Aktif</Badge>}</td>
+                  <td className="py-2 text-right">
+                    {!d.revoked_at && <RevokeButton device={d} onConfirm={() => revoke.mutate(d.id, { onError: () => toast.error("Gagal mencabut perangkat") })} />}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

@@ -31,7 +31,7 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
   if (lines.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
-        <ShoppingCart className="size-10 text-slate-300" />
+        <ShoppingCart className="size-10 text-muted-foreground/40" />
         <p className="font-medium">{copy.empty}</p>
         <p className="text-sm">{copy.emptyHint}</p>
       </div>
@@ -53,16 +53,16 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
                 {m.price > 0 && ` (${formatRupiah(m.price)})`}
               </p>
             ))}
-            {line.note && <p className="text-xs text-amber-700 italic">“{line.note}”</p>}
+            {line.note && <p className="text-xs text-warning italic">“{line.note}”</p>}
             <p className="mt-1 text-sm font-medium">{formatRupiah((priced[i]!.unitPrice + priced[i]!.modifiersTotal) * line.quantity)}</p>
             {applied?.[i] && applied[i]!.amount > 0 && (
-              <p className="flex justify-between text-xs text-emerald-700">
+              <p className="flex justify-between text-xs text-success">
                 <span>{applied[i]!.label}</span>
                 <span className="tabular-nums">{formatRupiah(-applied[i]!.amount)}</span>
               </p>
             )}
             {line.discount ? (
-              <Button variant="link" size="sm" className="h-auto p-0 text-xs text-red-600" aria-label={copy.removeLineDiscount(line.name)} onClick={() => setLineDiscount(line.key, null)}>
+              <Button variant="link" size="sm" className="h-auto p-0 text-xs text-destructive" aria-label={copy.removeLineDiscount(line.name)} onClick={() => setLineDiscount(line.key, null)}>
                 <X className="size-3" /> Hapus diskon
               </Button>
             ) : (
