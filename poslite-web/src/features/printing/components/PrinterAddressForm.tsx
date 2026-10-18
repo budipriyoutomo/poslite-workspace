@@ -22,21 +22,21 @@ export function PrinterAddressForm({ id, isBridge, device, isBusy, onSave }: { i
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-md border bg-muted/50 p-3">
+    <form onSubmit={submit} className="space-y-2 rounded-md border bg-muted/50 p-2.5">
       {isBridge && (
-        <>
+        <div className="grid gap-2 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor={`${id}-bridge-url`}>{copy.bridgeUrl}</Label>
+            <Label className="text-xs" htmlFor={`${id}-bridge-url`}>{copy.bridgeUrl}</Label>
             <Input id={`${id}-bridge-url`} value={bridgeUrl} onChange={(e) => setBridgeUrl(e.target.value)} placeholder="http://localhost:9180" inputMode="url" autoComplete="off" />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`${id}-bridge-token`}>{copy.bridgeToken}</Label>
+            <Label className="text-xs" htmlFor={`${id}-bridge-token`}>{copy.bridgeToken}</Label>
             <Input id={`${id}-bridge-token`} type="password" value={bridgeToken} onChange={(e) => setBridgeToken(e.target.value)} autoComplete="off" />
           </div>
-        </>
+        </div>
       )}
       <div className="space-y-1">
-        <Label htmlFor={`${id}-address`}>{copy.printerAddress}</Label>
+        <Label className="text-xs" htmlFor={`${id}-address`}>{copy.printerAddress}</Label>
         <Input id={`${id}-address`} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={isBridge ? "192.168.1.60:9100" : "192.168.1.50"} inputMode="url" autoComplete="off" />
       </div>
       <p className="text-xs text-muted-foreground">{isBridge ? copy.bridgeHint : copy.eposHint}</p>
