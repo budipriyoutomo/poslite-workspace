@@ -1,18 +1,19 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
-import { LineEditorDialog, type LineChoice, ProductGrid, useCatalog } from "@/features/catalog";
+import { LineEditorDialog, type LineChoice, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
 import { OrderSummary, useCartTotals } from "@/features/checkout";
 import type { ProductRow } from "@/shared/db";
 import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
+
+import { CartBar } from "./cart-bar";
 
 type Editing = { product: ProductRow; lineKey?: string };
 
@@ -23,7 +24,7 @@ function appliedLabel(line: { discount: { type: string; value: number } | null; 
   return { label, amount: line.amount };
 }
 
-/** Sell screen: composes catalog (left), cart and totals (right; a sheet on narrow screens). */
+/** Sell screen: catalog plus the order — a side panel from tablet width, a bottom bar and drawer on phones. */
 export function SellScreen() {
   const catalog = useCatalog();
   const outlet = useOutletSetting();
@@ -33,7 +34,7 @@ export function SellScreen() {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  if (!catalog) return null;
+  if (!catalog) return <ProductGridSkeleton />;
   const groupsOf = (p: ProductRow) => p.modifierGroupIds.flatMap((id) => catalog.groupsById.get(id) ?? []);
   const categoryName = (p: ProductRow) => catalog.categoryNameById.get(p.categoryId) ?? "";
 
@@ -55,13 +56,15 @@ export function SellScreen() {
   };
   const editingLine = editing?.lineKey ? cart.lines.find((l) => l.key === editing.lineKey) : undefined;
   const itemCount = cart.lines.reduce((n, l) => n + l.quantity, 0);
+  const quantities: Record<string, number> = {};
+  for (const l of cart.lines) quantities[l.productId] = (quantities[l.productId] ?? 0) + l.quantity;
 
   const cartPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
       <DineInBar />
       <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
       <OrderSummary rates={rates}>
-        <Button asChild size="lg" className="h-12 w-full bg-emerald-600 text-base hover:bg-emerald-700" disabled={totals.isEmpty}>
+        <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
           <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
             Bayar · {formatRupiah(totals.total)}
           </Link>
@@ -71,17 +74,16 @@ export function SellScreen() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <ProductGrid catalog={catalog} onSelect={select} />
-      <aside className="hidden w-96 flex-col border-l bg-white p-4 lg:flex">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} />
+      <aside className="hidden w-80 shrink-0 flex-col border-l bg-card p-4 md:flex lg:w-96">
         <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
         {cartPanel}
       </aside>
-      <Button className="fixed right-4 bottom-4 h-14 gap-2 rounded-full bg-emerald-600 px-5 shadow-lg hover:bg-emerald-700 lg:hidden" onClick={() => setIsCartOpen(true)}>
-        <ShoppingCart /> {itemCount} · {formatRupiah(totals.total)}
-      </Button>
+      <CartBar className="md:hidden" itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
       <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-        <SheetContent className="flex w-full flex-col p-4 sm:max-w-md">
+        <SheetContent side="bottom" aria-describedby={undefined} className="h-[88dvh] gap-2 rounded-t-2xl p-4 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <span aria-hidden className="mx-auto mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="p-0">
             <SheetTitle>Pesanan</SheetTitle>
           </SheetHeader>

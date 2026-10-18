@@ -22,7 +22,7 @@ export function PrinterAddressForm({ id, isBridge, device, isBusy, onSave }: { i
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-md border bg-slate-50 p-3">
+    <form onSubmit={submit} className="space-y-3 rounded-md border bg-muted/50 p-3">
       {isBridge && (
         <>
           <div className="space-y-1">

@@ -39,7 +39,7 @@ export function CashMovementDialog({ type, onClose }: { type: "in" | "out" | nul
 
   return (
     <Dialog open={type !== null} onOpenChange={(open) => !open && close()}>
-      <DialogContent>
+      <DialogContent mobileSheet>
         <DialogHeader>
           <DialogTitle>{type && copy.movementTitle(type)}</DialogTitle>
         </DialogHeader>

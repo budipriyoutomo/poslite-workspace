@@ -37,7 +37,7 @@ export function OrderLookup() {
   return (
     <div className="space-y-1">
       <div className="flex gap-2">
-        <Input aria-label={copy.lookupLabel} placeholder={copy.lookupPlaceholder} value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} disabled={!isOnline} />
+        <Input type="search" aria-label={copy.lookupLabel} placeholder={copy.lookupPlaceholder} value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} disabled={!isOnline} />
         <Button variant="outline" disabled={!isOnline || receiptNo.trim() === ""} onClick={search}>
           <Search /> {copy.lookup}
         </Button>

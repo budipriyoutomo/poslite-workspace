@@ -60,7 +60,7 @@ export function DineInBar() {
   }
   return (
     <div className="mb-2 flex items-center gap-2">
-      <Badge className="gap-1 bg-amber-600">
+      <Badge className="gap-1 bg-warning text-warning-foreground">
         <Armchair className="size-3" /> {copy.table(cart.bill.tableLabel)}
       </Badge>
       {!isSaved && (

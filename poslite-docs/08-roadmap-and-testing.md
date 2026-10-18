@@ -121,7 +121,7 @@ Diukur 2026-09-25 di Chrome 154 (macOS, Intel). Angka tablet = CPU di-throttle 4
 ### PWA (Serwist configurator mode)
 
 - `pnpm build` = `next build && serwist build serwist.config.mjs` → `public/sw.js` mem-precache route hasil prerender (`/`) + semua chunk JS/CSS, font, ikon (15 URL, ±633 kB).
-- E2E: kunjungan pertama online → SW mengontrol halaman → `context.setOffline(true)` → reload → app shell tampil. Manifest `standalone`/`landscape` dengan ikon 192/512.
+- E2E: kunjungan pertama online → SW mengontrol halaman → `context.setOffline(true)` → reload → app shell tampil. Manifest `standalone`, `orientation: "any"`, dengan ikon 192/512.
 - `skipWaiting: false`: versi SW baru menunggu; banner "Versi baru tersedia" + aktivasi hanya saat cart kosong dikerjakan di Fase 1. `reloadOnOnline` dimatikan agar app tidak reload di tengah transaksi.
 - Catatan: Playwright 1.63 tidak menyediakan Chromium untuk macOS 13 → jalankan lokal dengan `PW_CHANNEL=chrome` (Chrome terpasang). CI tetap memakai Chromium bawaan.
 

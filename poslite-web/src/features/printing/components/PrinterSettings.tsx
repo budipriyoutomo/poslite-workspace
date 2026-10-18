@@ -72,7 +72,7 @@ export function PrinterRoleSettings({ role, deps }: { role: PrinterRole; deps: P
         )}
 
         {setup.needsPairing && (
-          <div className="space-y-2 rounded-md border bg-slate-50 p-3">
+          <div className="space-y-2 rounded-md border bg-muted/50 p-3">
             <div className="flex items-center justify-between gap-2">
               <Badge variant={setup.isPaired ? "default" : "outline"}>{setup.isPaired ? copy.paired : copy.notPaired}</Badge>
               <Button size="sm" variant="outline" onClick={() => void setup.pair()} disabled={setup.isBusy}>

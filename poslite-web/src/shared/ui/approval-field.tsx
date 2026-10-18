@@ -18,7 +18,7 @@ export interface Approver {
   name: string;
 }
 
-const selectClass = "h-10 w-full rounded-md border bg-white px-3 text-sm";
+const selectClass = "h-10 w-full rounded-md border bg-card px-3 text-sm";
 
 /** A manager confirms with their PIN on this device, offline (voids, refunds, big discounts). */
 export function ApprovalField({
@@ -36,7 +36,7 @@ export function ApprovalField({
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const approver = approvers.find((a) => a.id === approvedBy);
-  if (approver) return <p className="text-sm font-medium text-emerald-700">{copy.approved(approver.name)}</p>;
+  if (approver) return <p className="text-sm font-medium text-success">{copy.approved(approver.name)}</p>;
 
   const approve = async () => {
     setError(null);

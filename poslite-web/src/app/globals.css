@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/* Short viewports: a phone in landscape. */
+@custom-variant short (@media (max-height: 500px));
 
 @theme inline {
   --color-background: var(--background);
@@ -27,6 +29,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -65,6 +71,11 @@
   --accent: oklch(0.955 0.035 164);
   --accent-foreground: oklch(0.38 0.08 165);
   --destructive: oklch(0.577 0.215 27);
+  /* Status colors read as text on white and as /10 tints behind that text. */
+  --success: oklch(0.5 0.11 163);
+  --success-foreground: oklch(0.99 0.01 164);
+  --warning: oklch(0.52 0.14 55);
+  --warning-foreground: oklch(0.99 0.01 80);
   --border: oklch(0.925 0.01 255);
   --input: oklch(0.9 0.012 255);
   --ring: oklch(0.62 0.13 164);
@@ -85,6 +96,8 @@
 }
 
 .dark {
+  /* Native controls (select, scrollbars, date pickers) follow the theme. */
+  color-scheme: dark;
   --background: oklch(0.17 0.02 265);
   --foreground: oklch(0.97 0.005 250);
   --card: oklch(0.21 0.025 265);
@@ -100,6 +113,10 @@
   --accent: oklch(0.3 0.05 164);
   --accent-foreground: oklch(0.9 0.06 164);
   --destructive: oklch(0.7 0.19 22);
+  --success: oklch(0.77 0.14 163);
+  --success-foreground: oklch(0.2 0.04 165);
+  --warning: oklch(0.82 0.14 80);
+  --warning-foreground: oklch(0.22 0.05 60);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.6 0.12 164);
@@ -124,11 +141,32 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    /* Mostly Rupiah amounts: equal-width digits keep columns and totals from jittering. */
+    font-variant-numeric: tabular-nums;
+  }
+  /* No double-tap zoom delay on controls a cashier taps all day. */
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
   }
   html {
     @apply font-sans;
   }
 }
+/* Safe-area padding for the installed PWA (notch, home bar); needs viewportFit "cover". */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* Receipt printing via the system driver (features/printing/infrastructure/system-printer.ts). */
 #poslite-print-root {
   display: none;
@@ -151,5 +189,13 @@
     font: 11px/1.25 var(--font-geist-mono), monospace;
     white-space: pre;
     color: #000;
+  }
+}
+
+/* Horizontal chip rows scroll by touch without a visible scrollbar. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }

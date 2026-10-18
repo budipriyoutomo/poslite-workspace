@@ -13,7 +13,7 @@ import { planRefund, type RefundSource } from "../domain/refund-plan";
 import { checkReason, type Reason } from "../domain/void-rules";
 import { ReasonField } from "./ReasonField";
 
-const selectClass = "h-10 w-full rounded-md border bg-white px-3 text-sm";
+const selectClass = "h-10 w-full rounded-md border bg-card px-3 text-sm";
 
 export interface RefundRequest {
   picks: Record<string, number>;
@@ -65,7 +65,7 @@ export function RefundDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[95dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent mobileSheet className="max-h-[95dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{copy.refundTitle(source.receiptNo)}</DialogTitle>
           <DialogDescription>{copy.nonCashWarning}</DialogDescription>

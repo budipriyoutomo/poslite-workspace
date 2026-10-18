@@ -47,10 +47,10 @@ export function VoidDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent mobileSheet className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{copy.voidTitle(receiptNo)}</DialogTitle>
-          {hasNonCash && <DialogDescription className="text-amber-700">{copy.nonCashWarning}</DialogDescription>}
+          {hasNonCash && <DialogDescription className="text-warning">{copy.nonCashWarning}</DialogDescription>}
         </DialogHeader>
         <ReasonField reason={reason} other={other} onChange={(r, o) => (setReason(r), setOther(o))} />
         {!actorIsManager && <ApprovalField approvers={approvers} verifyApprover={verifyApprover} approvedBy={approvedBy} onApproved={setApprovedBy} />}

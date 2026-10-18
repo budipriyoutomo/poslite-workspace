@@ -27,7 +27,7 @@ export function TablePicker({ tables, occupiedTableIds, onPick, onClose }: Props
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent mobileSheet className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{copy.pickTable}</DialogTitle>
         </DialogHeader>

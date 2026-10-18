@@ -45,7 +45,7 @@ export function DynamicQrisDialog({ amount, client, newId, onPaid, onClose, poll
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent mobileSheet className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{copy.qrisTitle}</DialogTitle>
           <DialogDescription>{formatRupiah(amount)}</DialogDescription>
@@ -58,7 +58,7 @@ export function DynamicQrisDialog({ amount, client, newId, onPaid, onClose, poll
           </div>
         )}
         {state.kind === "failed" && (
-          <p role="alert" className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          <p role="alert" className="rounded-md bg-warning/10 p-3 text-sm text-warning">
             {state.message}
           </p>
         )}

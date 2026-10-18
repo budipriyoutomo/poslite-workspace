@@ -1,5 +1,7 @@
 "use client";
 
+import { Armchair } from "lucide-react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +16,7 @@ import {
 import type { OpenBillRow } from "@/shared/db";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
+import { EmptyState } from "@/shared/ui/empty-state";
 
 import { copy } from "../copy";
 
@@ -29,13 +32,13 @@ const gross = (bill: OpenBillRow) => bill.lines.reduce((s, l) => s + (l.unitPric
 const items = (bill: OpenBillRow) => bill.lines.reduce((n, l) => n + l.quantity, 0);
 
 export function OpenBillList({ bills, timezone, onResume, onCancel, onMove }: Props) {
-  if (bills.length === 0) return <p className="py-10 text-center text-muted-foreground">{copy.empty}</p>;
+  if (bills.length === 0) return <EmptyState icon={Armchair} title={copy.empty} />;
   const time = new Intl.DateTimeFormat("id-ID", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
   return (
     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {bills.map((b) => (
-        <li key={b.id} aria-label={copy.table(b.tableLabel)} className="space-y-2 rounded-xl border bg-white p-4">
+        <li key={b.id} aria-label={copy.table(b.tableLabel)} className="space-y-2 rounded-xl border bg-card p-4">
           <p className="text-lg font-bold">{copy.table(b.tableLabel)}</p>
           <p className="text-sm">{copy.summary(items(b), formatRupiah(gross(b)))}</p>
           <p className="text-xs text-muted-foreground">{copy.openedAt(time.format(new Date(b.openedAt)).replace(".", ":"))}</p>

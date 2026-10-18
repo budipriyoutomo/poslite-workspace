@@ -168,7 +168,7 @@ export function usePlaceOrder(deps = defaultDeps) {
 - **Precache**: semua route POS hasil prerender, JS/CSS chunk, font, ikon, gambar placeholder.
 - **Runtime cache**: gambar produk → `CacheFirst` (expire 30 hari, max 500 entry). API **tidak** di-cache oleh SW — data API masuk ke Dexie lewat sync engine.
 - **Update flow**: SW baru di-install diam-diam; tampilkan banner "Versi baru tersedia" dan **hanya reload saat cart kosong** (jangan ganggu transaksi berjalan).
-- **Manifest**: `display: "standalone"` (atau `fullscreen` untuk kiosk), `orientation: "landscape"`, ikon maskable 192/512.
+- **Manifest**: `display: "standalone"` (atau `fullscreen` untuk kiosk), `orientation: "any"` (HP dipakai portrait, tablet bebas diputar — lihat [12-responsive-ui.md](./12-responsive-ui.md)), ikon maskable 192/512.
 - **Storage**: panggil `navigator.storage.persist()` saat aktivasi device; tampilkan peringatan bila ditolak. Pantau `navigator.storage.estimate()`.
 - **Screen Wake Lock API** saat shift terbuka agar layar tidak mati.
 

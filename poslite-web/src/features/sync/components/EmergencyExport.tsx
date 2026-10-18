@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 
-const selectClass = "h-10 w-full rounded-md border bg-white px-3 text-sm";
+const selectClass = "h-10 w-full rounded-md border bg-card px-3 text-sm";
 
 function saveFile(filename: string, content: string) {
   const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));

@@ -32,7 +32,7 @@ interface Props {
 export function LineEditorDialog({ open, onOpenChange, ...props }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">{open && <EditorBody {...props} />}</DialogContent>
+      <DialogContent mobileSheet className="max-h-[90dvh] overflow-y-auto sm:max-w-md">{open && <EditorBody {...props} />}</DialogContent>
     </Dialog>
   );
 }
@@ -78,7 +78,7 @@ function EditorBody({ product, groups, initial, onConfirm }: Omit<Props, "open" 
         <Textarea id="line-note" value={note} maxLength={200} placeholder={copy.notePlaceholder} onChange={(e) => setNote(e.target.value)} />
       </div>
       <DialogFooter>
-        <Button className="h-11 w-full bg-emerald-600 hover:bg-emerald-700" disabled={!isValid} onClick={() => onConfirm({ modifiers: choices, note: note.trim() })}>
+        <Button className="h-11 w-full" disabled={!isValid} onClick={() => onConfirm({ modifiers: choices, note: note.trim() })}>
           {initial ? copy.save : copy.add} · {formatRupiah(unitPrice)}
         </Button>
       </DialogFooter>

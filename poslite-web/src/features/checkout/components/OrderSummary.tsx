@@ -32,7 +32,7 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
   return (
     <div className="space-y-3 border-t pt-3">
       {totals.discount ? (
-        <Button variant="ghost" size="sm" className="text-red-600" onClick={() => setDiscount(null)}>
+        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setDiscount(null)}>
           <X /> {copy.removeDiscount}
         </Button>
       ) : (
