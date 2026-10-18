@@ -25,6 +25,7 @@ export const copy = {
   lookup: "Cari",
   lookupOffline: "Order dari tablet lain hanya bisa dicari saat online.",
   lookupMissing: "Struk tidak ditemukan di outlet ini.",
+  slipPrintFailed: "Slip gagal dicetak — cek printer di menu Printer",
   voided: "Transaksi di-void",
   refunded: (no: string) => `Refund ${no} tersimpan`,
   errors: {

@@ -105,9 +105,12 @@ Desain: [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md). Urut
 ### Fase 7 — Printer & Uji Perangkat Asli
 
 - [ ] Spike printer dengan printer yang akan dipakai (Web Serial Bluetooth Classic di Android & Windows)
-- [ ] Driver Web Serial, lalu Web Bluetooth (BLE) & WebUSB
-- [ ] Slip void/refund (`void_slip`, `refund_slip`), kitchen ticket per printer role (kitchen/bar)
-- [ ] Print Bridge printer LAN + driver HTTP Epson ePOS / Star WebPRNT
+- [x] Driver Web Serial (Bluetooth Classic SPP & USB virtual-COM): renderer ESC/POS (`@point-of-sale/receipt-printer-encoder`, dimuat saat cetak pertama; layout sama dengan pratinjau), kirim per chunk 512 byte, sambung ulang + kirim ulang sekali bila printer dimatikan-nyalakan, reconnect tanpa dialog via `getPorts()`; layar **Printer** (koneksi yang didukung browser, kertas 58/80 mm, Hubungkan printer, Test print) — teruji dengan fake driver, *belum diuji dengan printer asli*
+- [x] Driver Web Bluetooth (BLE: service printer umum, chunk 20 byte, reconnect via `getDevices()`) & WebUSB (Android; class 7 / bulk OUT) — teruji dengan fake, *belum dengan printer asli*
+- [x] Slip void/refund (`void_slip`, `refund_slip`): dicetak otomatis ke printer struk setelah void/refund (gagal cetak hanya toast), berisi oleh/disetujui/alasan, pengingat batalkan non-tunai di EDC, ruang paraf; `printJobs.documentType`; order menyimpan `voidedBy`/`voidApprovedBy` lokal
+- [x] Kitchen ticket per printer role (kitchen/bar): peran dari kategori back-office (`print_role`, sudah ada sejak Fase 2), printer dapur/bar per device (tidak dicetak / pakai printer struk / koneksi sendiri), tiket otomatis saat simpan bill (hanya tambahan) & saat bayar; gagal cetak dicoba lagi berikutnya — *tiket batal item & cetak ulang tiket belum*
+- [x] Print Bridge printer LAN (app `poslite-print-bridge`, `make dev-bridge` / `bridge-check`, CI `bridge.yml`) + driver HTTP Epson ePOS; layar Printer: isian alamat printer / bridge + token
+- [ ] Driver Star WebPRNT (StarPRNT) — ditunda sampai ada printer Star untuk diuji
 - [ ] Uji manual di tablet Android & PC Windows: install PWA, mode pesawat, reboot dengan cart tersimpan, [checklist printer](./04-printing.md#checklist-pengujian-printer)
 - **DoD**: semua jenis printer yang dipakai tenant trial mencetak struk, slip, dan kitchen ticket; reconnect otomatis setelah printer/tablet restart.
 

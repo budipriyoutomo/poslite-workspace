@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Clock, History, Lock, ReceiptText, RefreshCw, ShoppingCart, Store, Wifi, WifiOff } from "lucide-react";
+import { BarChart3, Clock, History, Lock, Printer, ReceiptText, RefreshCw, ShoppingCart, Store, Wifi, WifiOff } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
@@ -20,6 +20,7 @@ const NAV = [
   { href: "/shift", label: "Shift", icon: Clock },
   { href: "/reports", label: "Laporan", icon: BarChart3 },
   { href: "/sync", label: "Sync", icon: RefreshCw },
+  { href: "/printer", label: "Printer", icon: Printer },
 ] as const;
 
 // Selling needs an open shift (06-domain-and-database.md, Shift rule 2); history and reports don't.

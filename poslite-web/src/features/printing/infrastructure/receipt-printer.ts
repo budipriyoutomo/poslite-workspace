@@ -1,4 +1,6 @@
-/** A way to put receipt text on paper. Web Serial / Bluetooth drivers (ESC/POS) come after the printer spike. */
+import type { ReceiptDocument } from "../domain/receipt-document";
+
+/** A way to put a receipt on paper: system print (text) or ESC/POS over a printer driver. */
 export interface ReceiptPrinter {
-  print(lines: string[]): Promise<void>;
+  print(doc: ReceiptDocument, columns: number): Promise<void>;
 }

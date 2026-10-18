@@ -6,6 +6,7 @@ import type { OrderRow, PosDb } from "@/shared/db";
 
 import { IDS, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
+import { renderText } from "../domain/text-layout";
 import type { ReceiptPrinter } from "../infrastructure/receipt-printer";
 import { printReceipt } from "./print-receipt";
 
@@ -30,9 +31,9 @@ beforeEach(async () => {
 const fakePrinter = (fail = false) => {
   const printed: string[][] = [];
   const printer: ReceiptPrinter = {
-    print: async (lines) => {
+    print: async (doc, columns) => {
       if (fail) throw new Error("printer offline");
-      printed.push(lines);
+      printed.push(renderText(doc, columns));
     },
   };
   return { printer, printed };

@@ -40,6 +40,12 @@ describe("voidOrder (ADR-023)", () => {
     expect(event).toMatchObject({ aggregateId: order.id, payload: { reason: "Salah input", voided_by: IDS.cashier, approved_by: IDS.manager } });
   });
 
+  it("remembers on the order who voided and who approved, for the void slip", async () => {
+    await voidOrder({ orderId: order.id, reason: "Salah input", actorId: IDS.cashier, approvedBy: IDS.manager }, testDeps(db));
+
+    expect(await db.orders.get(order.id)).toMatchObject({ voidedBy: IDS.cashier, voidApprovedBy: IDS.manager });
+  });
+
   it("needs a manager to approve a cashier's void", async () => {
     const attempt = voidOrder({ orderId: order.id, reason: "Salah input", actorId: IDS.cashier, approvedBy: null }, testDeps(db));
 

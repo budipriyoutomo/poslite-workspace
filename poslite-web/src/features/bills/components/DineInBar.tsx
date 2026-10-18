@@ -12,6 +12,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 
 import { saveBill } from "../application/bills";
+import { sendBillToKitchen } from "../application/kitchen";
 import { useDiningTables, useOpenBills } from "../application/use-bills";
 import { copy } from "../copy";
 import { TablePicker } from "./TablePicker";
@@ -32,11 +33,13 @@ export function DineInBar() {
     setIsPicking(false);
   };
   const save = async () => {
-    if (!cart.bill) return;
+    if (!cart.bill || !user) return;
+    const billId = cart.bill.id;
     try {
       await saveBill({ bill: cart.bill, lines: cart.lines, discount: cart.discount });
       toast.success(`Bill meja ${cart.bill.tableLabel} disimpan`);
       cart.clear();
+      void sendBillToKitchen({ billId, cashierName: user.name }).then(({ hasFailed }) => hasFailed && toast.error(copy.kitchenFailed));
     } catch (e) {
       toast.error(e instanceof AppError ? (copy.errors[e.code] ?? e.code) : String(e));
     }

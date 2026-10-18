@@ -17,6 +17,19 @@ describe("splitLines", () => {
     expect(splitLines([kopi, nasi], { k: 3 })).toEqual({ paying: [kopi], remaining: [nasi] });
   });
 
+  it("counts units already sent to the kitchen against the part paid first", () => {
+    const { paying, remaining } = splitLines([{ key: "g", quantity: 3, sentQuantity: 2 }], { g: 1 });
+
+    expect(paying).toEqual([{ key: "g", quantity: 1, sentQuantity: 1 }]);
+    expect(remaining).toEqual([{ key: "g", quantity: 2, sentQuantity: 1 }]);
+  });
+
+  it("leaves nothing sent on the bill when the paid part takes all sent units", () => {
+    const { remaining } = splitLines([{ key: "g", quantity: 3, sentQuantity: 1 }], { g: 2 });
+
+    expect(remaining).toEqual([{ key: "g", quantity: 1, sentQuantity: 0 }]);
+  });
+
   it("rejects paying nothing", () => {
     expect(() => splitLines([kopi], { k: 0 })).toThrow(RangeError);
   });

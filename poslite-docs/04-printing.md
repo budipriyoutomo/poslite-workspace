@@ -33,6 +33,34 @@ Halaman Settings → Printer hanya menampilkan tipe koneksi yang `isSupported()`
 
 ## Arsitektur Printing
 
+Implementasi saat ini (Fase 7) — lebih datar dari rancangan di bawah:
+
+```
+features/printing/
+├── domain/        receipt-builder, correction-slips, kitchen-ticket, test-page, text-layout (dokumen → baris 32/48 kolom)
+├── application/   print-receipt / print-slips / print-kitchen (printJobs, tidak pernah throw), configured-printer
+│                  (printer per peran dari tabel `printers`; default system), printer-setup
+└── infrastructure/
+    ├── escpos-renderer.ts      # dokumen → ESC/POS; baris dari text-layout (sama dengan pratinjau), encoder hanya bold/codepage/cut
+    ├── escpos-printer.ts       # render → connect → send; gagal kirim = disconnect, connect, kirim ulang sekali
+    ├── web-serial-driver.ts    # Bluetooth Classic (SPP) & USB-serial: requestPort / getPorts() + getInfo(), chunk 512 byte
+    ├── web-bluetooth-driver.ts # BLE: requestDevice (service printer umum) / getDevices(), characteristic yang bisa ditulis, chunk 20 byte
+    ├── web-usb-driver.ts       # USB (Android): requestDevice / getDevices(), interface class 7 (atau bulk OUT apa pun), chunk 512 byte
+    ├── epson-epos-driver.ts    # LAN Epson: POST https://<ip>/cgi-bin/epos/service.cgi, ESC/POS sebagai hex `<command>`
+    ├── bridge-driver.ts        # LAN 9100 lewat poslite-print-bridge: POST <bridge>/print + Bearer token
+    └── system-printer.ts       # window.print()
+```
+
+Driver `picker` (Web Serial/Bluetooth/USB) di-pair lewat dialog browser; driver `address` (Epson ePOS, Print Bridge) diisi alamatnya di layar Printer. Yang disimpan di `printers.device`: `getInfo()` Web Serial, id device BLE, vendor/product/serial USB, atau alamat printer (+ URL & token bridge).
+
+Catatan per driver:
+- **Web Serial**: dua printer Bluetooth tidak bisa dibedakan dari `getInfo()` — bila beberapa diizinkan, yang pertama dipakai.
+- **Web Bluetooth**: `getDevices()` di beberapa versi Chrome masih di balik flag; tanpa itu printer BLE harus di-pair ulang setelah reload. Profil service yang dikenal: `18f0`, `e7810a71…`, `49535343…` (ISSC), `ff00`, `ae30`.
+- **WebUSB**: untuk Android. Di Windows driver printer OS memegang device (butuh WinUSB/Zadig) — tetap pakai dialog sistem atau Print Bridge.
+- **Epson ePOS**: halaman HTTPS hanya bisa memanggil printer lewat HTTPS — buka `https://<ip printer>` sekali di device dan terima sertifikatnya. Star WebPRNT belum (bahasa StarPRNT, format berbeda).
+
+Rancangan awal:
+
 ```
 features/printing/
 ├── domain/
@@ -89,14 +117,18 @@ export interface PrinterDriver {
 - Setiap print masuk tabel `printJobs` (Dexie): `{ id, role, documentType, refId, status, attempts, createdAt }`.
 - Gagal print **tidak membatalkan transaksi**. Tampilkan toast "Struk gagal dicetak — Coba lagi" + bisa reprint dari halaman Orders.
 - Auto-reconnect: saat app start, `connect()` ke printer tersimpan (Web Serial `getPorts()`, Web Bluetooth `getDevices()`, WebUSB `getDevices()`).
-- Routing per role: `receipt` → printer kasir, `kitchen` → printer dapur (item kategori makanan), `bar` → printer minuman. Mapping kategori → role di setting outlet.
+- Routing per role: `receipt` → printer kasir, `kitchen` → printer dapur, `bar` → printer minuman. Peran ditentukan per **kategori** di back-office (Menu → Kategori, `categories.print_role`, ikut pull) — berlaku untuk semua outlet brand; kategori `receipt` tidak menghasilkan tiket.
+- Printer dapur/bar diatur **per device** di layar Printer: *Tidak dicetak* (default — tidak ada baris di `printers`), *Pakai printer struk* (`driver: "same-as-receipt"`, untuk warung satu printer), atau koneksi sendiri.
+- Kapan tiket keluar (Fase 7): bill meja disimpan → hanya unit baru (`OpenBillLine.sentQuantity`, tiket bertanda "TAMBAHAN" bila sebelumnya sudah ada yang dikirim); order dibayar → unit yang belum pernah dikirim (take-away = semua). Stasiun yang gagal cetak tidak ditandai terkirim, jadi dicoba lagi saat simpan/bayar berikutnya; stasiun tanpa printer di device dianggap terkirim. Split bill membagi `sentQuantity` ke bagian yang dibayar lebih dulu.
+- Belum: tiket pembatalan item ke dapur (item dikurangi setelah dikirim), cetak ulang tiket dari Riwayat.
 
-## Print Bridge (opsional, untuk printer LAN)
+## Print Bridge (printer LAN port 9100)
 
-Aplikasi kecil di jaringan lokal (mis. Node/Go di mini PC atau PC kasir) yang menerima `POST /print { printer: "192.168.1.50:9100", data: base64 }` dan meneruskan ke socket TCP 9100.
-- Wajib HTTPS (sertifikat lokal) atau akses via `localhost` agar tidak diblok mixed content.
-- Auth dengan shared token per outlet.
-- Ditunda ke fase lanjut kecuali restoran sudah pakai printer LAN.
+App **`poslite-print-bridge`** (Node.js ≥ 24, tanpa dependency runtime; README di foldernya) di PC kasir atau mini PC outlet: `POST /print { printer: "192.168.1.50:9100", data: base64 }` → socket TCP 9100.
+- Halaman HTTPS hanya boleh memanggil `http://localhost` (bridge di PC yang sama) atau bridge HTTPS dengan sertifikat yang dipercaya device (mis. mkcert). Bridge menjawab preflight *Private Network Access* Chrome.
+- Auth: shared token per outlet (`BRIDGE_TOKEN`, ≥ 16 karakter, dibandingkan timing-safe); `BRIDGE_ALLOWED_ORIGINS` opsional.
+- Tanpa `BRIDGE_PRINTERS` hanya IPv4 privat yang boleh dihubungi (bukan relay terbuka); nama host wajib di daftar izin.
+- Job per printer berurutan; error: `401 UNAUTHORIZED`, `403 PRINTER_NOT_ALLOWED`, `502 PRINTER_UNREACHABLE`, `504 PRINTER_TIMEOUT`. Token & isi struk tidak di-log.
 
 ## Layout Struk (58mm = 32 kolom, 80mm = 48 kolom)
 

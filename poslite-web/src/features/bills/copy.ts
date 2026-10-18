@@ -1,6 +1,7 @@
 // UI text for the bills feature (Bahasa Indonesia).
 export const copy = {
   title: "Bill Terbuka",
+  kitchenFailed: "Tiket dapur/bar gagal dicetak — akan dicoba lagi saat bill disimpan atau dibayar",
   hint: "Bill meja yang belum dibayar. Hanya tersimpan di perangkat ini.",
   empty: "Tidak ada bill terbuka",
   table: (label: string) => `Meja ${label}`,

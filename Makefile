@@ -6,6 +6,7 @@ API_DIR ?= poslite-api
 WEB_DIR ?= poslite-web
 ADMIN_DIR ?= poslite-admin
 OPERATOR_DIR ?= poslite-operator
+BRIDGE_DIR ?= poslite-print-bridge
 DOCS_DIR ?= poslite-docs
 
 API_PORT ?= 8000
@@ -23,9 +24,11 @@ UV := uv --directory $(API_DIR)
 PNPM := pnpm --dir $(WEB_DIR)
 ADMIN := pnpm --dir $(ADMIN_DIR)
 OPERATOR := pnpm --dir $(OPERATOR_DIR)
+BRIDGE := pnpm --dir $(BRIDGE_DIR)
 
 .PHONY: help doctor setup install dev check test fmt dev-admin admin-install admin-test admin-check admin-types admin-e2e \
 	dev-operator operator-install operator-test operator-check operator-types operator-e2e \
+	dev-bridge bridge-install bridge-test bridge-check \
 	dev-api worker openapi report-rebuild billing-run platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
 	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie repos-remotes repos-push
 
@@ -50,7 +53,7 @@ doctor: ## Check tools, app folders and local PostgreSQL
 
 setup: doctor install env db-setup migrate ## First-time setup: deps, .env, local DBs, migrations
 
-install: api-install web-install admin-install operator-install ## Install deps for API, POS web, back-office and operator console
+install: api-install web-install admin-install operator-install bridge-install ## Install deps for API, POS web, back-office, operator console and print bridge
 
 dev: ## Run API (:8000), POS web (:3000), back-office (:3001) and operator console (:3002) — Ctrl-C stops all
 	@trap 'kill 0' INT TERM; \
@@ -60,9 +63,9 @@ dev: ## Run API (:8000), POS web (:3000), back-office (:3001) and operator conso
 	$(MAKE) --no-print-directory dev-operator 2>&1 | awk '{ print "\033[32m[operator]\033[0m " $$0; fflush() }' & \
 	wait
 
-check: api-check web-check admin-check operator-check ## Everything required before a commit (all apps)
+check: api-check web-check admin-check operator-check bridge-check ## Everything required before a commit (all apps)
 
-test: api-test web-test admin-test operator-test ## Run tests for all apps
+test: api-test web-test admin-test operator-test bridge-test ## Run tests for all apps
 
 fmt: api-fmt ## Auto-fix lint and format
 
@@ -215,6 +218,21 @@ operator-e2e: ## Operator console e2e vs the real API (fresh poslite_e2e_operato
 
 operator-types: openapi ## Regenerate the operator console API types from poslite-api/openapi.json
 	$(OPERATOR) api:types
+
+##@ Print Bridge (poslite-print-bridge)
+
+dev-bridge: ## Run the LAN Print Bridge on :9180 (needs BRIDGE_TOKEN; see poslite-print-bridge/README.md)
+	$(BRIDGE) start
+
+bridge-install: ## Install print bridge dev deps (pnpm; the bridge itself has no runtime deps)
+	$(BRIDGE) install
+
+bridge-test: ## Print bridge tests (node --test)
+	$(BRIDGE) test
+
+bridge-check: ## Print bridge typecheck + tests
+	$(BRIDGE) typecheck
+	$(BRIDGE) test
 
 ##@ Publishing (one GitHub repo per app)
 

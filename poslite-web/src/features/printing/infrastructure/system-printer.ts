@@ -1,3 +1,4 @@
+import { renderText } from "../domain/text-layout";
 import type { ReceiptPrinter } from "./receipt-printer";
 
 const ROOT_ID = "poslite-print-root";
@@ -8,12 +9,12 @@ const ROOT_ID = "poslite-print-root";
  * Chrome's --kiosk-printing makes it silent.
  */
 export const systemPrinter: ReceiptPrinter = {
-  async print(lines) {
+  async print(doc, columns) {
     document.getElementById(ROOT_ID)?.remove();
     const root = document.createElement("div");
     root.id = ROOT_ID;
     const pre = document.createElement("pre");
-    pre.textContent = lines.join("\n");
+    pre.textContent = renderText(doc, columns).join("\n");
     root.append(pre);
     document.body.append(root);
     window.addEventListener("afterprint", () => root.remove(), { once: true });

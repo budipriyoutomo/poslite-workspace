@@ -15,6 +15,7 @@ import { Button } from "@/shared/ui/button";
 
 import { payBill } from "../application/pay-bill";
 import { placeOrder } from "../application/place-order";
+import { sendPaidToKitchen } from "../application/send-to-kitchen";
 import { useAvailablePromotions, usePricing } from "../application/use-cart-totals";
 import { usePaymentMethods } from "../application/use-payment-methods";
 import { useQrisClient } from "../application/use-qris-client";
@@ -82,6 +83,9 @@ export function CheckoutScreen() {
       setTake(null);
       setDiscountApprovedBy(null);
       setPlaced(order);
+      void sendPaidToKitchen({ order, lines: paying, tableLabel: bill?.tableLabel ?? null, cashierName: user.name }).then(
+        ({ hasFailed }) => hasFailed && toast.error(copy.kitchenFailed),
+      );
     } catch (e) {
       toast.error(e instanceof AppError ? (copy.errors[e.code] ?? e.code) : String(e));
     } finally {

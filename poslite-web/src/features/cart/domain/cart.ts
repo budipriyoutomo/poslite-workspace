@@ -26,6 +26,8 @@ export interface CartLine extends NewLine {
   key: string;
   quantity: number;
   discount?: LineDiscount | null;
+  /** Units of an open bill already on a kitchen/bar ticket (Fase 7); absent = none. */
+  sentQuantity?: number;
 }
 
 function mergeKey(line: Pick<NewLine, "productId" | "modifiers" | "note">): string {

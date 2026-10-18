@@ -146,6 +146,9 @@ export interface OrderRow {
   /** Set by a void (ADR-023); the order's amounts never change. */
   voidedAt?: string;
   voidReason?: string;
+  /** Who voided and who approved (null = a manager acting alone) — local, for the void slip. */
+  voidedBy?: string;
+  voidApprovedBy?: string | null;
   syncStatus: "pending" | "synced";
   flags: string[];
   createdAt: string;
@@ -236,17 +239,39 @@ export interface ModifierOptionRow {
   sortOrder: number;
 }
 
+/**
+ * Web Serial: `getInfo()` fields · Web Bluetooth: device id · WebUSB: vendor/product/serial ·
+ * network (Epson ePOS, Print Bridge): `address` = printer host[:port], plus the bridge URL and token.
+ */
+export interface PrinterDevice {
+  usbVendorId?: number;
+  usbProductId?: number;
+  usbSerialNumber?: string;
+  bluetoothServiceClassId?: number | string;
+  bluetoothDeviceId?: string;
+  name?: string;
+  address?: string;
+  bridgeUrl?: string;
+  bridgeToken?: string;
+}
+
 export interface PrinterConfigRow {
   id: string;
   role: "receipt" | "kitchen" | "bar";
-  driver: "system" | "web-serial" | "web-bluetooth" | "web-usb";
+  /** `same-as-receipt`: a kitchen/bar role printed on this device's receipt printer (one-printer warung). */
+  driver: "system" | "web-serial" | "web-bluetooth" | "web-usb" | "epson-epos" | "bridge" | "same-as-receipt";
   name: string;
   paperWidth: 58 | 80;
+  /** How the driver finds the printer again without a dialog; not indexed. */
+  device?: PrinterDevice;
 }
 
 export interface PrintJobRow {
   id: string;
   orderId: string;
+  /** Absent on rows from before Fase 7 = "receipt". */
+  documentType?: "receipt" | "void_slip" | "refund_slip" | "kitchen_ticket";
+  refundId?: string;
   status: "queued" | "printed" | "failed";
   attempts: number;
   lastError?: string;
@@ -293,6 +318,8 @@ export interface OpenBillLine {
   note: string;
   quantity: number;
   discount?: LineDiscount | null;
+  /** Units already on a kitchen/bar ticket (Fase 7); absent = none. */
+  sentQuantity?: number;
 }
 
 /** A dine-in bill not paid yet: lives only on this device, never synced (ADR-015). */

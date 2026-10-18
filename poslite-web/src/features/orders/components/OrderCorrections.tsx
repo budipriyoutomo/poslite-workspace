@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth";
+import { printRefundSlip, printVoidSlip } from "@/features/printing";
 import { useOpenShift } from "@/features/shift";
 import type { OrderRow, PaymentRow, RefundRow } from "@/shared/db";
 import { getDb } from "@/shared/db";
@@ -38,6 +39,7 @@ export function OrderCorrections({ order, payments, refunds }: { order: OrderRow
       await voidOrder({ orderId: order.id, actorId: user.id, ...input });
       toast.success(copy.voided);
       setDialog(null);
+      if (!(await printVoidSlip(order.id))) toast.error(copy.slipPrintFailed);
     } catch (e) {
       failed(e);
     }
@@ -47,6 +49,7 @@ export function OrderCorrections({ order, payments, refunds }: { order: OrderRow
       const refund = await refundOrder({ source, actorId: user.id, ...request });
       toast.success(copy.refunded(refund.refundNo));
       setDialog(null);
+      if (!(await printRefundSlip(refund.id))) toast.error(copy.slipPrintFailed);
     } catch (e) {
       failed(e);
     }

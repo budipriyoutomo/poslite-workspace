@@ -3,15 +3,18 @@ import type { Discount } from "./pricing";
 /**
  * Split bill by item (06 "Open Bill & Split"): `take[key]` units of each line are paid now as
  * their own order; the rest stays on the bill. A line keeps its own discount in both parts.
+ * Units already sent to the kitchen count against the part paid first, so neither part resends them.
  */
-export function splitLines<L extends { key: string; quantity: number }>(lines: L[], take: Record<string, number>): { paying: L[]; remaining: L[] } {
+export function splitLines<L extends { key: string; quantity: number; sentQuantity?: number }>(lines: L[], take: Record<string, number>): { paying: L[]; remaining: L[] } {
   const paying: L[] = [];
   const remaining: L[] = [];
   for (const line of lines) {
     const qty = take[line.key] ?? 0;
     if (!Number.isInteger(qty) || qty < 0 || qty > line.quantity) throw new RangeError(`cannot pay ${qty} of ${line.quantity}`);
-    if (qty > 0) paying.push({ ...line, quantity: qty });
-    if (qty < line.quantity) remaining.push(qty > 0 ? { ...line, quantity: line.quantity - qty } : line);
+    const sentPaid = Math.min(qty, line.sentQuantity ?? 0);
+    const sent = (n: number) => (line.sentQuantity === undefined ? {} : { sentQuantity: n });
+    if (qty > 0) paying.push({ ...line, quantity: qty, ...sent(sentPaid) });
+    if (qty < line.quantity) remaining.push(qty > 0 ? { ...line, quantity: line.quantity - qty, ...sent((line.sentQuantity ?? 0) - sentPaid) } : line);
   }
   if (paying.length === 0) throw new RangeError("nothing to pay");
   return { paying, remaining };

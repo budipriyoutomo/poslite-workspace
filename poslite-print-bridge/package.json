@@ -1,0 +1,20 @@
+{
+  "name": "poslite-print-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Forwards ESC/POS bytes from the POSLite PWA to LAN printers on TCP port 9100.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@12.6.0",
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "typescript": "^5"
+  }
+}

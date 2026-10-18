@@ -41,6 +41,7 @@ export const copy = {
   success: "Transaksi berhasil",
   newOrder: "Pesanan Baru",
   print: "Cetak Struk",
+  kitchenFailed: "Tiket dapur/bar gagal dicetak — cek printer di menu Printer",
   printFailed: "Struk gagal dicetak — coba lagi dari Riwayat",
   discountNeedsApproval: "Diskon ini melebihi batas kasir brand. Minta manajer memasukkan PIN.",
   errors: {

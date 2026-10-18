@@ -1,0 +1,38 @@
+import { dateTime } from "./format";
+import type { ReceiptBlock, ReceiptDocument } from "./receipt-document";
+
+export type KitchenStation = "kitchen" | "bar";
+
+export interface KitchenTicketInput {
+  station: KitchenStation;
+  tableLabel: string | null;
+  /** Receipt number, or the bill's table label for a bill not paid yet. */
+  reference: string;
+  cashierName: string;
+  at: string;
+  timezone: string;
+  /** Items added to a bill whose earlier items were already sent. */
+  isAddition: boolean;
+  lines: { name: string; quantity: number; modifiers: string[]; note: string }[];
+}
+
+const TITLES: Record<KitchenStation, string> = { kitchen: "DAPUR", bar: "BAR" };
+
+/** Kitchen/bar ticket (04-printing.md `kitchen-ticket`): what to make, for which table — no prices. */
+export function buildKitchenTicket(input: KitchenTicketInput): ReceiptDocument {
+  const doc: ReceiptDocument = [{ kind: "text", text: `** ${TITLES[input.station]} **`, align: "center", bold: true }];
+  if (input.isAddition) doc.push({ kind: "text", text: "+ TAMBAHAN +", align: "center" });
+  doc.push(
+    { kind: "text", text: `Meja  : ${input.tableLabel ?? "BAWA PULANG"}` },
+    { kind: "text", text: `No    : ${input.reference}` },
+    { kind: "row", left: `Kasir : ${input.cashierName}`, right: dateTime(input.at, input.timezone) },
+    { kind: "rule" },
+  );
+  for (const line of input.lines) {
+    doc.push({ kind: "text", text: `${line.quantity}x ${line.name}`, bold: true });
+    doc.push(...line.modifiers.map((m): ReceiptBlock => ({ kind: "text", text: `   + ${m}` })));
+    if (line.note) doc.push({ kind: "text", text: `   * ${line.note}` });
+  }
+  doc.push({ kind: "rule" });
+  return doc;
+}

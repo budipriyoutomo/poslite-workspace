@@ -50,7 +50,7 @@ export async function voidOrder(
     await checkApproval(db, input.actorId, input.approvedBy);
 
     const at = deps.now().toISOString();
-    await db.orders.update(order.id, { status: "voided", voidedAt: at, voidReason: input.reason });
+    await db.orders.update(order.id, { status: "voided", voidedAt: at, voidReason: input.reason, voidedBy: input.actorId, voidApprovedBy: input.approvedBy });
     await enqueueEvent(db, {
       id: deps.newId(),
       type: "order.voided",

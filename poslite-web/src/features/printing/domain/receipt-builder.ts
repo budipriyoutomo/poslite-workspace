@@ -1,5 +1,6 @@
 import { discountAmount } from "@/shared/money";
 
+import { amount, dateTime } from "./format";
 import type { ReceiptDocument } from "./receipt-document";
 
 export interface ReceiptInput {
@@ -33,23 +34,8 @@ export interface ReceiptInput {
   payments: { methodName: string; amount: number }[];
 }
 
-/** Receipts show amounts without "Rp": 1.000.000, -7.500. */
-function amount(value: number): string {
-  const digits = String(Math.abs(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return value < 0 ? `-${digits}` : digits;
-}
-
 function percent(bps: number): string {
   return `${String(bps / 100).replace(".", ",")}%`;
-}
-
-function dateTime(iso: string, timeZone: string): string {
-  const p = Object.fromEntries(
-    new Intl.DateTimeFormat("en-GB", { timeZone, day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
-      .formatToParts(new Date(iso))
-      .map((x) => [x.type, x.value]),
-  );
-  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
 }
 
 /** Customer receipt as laid out in 04-printing.md. Service and PB1 rows only when the rate > 0. */
