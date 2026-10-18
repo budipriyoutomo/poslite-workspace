@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePercent, BarChart3, Building2, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
+import { BadgePercent, BarChart3, Building2, CalendarCheck, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
@@ -14,6 +14,7 @@ import { cn } from "@/shared/ui/utils";
 // the active brand (ADR-022). The API enforces the same rules.
 const NAV = [
   { href: "/", label: "Dashboard", icon: BarChart3, needs: null, group: "Operasional" },
+  { href: "/day-closing", label: "Tutup Hari", icon: CalendarCheck, needs: null, group: "Operasional" },
   { href: "/menu", label: "Menu", icon: UtensilsCrossed, needs: "manageBrand", group: "Operasional" },
   { href: "/prices", label: "Harga Outlet", icon: Tags, needs: null, group: "Operasional" },
   { href: "/promotions", label: "Promo", icon: BadgePercent, needs: "manageBrand", group: "Operasional" },
@@ -54,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <aside
           id="app-sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overflow-y-auto border-r bg-sidebar p-3 text-sidebar-foreground shadow-xl transition-transform md:sticky md:top-0 md:h-dvh md:translate-x-0 md:shadow-none",
+            "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 print:hidden flex-col overflow-y-auto border-r bg-sidebar p-3 text-sidebar-foreground shadow-xl transition-transform md:sticky md:top-0 md:h-dvh md:translate-x-0 md:shadow-none",
             navOpen ? "translate-x-0" : "-translate-x-full max-md:invisible",
           )}
         >
@@ -110,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b bg-card/85 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/70 md:px-6">
+          <header className="sticky top-0 z-20 flex print:hidden flex-wrap items-center gap-3 border-b bg-card/85 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/70 md:px-6">
             <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu" aria-expanded={navOpen} aria-controls="app-sidebar" onClick={() => setNavOpen(true)}>
               <Menu />
             </Button>
@@ -118,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <BrandSelect />
             <OutletSelect />
           </header>
-          <main className="min-w-0 flex-1 p-4 md:p-8">
+          <main className="min-w-0 flex-1 p-4 md:p-8 print:p-0">
             <div className="mx-auto w-full max-w-6xl">{children}</div>
           </main>
         </div>

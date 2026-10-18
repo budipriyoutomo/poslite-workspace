@@ -133,6 +133,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/day-closings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Day Closings */
+        get: operations["get_day_closings_api_v1_day_closings_get"];
+        put?: never;
+        /** Post Day Closing */
+        post: operations["post_day_closing_api_v1_day_closings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/day-closings/day": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Day Status */
+        get: operations["get_day_status_api_v1_day_closings_day_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/devices/activate": {
         parameters: {
             query?: never;
@@ -1470,6 +1505,38 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[DayClosingOut] */
+        ApiResponse_DayClosingOut_: {
+            data: components["schemas"]["DayClosingOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[DayStatusOut] */
+        ApiResponse_DayStatusOut_: {
+            data: components["schemas"]["DayStatusOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[DeviceMe] */
         ApiResponse_DeviceMe_: {
             data: components["schemas"]["DeviceMe"];
@@ -1961,6 +2028,23 @@ export interface components {
         ApiResponse_list_CategoryOut__: {
             /** Data */
             data: components["schemas"]["CategoryOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[list[DayClosingRowOut]] */
+        ApiResponse_list_DayClosingRowOut__: {
+            /** Data */
+            data: components["schemas"]["DayClosingRowOut"][];
             /**
              * Message
              * @default OK
@@ -2489,6 +2573,21 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** CloseDayIn */
+        CloseDayIn: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Outlet Id */
+            outlet_id: string;
+        };
         /** CreatedEndpointOut */
         CreatedEndpointOut: {
             /** Brand Ids */
@@ -2503,6 +2602,68 @@ export interface components {
             secret: string;
             /** Url */
             url: string;
+        };
+        /** DayCashOut */
+        DayCashOut: {
+            /** Counted Cash */
+            counted_cash: number;
+            /** Expected Cash */
+            expected_cash: number;
+            /** Open Shift Count */
+            open_shift_count: number;
+            /** Opening Cash */
+            opening_cash: number;
+            /** Shift Count */
+            shift_count: number;
+            /** Variance */
+            variance: number;
+        };
+        /** DayClosingOut */
+        DayClosingOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /**
+             * Closed At
+             * Format: date-time
+             */
+            closed_at: string;
+            /** Closed By */
+            closed_by: string;
+            /** Closed By Name */
+            closed_by_name: string;
+            /** Id */
+            id: string;
+            /** Notes */
+            notes: string;
+            /** Outlet Id */
+            outlet_id: string;
+            snapshot: components["schemas"]["DaySnapshotOut"];
+        };
+        /** DayClosingRowOut */
+        DayClosingRowOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /**
+             * Closed At
+             * Format: date-time
+             */
+            closed_at: string;
+            /** Closed By */
+            closed_by: string;
+            /** Closed By Name */
+            closed_by_name: string;
+            /** Id */
+            id: string;
+            /** Notes */
+            notes: string;
+            /** Outlet Id */
+            outlet_id: string;
         };
         /** DaySales */
         DaySales: {
@@ -2529,6 +2690,43 @@ export interface components {
             tax: number;
             /** Void Count */
             void_count: number;
+        };
+        /** DaySnapshotOut */
+        DaySnapshotOut: {
+            cash: components["schemas"]["DayCashOut"];
+            /** Payment Methods */
+            payment_methods: components["schemas"]["PaymentMethodSales"][];
+            totals: components["schemas"]["Totals"];
+            /** Warnings */
+            warnings: components["schemas"]["DayWarningOut"][];
+        };
+        /** DayStatusOut */
+        DayStatusOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Changed Since Close */
+            changed_since_close: boolean;
+            closing: components["schemas"]["DayClosingOut"] | null;
+            current: components["schemas"]["DaySnapshotOut"];
+            /** Day Ended */
+            day_ended: boolean;
+            /** Outlet Id */
+            outlet_id: string;
+        };
+        /** DayWarningOut */
+        DayWarningOut: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "OPEN_SHIFTS" | "DEVICES_NOT_SYNCED";
+            /** Count */
+            count?: number | null;
+            /** Devices */
+            devices?: components["schemas"]["StaleDeviceOut"][] | null;
         };
         /** DeliveryOut */
         DeliveryOut: {
@@ -3604,6 +3802,17 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /** StaleDeviceOut */
+        StaleDeviceOut: {
+            /** Code */
+            code: string;
+            /** Id */
+            id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            /** Name */
+            name: string;
+        };
         /** SubscriptionOut */
         SubscriptionOut: {
             /** Current Period End */
@@ -4307,6 +4516,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_day_closings_api_v1_day_closings_get: {
+        parameters: {
+            query: {
+                outlet_id: string;
+                from: string;
+                to: string;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_DayClosingRowOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_day_closing_api_v1_day_closings_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseDayIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_DayClosingOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_day_status_api_v1_day_closings_day_get: {
+        parameters: {
+            query: {
+                outlet_id: string;
+                business_date: string;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_DayStatusOut_"];
                 };
             };
             /** @description Validation Error */
