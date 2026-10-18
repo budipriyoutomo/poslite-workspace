@@ -113,6 +113,8 @@ user_assignments id, user_id, role_id, scope_type (company|brand|outlet), brand_
                  -- ubah → touch users.version (menggantikan outlet_user, migrasi 0016)
 device_imports   id, device_id, imported_by, file_sha256, accepted, duplicate, flagged,
                  rejected (jsonb [{id, code}]), created_at   -- audit import darurat (ADR-024)
+day_closings     id, outlet_id, business_date, closed_by, closed_at, notes, snapshot (jsonb)
+                 -- UNIQUE (tenant_id, outlet_id, business_date); tutup hari (ADR-026)
 roles            id, name (owner|manager|cashier)
 permissions      id, name (mis. order.void, discount.override, shift.close, cash.move)
 role_permissions role_id, permission_id                                    -- PK (role_id, permission_id)
