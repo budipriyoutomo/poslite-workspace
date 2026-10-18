@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 from poslite.worker import relay_job
 
 from ..identity.helpers import bearer
+from ..organization.brands import as_user, company_with_two_brands
 from ..sync.helpers import Setup, outlet_with_menu_and_device
 from ..sync.test_push import batch, push
 
@@ -162,3 +163,25 @@ async def test_a_device_token_cannot_close_a_day(api: AsyncClient) -> None:
     response = await close(api, device)
 
     assert response.status_code == 403
+
+
+async def test_only_managers_of_the_outlet_see_or_close_its_day(
+    api: AsyncClient, app_engine: AsyncEngine
+) -> None:
+    company = await company_with_two_brands(api, app_engine)
+    query = f"outlet_id={company.outlet_a1}&business_date={DAY}"
+    body = {"outlet_id": company.outlet_a1, "business_date": DAY, "notes": ""}
+
+    other_brand = await api.get(
+        f"/api/v1/day-closings/day?{query}", headers=as_user(company.brand_b_manager)
+    )
+    outlet_manager = await api.post(
+        "/api/v1/day-closings", json=body, headers=as_user(company.outlet_a1_manager)
+    )
+    refused = await api.post(
+        "/api/v1/day-closings", json=body, headers=as_user(company.brand_b_manager)
+    )
+
+    assert (other_brand.status_code, other_brand.json()["code"]) == (403, "OUTLET_FORBIDDEN")
+    assert (refused.status_code, refused.json()["code"]) == (403, "OUTLET_FORBIDDEN")
+    assert outlet_manager.status_code == 201, outlet_manager.text
