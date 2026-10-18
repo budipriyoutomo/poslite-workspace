@@ -18,6 +18,24 @@ const SNAPSHOT = {
 const OPEN_SHIFT = { code: "OPEN_SHIFTS", count: 1, devices: null };
 const CLOSING = { id: "C1", outlet_id: OUTLET.id, business_date: "2026-09-25", closed_by: "U1", closed_by_name: "Budi", closed_at: "2026-09-26T02:00:00Z", notes: "Setor bank", snapshot: SNAPSHOT };
 
+const SHIFT = {
+  id: "S1",
+  device_id: "D1",
+  device_name: "Kasir 1",
+  business_date: "2026-09-25",
+  status: "closed",
+  opened_by: "U2",
+  opened_by_name: "Siti",
+  opened_at: "2026-09-25T01:00:00Z",
+  opening_cash: 200_000,
+  closed_by: "U2",
+  closed_by_name: "Siti",
+  closed_at: "2026-09-25T14:00:00Z",
+  expected_cash: 252_765,
+  counted_cash: 250_000,
+  variance: -2_765,
+};
+
 const access = {
   tenant: { id: "T", name: "Warung", status: "active" },
   company_scope: true,
@@ -38,6 +56,7 @@ function server(day: Day) {
       return { status: 201, ...envelope(closing) };
     }
     if (path.startsWith("/api/v1/day-closings?")) return envelope([]);
+    if (path.startsWith("/api/v1/shifts?")) return envelope([SHIFT]);
     return undefined;
   });
 }
@@ -56,6 +75,8 @@ describe("DayClosingScreen", () => {
     expect(calls.find((c) => c.path.startsWith("/api/v1/day-closings/day"))?.path).toBe(`/api/v1/day-closings/day?outlet_id=${OUTLET.id}&business_date=2026-09-25`);
     expect(screen.getByRole("status", { name: "Penjualan bersih" })).toHaveTextContent("Rp 72.765");
     expect(screen.getByRole("status", { name: "Selisih kas" })).toHaveTextContent("-Rp 2.765");
+    const shifts = await screen.findByRole("table", { name: "Shift" });
+    expect(within(shifts).getByRole("row", { name: /Kasir 1.*Siti.*Rp 250\.000.*-Rp 2\.765/ })).toBeInTheDocument();
   });
 
   it("closes the day with a note once the warnings are acknowledged", async () => {

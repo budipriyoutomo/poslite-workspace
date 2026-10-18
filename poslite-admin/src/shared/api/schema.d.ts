@@ -1103,6 +1103,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shifts
+         * @description Shifts of one outlet and business day (back-office; devices only push).
+         */
+        get: operations["shifts_api_v1_shifts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shifts/{shift_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift */
+        get: operations["shift_api_v1_shifts__shift_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sync/pull": {
         parameters: {
             query?: never;
@@ -1874,6 +1911,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[ShiftDetailOut] */
+        ApiResponse_ShiftDetailOut_: {
+            data: components["schemas"]["ShiftDetailOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[SummaryOut] */
         ApiResponse_SummaryOut_: {
             data: components["schemas"]["SummaryOut"];
@@ -2279,6 +2332,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[ShiftOut]] */
+        ApiResponse_list_ShiftOut__: {
+            /** Data */
+            data: components["schemas"]["ShiftOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[TableOut]] */
         ApiResponse_list_TableOut__: {
             /** Data */
@@ -2490,6 +2560,26 @@ export interface components {
             receipt_footer: string;
             /** Receipt Header */
             receipt_header: string;
+        };
+        /** CashMovementOut */
+        CashMovementOut: {
+            /** Amount */
+            amount: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Created By Name */
+            created_by_name: string;
+            /** Id */
+            id: string;
+            /** Reason */
+            reason: string;
+            /** Type */
+            type: string;
         };
         /** CashierSales */
         CashierSales: {
@@ -3787,6 +3877,86 @@ export interface components {
             /** Products */
             products: components["schemas"]["ProductSales"][];
             totals: components["schemas"]["Totals"];
+        };
+        /** ShiftDetailOut */
+        ShiftDetailOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Cash Movements */
+            cash_movements: components["schemas"]["CashMovementOut"][];
+            /** Closed At */
+            closed_at: string | null;
+            /** Closed By */
+            closed_by: string | null;
+            /** Closed By Name */
+            closed_by_name: string | null;
+            /** Counted Cash */
+            counted_cash: number | null;
+            /** Device Id */
+            device_id: string;
+            /** Device Name */
+            device_name: string;
+            /** Expected Cash */
+            expected_cash: number | null;
+            /** Id */
+            id: string;
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /** Opened By Name */
+            opened_by_name: string;
+            /** Opening Cash */
+            opening_cash: number;
+            /** Status */
+            status: string;
+            /** Variance */
+            variance: number | null;
+        };
+        /** ShiftOut */
+        ShiftOut: {
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Closed At */
+            closed_at: string | null;
+            /** Closed By */
+            closed_by: string | null;
+            /** Closed By Name */
+            closed_by_name: string | null;
+            /** Counted Cash */
+            counted_cash: number | null;
+            /** Device Id */
+            device_id: string;
+            /** Device Name */
+            device_name: string;
+            /** Expected Cash */
+            expected_cash: number | null;
+            /** Id */
+            id: string;
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /** Opened By Name */
+            opened_by_name: string;
+            /** Opening Cash */
+            opening_cash: number;
+            /** Status */
+            status: string;
+            /** Variance */
+            variance: number | null;
         };
         /** SignupRequest */
         SignupRequest: {
@@ -6573,6 +6743,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shifts_api_v1_shifts_get: {
+        parameters: {
+            query: {
+                outlet_id: string;
+                business_date: string;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_ShiftOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shift_api_v1_shifts__shift_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                shift_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ShiftDetailOut_"];
                 };
             };
             /** @description Validation Error */

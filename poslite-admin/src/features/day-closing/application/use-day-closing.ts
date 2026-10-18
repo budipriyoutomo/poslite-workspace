@@ -32,6 +32,15 @@ export function useCloseDay() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (body: components["schemas"]["CloseDayIn"]) => unwrap(api.POST("/api/v1/day-closings", { body })),
-    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ["day-closing"] }), client.invalidateQueries({ queryKey: ["day-closings"] })]),
+    onSuccess: () => Promise.all(["day-closing", "day-closings"].map((key) => client.invalidateQueries({ queryKey: [key] }))),
+  });
+}
+
+export function useShifts(outletId: string | undefined, businessDate: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["shifts", outletId, businessDate],
+    enabled: !!outletId,
+    queryFn: () => unwrap(api.GET("/api/v1/shifts", { params: { query: { outlet_id: outletId!, business_date: businessDate } } })),
   });
 }

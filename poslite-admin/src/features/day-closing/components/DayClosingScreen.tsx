@@ -15,6 +15,7 @@ import { cn } from "@/shared/ui/utils";
 import { type DaySnapshot, useDayClosings, useDayStatus } from "../application/use-day-closing";
 import { addDays, dateTime, longDate } from "../domain/dates";
 import { CloseDayDialog } from "./CloseDayDialog";
+import { ShiftTable } from "./ShiftTable";
 
 /** Back-office "Tutup Hari" (ADR-026): review one outlet's business day, then freeze it. */
 export function DayClosingScreen() {
@@ -105,6 +106,7 @@ export function DayClosingScreen() {
 
           <Warnings snapshot={shown} timezone={timezone} />
           <Summary snapshot={shown} />
+          {outlet && <ShiftTable outletId={outlet.id} businessDate={data.business_date} timezone={timezone} />}
 
           {outlet && (
             <CloseDayDialog open={closing} onOpenChange={setClosing} outletId={outlet.id} businessDate={data.business_date} warnings={data.current.warnings.length > 0} />
