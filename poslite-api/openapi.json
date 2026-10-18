@@ -331,6 +331,52 @@
         "title": "ApiResponse[CreatedEndpointOut]",
         "type": "object"
       },
+      "ApiResponse_DayClosingOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DayClosingOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[DayClosingOut]",
+        "type": "object"
+      },
+      "ApiResponse_DayStatusOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DayStatusOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[DayStatusOut]",
+        "type": "object"
+      },
       "ApiResponse_DeviceMe_": {
         "properties": {
           "data": {
@@ -1070,6 +1116,33 @@
           "data"
         ],
         "title": "ApiResponse[list[CategoryOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_DayClosingRowOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DayClosingRowOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[DayClosingRowOut]]",
         "type": "object"
       },
       "ApiResponse_list_DeliveryOut__": {
@@ -2063,6 +2136,32 @@
         "title": "ChangeOut",
         "type": "object"
       },
+      "CloseDayIn": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Notes",
+            "type": "string"
+          },
+          "outlet_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Outlet Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outlet_id",
+          "business_date"
+        ],
+        "title": "CloseDayIn",
+        "type": "object"
+      },
       "CreatedEndpointOut": {
         "properties": {
           "brand_ids": {
@@ -2105,6 +2204,102 @@
           "secret"
         ],
         "title": "CreatedEndpointOut",
+        "type": "object"
+      },
+      "DayClosingOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "closed_at": {
+            "format": "date-time",
+            "title": "Closed At",
+            "type": "string"
+          },
+          "closed_by": {
+            "title": "Closed By",
+            "type": "string"
+          },
+          "closed_by_name": {
+            "title": "Closed By Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "title": "Snapshot",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "outlet_id",
+          "business_date",
+          "closed_by",
+          "closed_by_name",
+          "closed_at",
+          "notes",
+          "snapshot"
+        ],
+        "title": "DayClosingOut",
+        "type": "object"
+      },
+      "DayClosingRowOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "closed_at": {
+            "format": "date-time",
+            "title": "Closed At",
+            "type": "string"
+          },
+          "closed_by": {
+            "title": "Closed By",
+            "type": "string"
+          },
+          "closed_by_name": {
+            "title": "Closed By Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "outlet_id",
+          "business_date",
+          "closed_by",
+          "closed_by_name",
+          "closed_at",
+          "notes"
+        ],
+        "title": "DayClosingRowOut",
         "type": "object"
       },
       "DaySales": {
@@ -2164,6 +2359,52 @@
           "business_date"
         ],
         "title": "DaySales",
+        "type": "object"
+      },
+      "DayStatusOut": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "changed_since_close": {
+            "title": "Changed Since Close",
+            "type": "boolean"
+          },
+          "closing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DayClosingOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current": {
+            "additionalProperties": true,
+            "title": "Current",
+            "type": "object"
+          },
+          "day_ended": {
+            "title": "Day Ended",
+            "type": "boolean"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outlet_id",
+          "business_date",
+          "day_ended",
+          "current",
+          "closing",
+          "changed_since_close"
+        ],
+        "title": "DayStatusOut",
         "type": "object"
       },
       "DeliveryOut": {
@@ -6575,6 +6816,226 @@
         "summary": "Update Category",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/day-closings": {
+      "get": {
+        "operationId": "get_day_closings_api_v1_day_closings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_DayClosingRowOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Day Closings",
+        "tags": [
+          "reporting"
+        ]
+      },
+      "post": {
+        "operationId": "post_day_closing_api_v1_day_closings_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseDayIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_DayClosingOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Day Closing",
+        "tags": [
+          "reporting"
+        ]
+      }
+    },
+    "/api/v1/day-closings/day": {
+      "get": {
+        "operationId": "get_day_status_api_v1_day_closings_day_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "outlet_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Outlet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "business_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Business Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_DayStatusOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Day Status",
+        "tags": [
+          "reporting"
         ]
       }
     },

@@ -1,16 +1,18 @@
-from datetime import date
-from typing import Annotated, Literal
+from datetime import date, datetime
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Query, Request, Response
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query, Request, Response, status
+from pydantic import BaseModel, Field
 
 from poslite.identity import api as identity
 from poslite.organization import api as organization
+from poslite.reporting.infrastructure.day_closings import close_day, day_status, list_day_closings
 from poslite.reporting.infrastructure.export import to_csv, to_xlsx
 from poslite.reporting.infrastructure.queries import sales_summary
+from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
-from poslite.shared.presentation.dependencies import open_uow
+from poslite.shared.presentation.dependencies import clock, open_uow
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.schemas import Ulid
 from poslite.shared.presentation.security import Principal, require_ability
@@ -158,3 +160,99 @@ async def export_sales_summary(
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ── Day closing (ADR-026) ───────────────────────────────────────────────────────────────────
+
+
+class DayClosingRowOut(BaseModel):
+    id: str
+    outlet_id: str
+    business_date: date
+    closed_by: str
+    closed_by_name: str
+    closed_at: datetime
+    notes: str
+
+
+class DayClosingOut(DayClosingRowOut):
+    snapshot: dict[str, Any]  # {totals, payment_methods, cash, warnings} — 13-day-closing.md
+
+
+class DayStatusOut(BaseModel):
+    outlet_id: str
+    business_date: date
+    day_ended: bool
+    current: dict[str, Any]
+    closing: DayClosingOut | None
+    changed_since_close: bool
+
+
+class CloseDayIn(BaseModel):
+    outlet_id: Ulid
+    business_date: date
+    notes: str = Field(default="", max_length=500)
+
+
+async def _outlet_in_scope(
+    uow: SqlAlchemyUnitOfWork, scope: identity.AccessScope, outlet_id: str, brand: str | None
+) -> None:
+    outlet = await organization.get_outlet(uow, outlet_id)
+    identity.ensure_outlet(scope, outlet_id=outlet.id, brand_id=outlet.brand_id, active_brand=brand)
+
+
+@router.get("/day-closings/day")
+async def get_day_status(
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    scope: identity.Access,
+    system_clock: Annotated[Clock, Depends(clock)],
+    outlet_id: Annotated[Ulid, Query()],
+    business_date: Annotated[date, Query()],
+    brand: identity.BrandHeader = None,
+) -> ApiResponse[DayStatusOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
+        result = await day_status(uow, outlet_id, business_date, now=system_clock.now())
+    return ok(DayStatusOut.model_validate(result, from_attributes=True))
+
+
+@router.post("/day-closings", status_code=status.HTTP_201_CREATED)
+async def post_day_closing(
+    body: CloseDayIn,
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:write"))],
+    scope: identity.Access,
+    system_clock: Annotated[Clock, Depends(clock)],
+    brand: identity.BrandHeader = None,
+) -> ApiResponse[DayClosingOut]:
+    async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, body.outlet_id, brand)
+        closing = await close_day(
+            uow,
+            body.outlet_id,
+            body.business_date,
+            closed_by=principal.owner_id,
+            notes=body.notes.strip(),
+            now=system_clock.now(),
+        )
+        await uow.commit()
+    return ok(DayClosingOut.model_validate(closing, from_attributes=True))
+
+
+@router.get("/day-closings")
+async def get_day_closings(
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    scope: identity.Access,
+    outlet_id: Annotated[Ulid, Query()],
+    start: Annotated[date, Query(alias="from")],
+    end: Annotated[date, Query(alias="to")],
+    brand: identity.BrandHeader = None,
+) -> ApiResponse[list[DayClosingRowOut]]:
+    if end < start:
+        raise DomainError("INVALID_DATE_RANGE", "`to` must not be before `from`")
+    async with open_uow(request, principal.tenant_id) as uow:
+        await _outlet_in_scope(uow, scope, outlet_id, brand)
+        rows = await list_day_closings(uow, outlet_id, start, end)
+    return ok([DayClosingRowOut.model_validate(r, from_attributes=True) for r in rows])
