@@ -10,8 +10,12 @@ import { Input } from "@/shared/ui/input";
 
 import { useOperatorLogin } from "../application/use-operator-login";
 
-const message = (error: unknown) =>
-  error instanceof ApiError ? (error.code === "INVALID_CREDENTIALS" ? "Email atau password salah" : error.message) : "Tidak dapat terhubung ke server";
+const ERRORS: Record<string, string> = {
+  INVALID_CREDENTIALS: "Email atau password salah",
+  RATE_LIMITED: "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.",
+};
+
+const message = (error: unknown) => (error instanceof ApiError ? (ERRORS[error.code] ?? error.message) : "Tidak dapat terhubung ke server");
 
 export function OperatorLogin() {
   const login = useOperatorLogin();

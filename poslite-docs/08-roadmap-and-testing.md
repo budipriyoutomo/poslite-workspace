@@ -19,8 +19,8 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [x] Pecah `page.tsx` prototype → `features/catalog`, `cart`, `checkout`, `auth`, `shift`, `orders`, `reports`, `printing`
 - [x] Dexie schema v1, outbox tervalidasi Zod, seed data demo lokal (belum ada backend — `ensureDemoData`)
 - [x] PIN lock screen (pilih kasir + PIN, PBKDF2 lokal, lockout), shift open/close + kas masuk/keluar, place order (split payment), riwayat order, reprint
-- [ ] Cetak struk: driver **Web Serial** (Bluetooth Classic) → **Fase 7** · [x] System print (`window.print()`, 58 mm) + antrian `printJobs`
-- [ ] Fase 1b: driver Web Bluetooth (BLE) & WebUSB → **Fase 7**
+- [x] Cetak struk: System print (`window.print()`, 58 mm) + antrian `printJobs`; driver **Web Serial** (Bluetooth Classic) dibuat di Fase 7 — *belum diuji dengan printer asli*
+- [x] Fase 1b: driver Web Bluetooth (BLE) & WebUSB — dibuat di Fase 7, *belum diuji dengan printer asli*
 - [x] Laporan shift lokal (pendapatan, transaksi, diskon, per metode bayar / kategori / menu)
 - [x] E2E `tests/e2e/sell-offline.spec.ts`: buka shift → offline → jual → bayar → struk → reload offline → order ada di Riwayat (Pending)
 - [ ] Uji manual di tablet: reboot tablet dengan data & cart tersimpan; cetak ke printer asli → **Fase 7**
@@ -54,7 +54,7 @@ Tujuan: membuktikan 3 risiko teknis terbesar sebelum membangun fitur.
 - [x] Split payment (beberapa metode per order) — sudah ada sejak Fase 1 (`PaymentPanel`)
 - [x] Diskon per item (manual) + rumus total baru di `pricing-cases.json` (web & API); `order.placed` membawa `table_label`, `discount` & `promotion` per baris (fixture `order-placed-variants.json`)
 - [x] Promo `percent_off` / `buy_x_get_y` (back-office "Promo" + pull `promotion` + evaluasi offline saat bayar, ADR-016; sejak 2026-10-12 dipilih kasir di layar bayar, bukan otomatis); struk menampilkan promo/diskon per baris & meja
-- [ ] Kitchen ticket per printer role (kitchen/bar), Print Bridge untuk printer LAN + driver HTTP Epson ePOS / Star WebPRNT → **Fase 7**
+- [x] Kitchen ticket per printer role (kitchen/bar), Print Bridge untuk printer LAN + driver HTTP Epson ePOS — dibuat di Fase 7; Star WebPRNT masih ditunda
 - [x] E2E: `tests/e2e/dine-in-offline.spec.ts` (bill meja → lanjutkan → pisah per item, offline) dan `make e2e-fullstack` (promo & meja dari back-office → jual offline → total server sama, tanpa flag)
 - **DoD**: pelayan membuka bill meja, menambah pesanan beberapa kali, lalu tamu membayar terpisah per item — semuanya offline; promo happy hour terhitung otomatis dan total server sama dengan device (tanpa `TOTAL_MISMATCH`).
 
@@ -98,6 +98,8 @@ Desain: [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md). Urut
 - [x] Owner aktif terakhir tidak bisa dicabut role-nya, dinonaktifkan, atau dihapus (`LAST_OWNER`)
 - [x] Konsol operator SaaS dipisah dari back-office menjadi app **`poslite-operator`** (ADR-025, `:3002`): fitur `auth` (login operator) & `tenants`, CI `operator.yml`, `make dev-operator` / `operator-check` / `operator-e2e` / `operator-types`, `OPERATOR_DOMAIN` di staging
 - [x] Fitur konsol operator (ADR-025): ringkasan platform, cari & paginasi tenant, detail tenant, perpanjang trial, tandai tagihan lunas, cari user lintas tenant, reset password & (non)aktifkan user (lewat UoW tenant, `LAST_OWNER` tetap berlaku), kelola akun operator (`disabled_at`), audit log `platform_audit_log` (migrasi `0021`) — 30 test API baru di `tests/e2e/platform_admin/`, `make operator-e2e` (suspend + cari → reset password → perpanjang trial)
+- [x] Rate limit endpoint publik (ADR-027): signup, login back-office, aktivasi device, login operator — 429 `RATE_LIMITED` + `Retry-After`, Redis di staging (`RATE_LIMIT_BACKEND=redis`), fail open; pesan di ketiga app
+- [x] Keamanan dependency (2026-10-18): `next` 16.3.8, `shadcn` CLI ke devDependencies, override `browserslist`/`handlebars`/`sharp`/`source-map-js` di `pnpm-workspace.yaml`; sisa `braces` (tooling lint, belum ada patch)
 
 - DoD dibuktikan: matriks akses & pull per brand (`tests/e2e/organization/`), `make admin-e2e` (`brands.spec.ts`), `make e2e-fullstack` (void + refund offline → server tanpa flag), `tests/e2e/sync/test_corrections.py` (laporan & kas), `test_device_import.py` (file yang sama dua kali → semua `duplicate`, device dicabut tetap bisa diimpor)
 - **DoD**: perusahaan dengan 2 brand × 2 outlet; manajer brand A tidak bisa melihat data brand B (API & UI) dan device outlet brand B hanya menerima menu brand B. Kasir mem-void order di shift yang sama, me-refund sebagian order kemarin, dan memindah meja — semuanya offline — lalu sync: laporan & kas shift cocok tanpa flag. Device dicabut aksesnya, file export diimport dua kali tanpa duplikat.

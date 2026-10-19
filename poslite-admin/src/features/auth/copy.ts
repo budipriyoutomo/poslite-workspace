@@ -17,6 +17,7 @@ export const copy = {
   outletName: "Nama outlet",
   errors: {
     INVALID_CREDENTIALS: "Email atau password salah",
+    RATE_LIMITED: "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.",
     SLUG_TAKEN: "Nama usaha ini sudah dipakai, coba nama lain",
     EMAIL_TAKEN: "Email ini sudah terdaftar",
     VALIDATION_ERROR: "Periksa kembali isian Anda",
