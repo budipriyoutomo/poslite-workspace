@@ -33,6 +33,14 @@ describe("LoginScreen", () => {
     expect(useSessionStore.getState().session?.tenant.name).toBe("Warung");
   });
 
+  it("asks to wait after too many attempts (ADR-027)", async () => {
+    renderWithApi(<LoginScreen />, () => ({ status: 429, body: { message: "Too many attempts", code: "RATE_LIMITED" } }));
+
+    await fillAndSubmit("budi@maharasa.id", "salah");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Terlalu banyak percobaan");
+  });
+
   it("explains wrong credentials", async () => {
     renderWithApi(<LoginScreen />, () => ({ status: 401, body: { message: "wrong", code: "INVALID_CREDENTIALS" } }));
 

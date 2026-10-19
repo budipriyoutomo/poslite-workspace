@@ -11,6 +11,7 @@ x-api-env: &api-env
   MIGRATION_DATABASE_URL: postgresql+asyncpg://poslite:${OWNER_DB_PASSWORD:?}@postgres:5432/poslite
   SYSTEM_DATABASE_URL: postgresql+asyncpg://poslite_system:${SYSTEM_DB_PASSWORD:?}@postgres:5432/poslite
   REDIS_URL: redis://redis:6379/0
+  RATE_LIMIT_BACKEND: redis  # ADR-027: one count for both gunicorn workers
   PUBLIC_API_URL: https://${API_DOMAIN:?}
   CORS_ORIGINS: '["https://${POS_DOMAIN:?}","https://${ADMIN_DOMAIN:?}","https://${OPERATOR_DOMAIN:?}"]'
   MIN_APP_VERSION: ${MIN_APP_VERSION:-0.0.0}

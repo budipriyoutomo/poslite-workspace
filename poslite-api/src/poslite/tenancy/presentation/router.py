@@ -8,6 +8,7 @@ from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.presentation import rate_limit
 from poslite.shared.presentation.dependencies import clock, id_factory, open_uow, system_sessions
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.tenancy.infrastructure.service import create_tenant, slug_taken
@@ -26,6 +27,7 @@ async def signup(
 ) -> ApiResponse[identity.AuthResult]:
     """New SaaS customer: company, owner, first brand and first outlet in one transaction, plus a
     token (ADR-022)."""
+    await rate_limit.enforce(request, (rate_limit.SIGNUP, rate_limit.client_address(request)))
     if await slug_taken(system, body.slug):
         raise DomainError("SLUG_TAKEN", "Business slug is already used", kind="conflict")
     if await identity.email_taken(system, body.email):

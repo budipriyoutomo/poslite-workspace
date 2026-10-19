@@ -26,6 +26,7 @@ from poslite.shared.domain.ids import new_ulid
 from poslite.shared.infrastructure.database import create_engine, session_factory
 from poslite.shared.infrastructure.gateways import build_gateway
 from poslite.shared.infrastructure.object_storage import build_storage
+from poslite.shared.infrastructure.rate_limit import build_rate_limiter
 from poslite.shared.presentation.errors import install_error_handlers
 from poslite.shift.presentation.router import router as shift_router
 from poslite.sync.presentation.router import router as sync_router
@@ -48,7 +49,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.gateway = build_gateway(settings)
         app.state.storage = build_storage(settings)
         app.state.media_base_url = settings.media_base_url
+        app.state.rate_limiter, close_rate_limiter = build_rate_limiter(settings, app.state.clock)
         yield
+        await close_rate_limiter()
         await app_engine.dispose()
         await system_engine.dispose()
 

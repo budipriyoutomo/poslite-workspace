@@ -16,6 +16,7 @@ import { activateDevice, DEFAULT_API as API, loginManager, startDemo } from "../
 
 const ERRORS: Record<string, string> = {
   INVALID_CREDENTIALS: "Email atau password salah",
+  RATE_LIMITED: "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.",
   ROLE_NOT_ALLOWED: "Hanya pemilik atau manajer outlet yang bisa mengaktifkan perangkat",
   OUTLET_NOT_FOUND: "Outlet tidak ditemukan",
 };

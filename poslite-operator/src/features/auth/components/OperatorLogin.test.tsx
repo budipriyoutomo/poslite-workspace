@@ -11,6 +11,7 @@ beforeEach(() => useOperatorStore.getState().signOut());
 async function signIn(password: string) {
   const result = renderWithApi(<OperatorLogin />, ({ body }) => {
     if ((body as { password: string }).password === "benar-sekali") return envelope({ token: "op-token", expires_at: "2099-01-01T00:00:00Z" });
+    if ((body as { password: string }).password === "lagi-lagi") return { status: 429, body: { message: "Too many attempts", code: "RATE_LIMITED" } };
     return { status: 401, body: { message: "Email or password is wrong", code: "INVALID_CREDENTIALS" } };
   });
   await userEvent.type(screen.getByLabelText("Email"), "ops@poslite.id");
@@ -32,5 +33,11 @@ describe("OperatorLogin", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Email atau password salah");
     expect(useOperatorStore.getState().session).toBeNull();
+  });
+
+  it("asks to wait after too many attempts (ADR-027)", async () => {
+    await signIn("lagi-lagi");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Terlalu banyak percobaan");
   });
 });

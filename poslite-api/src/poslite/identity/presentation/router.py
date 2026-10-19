@@ -9,6 +9,7 @@ from poslite.identity.infrastructure.tokens import revoke_token
 from poslite.identity.presentation.schemas import AuthResult, LoginRequest, TenantOut
 from poslite.identity.presentation.session import start_backoffice_session
 from poslite.shared.application.clock import Clock
+from poslite.shared.presentation import rate_limit
 from poslite.shared.presentation.dependencies import clock, id_factory, open_uow, system_sessions
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.security import Principal, require_ability
@@ -25,6 +26,11 @@ async def login(
     now: Annotated[Clock, Depends(clock)],
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
 ) -> ApiResponse[AuthResult]:
+    await rate_limit.enforce(
+        request,
+        (rate_limit.LOGIN_IP, rate_limit.client_address(request)),
+        (rate_limit.LOGIN_EMAIL, rate_limit.email_subject(body.email)),
+    )
     user = await authenticate(system, body.email, body.password)
     async with open_uow(request, user.tenant_id) as uow:
         tenant = await get_tenant(uow)

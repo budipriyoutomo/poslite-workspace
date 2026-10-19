@@ -20,7 +20,7 @@ Base URL: `https://api.<domain>/api/v1` · JSON · snake_case · uang = integer 
 | 409 | Konflik (mis. device code sudah dipakai) |
 | 422 | Validasi |
 | 426 | `app_version` device terlalu lama → wajib update PWA |
-| 429 | Rate limit |
+| 429 | `RATE_LIMITED` + header `Retry-After` (detik) — terlalu banyak percobaan di endpoint publik (ADR-027) |
 
 Header wajib dari device: `Authorization: Bearer <device_token>`, `X-App-Version: 1.4.0`, `X-Device-Id: <ulid>`.
 

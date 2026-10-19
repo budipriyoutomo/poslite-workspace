@@ -134,15 +134,17 @@ Background (worker arq): relay outbox → read model laporan & webhook keluar (t
 
 ### Fase 6 — selesai
 
-Semua item di [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md) terimplementasi, ditambah kebijakan diskon per brand (migrasi `0016`–`0020`, Dexie v5). Owner aktif terakhir dijaga di perubahan penugasan, nonaktifkan, dan hapus user. Catatan sisa: laporan hanya mencakup outlet yang belum dihapus — saat ini outlet belum bisa dihapus, jadi baru relevan bila fitur hapus outlet ditambahkan; slip void/refund tercetak menunggu Fase 7.
+Semua item di [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md) terimplementasi, ditambah kebijakan diskon per brand (migrasi `0016`–`0020`, Dexie v5). Owner aktif terakhir dijaga di perubahan penugasan, nonaktifkan, dan hapus user. Catatan sisa: laporan hanya mencakup outlet yang belum dihapus — saat ini outlet belum bisa dihapus, jadi baru relevan bila fitur hapus outlet ditambahkan; slip void/refund tercetak sudah dibuat di Fase 7 (belum diuji dengan printer asli).
 
-### Fase 7 — terblok perangkat keras
+### Fase 7 — kode selesai, tinggal uji perangkat keras
+
+Driver Web Serial, Web Bluetooth (BLE), WebUSB, Print Bridge LAN + Epson ePOS, slip void/refund, dan kitchen ticket per printer role sudah dibuat dan teruji dengan fake driver ([08 Fase 7](./08-roadmap-and-testing.md#fase-7--printer--uji-perangkat-asli)). Sisa:
 
 | Item | Terblok oleh |
 |---|---|
-| Spike printer + driver **Web Serial** (Bluetooth Classic) | Printer fisik |
-| Driver Web Bluetooth (BLE) & WebUSB | Spike printer |
-| Slip void/refund, kitchen ticket per printer role, Print Bridge LAN, Epson ePOS / Star WebPRNT | Spike printer |
+| Spike / uji semua driver dengan printer asli ([checklist](./04-printing.md#checklist-pengujian-printer)) | Printer fisik |
+| Driver Star WebPRNT | Printer Star untuk diuji |
+| Tiket batal item & cetak ulang tiket dapur/bar | Belum dikerjakan |
 | Uji manual di tablet Android & PC Windows (install PWA, mode pesawat, reboot, cetak) | Perangkat uji |
 
 ### Lainnya
@@ -168,6 +170,6 @@ Semua item di [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md)
 ## Prioritas Berikutnya
 
 1. **Jalankan staging** (VPS + Vercel, ikuti runbook [`deploy/staging`](../deploy/staging/README.md)) dan pilot di satu perusahaan (2 brand / beberapa outlet), termasuk uji manual PWA di tablet Android & PC Windows tanpa printer.
-2. **Fase 7 printer** begitu printer tersedia (termasuk slip void/refund).
+2. **Uji printer asli** (Fase 7) begitu printer tersedia — kodenya sudah ada, termasuk slip void/refund & kitchen ticket.
 3. Pilih vendor gateway → adapter di balik port `PaymentGateway`.
 4. **Konsol operator** — fitur support dasar sudah ada (ADR-025). Sisa yang disengaja belum dibuat: peran operator (semua operator setara), 2FA operator (05 menyebut 2FA, belum diterapkan), impersonate/login sebagai tenant, ubah harga per tenant, dan membuat tenant dari konsol (tetap lewat signup).

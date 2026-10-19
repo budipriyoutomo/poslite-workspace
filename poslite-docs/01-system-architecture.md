@@ -217,6 +217,13 @@ flowchart LR
 - **Keputusan**: Manajer menutup satu `business_date` satu outlet dari back-office setelah hari operasional berakhir (cutoff hari berikutnya). Server menyimpan snapshot penjualan, pembayaran per metode, dan kas gabungan semua shift di `day_closings` (sekali per outlet × tanggal). Shift terbuka & device yang belum sync hanya jadi peringatan; data yang datang belakangan tetap diterima dan ditampilkan sebagai selisih (`changed_since_close`).
 - Detail: [13](./13-day-closing.md).
 
+### ADR-027 — Rate limit fixed-window di API untuk endpoint publik yang menerima kredensial
+
+- **Keputusan**: `POST /tenants/signup`, `/auth/login`, `/devices/activate`, dan `/platform/auth/login` dibatasi di API (bukan hanya di proxy) dengan fixed window per subjek: alamat klien, dan untuk login/aktivasi juga email (di-hash SHA-256, tidak disimpan mentah). Batas: signup 5/jam per IP; login 30/5 menit per IP + 10/15 menit per email; aktivasi device sama dengan login; login operator 10/5 menit per IP + 5/15 menit per email. Setiap percobaan dihitung (berhasil atau tidak). Lewat batas → 429 `RATE_LIMITED` + `Retry-After`.
+- **Implementasi**: port `RateLimiter` (`shared/application`); `RedisRateLimiter` (INCR + EXPIRE dalam satu pipeline) bila `RATE_LIMIT_BACKEND=redis` — wajib di staging/production karena gunicorn menjalankan beberapa worker; `InMemoryRateLimiter` untuk dev & test. Alamat klien dari `request.client` yang sudah ditulis ulang gunicorn dari `X-Forwarded-For` (`--forwarded-allow-ips`, API hanya terjangkau lewat Caddy).
+- **Kenapa**: kontrak sudah menjanjikan 429, tapi belum ada; login dan aktivasi menerima password owner/manajer sehingga terbuka untuk brute force. Redis sudah dipakai worker (tanpa dependency baru). Batas di aplikasi bisa memakai email, yang tidak terlihat oleh proxy.
+- **Konsekuensi**: Redis mati → **fail open** (dicatat di log), karena mengunci semua owner keluar lebih buruk daripada kehilangan rate limit sementara. Kasir di belakang satu NAT berbagi kuota per IP — batas per IP sengaja longgar, yang ketat per email. PIN kasir diverifikasi offline di device, jadi tidak tercakup di sini.
+
 ## Non-Functional Requirements
 
 | NFR | Target |

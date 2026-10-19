@@ -2,3 +2,9 @@ allowBuilds:
   esbuild: false
   sharp: false
   unrs-resolver: false
+# Security floors for transitive deps (pnpm audit, 2026-10-18); drop once upstream ranges move past them.
+overrides:
+  browserslist: ^4.28.7
+  handlebars: ^4.7.10
+  sharp: ^0.35.5
+  source-map-js: ^1.2.2

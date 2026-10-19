@@ -29,6 +29,7 @@ from poslite.platform_admin.presentation.schemas import (
 )
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
+from poslite.shared.presentation import rate_limit
 from poslite.shared.presentation.dependencies import clock, open_uow, system_sessions
 from poslite.shared.presentation.envelope import ApiResponse, ok
 from poslite.shared.presentation.schemas import Ulid
@@ -64,7 +65,12 @@ def _page[T](data: list[T], *, total: int, limit: int, offset: int) -> ApiRespon
 
 
 @router.post("/auth/login")
-async def login(body: LoginIn, system: System, now: Now) -> ApiResponse[LoginOut]:
+async def login(body: LoginIn, request: Request, system: System, now: Now) -> ApiResponse[LoginOut]:
+    await rate_limit.enforce(
+        request,
+        (rate_limit.OPERATOR_LOGIN_IP, rate_limit.client_address(request)),
+        (rate_limit.OPERATOR_LOGIN_EMAIL, rate_limit.email_subject(body.email)),
+    )
     token, expires_at = await service.login(
         system, email=body.email, password=body.password, now=now.now()
     )

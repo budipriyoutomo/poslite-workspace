@@ -60,6 +60,7 @@ from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.domain.media import media_url
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
+from poslite.shared.presentation import rate_limit
 from poslite.shared.presentation.dependencies import (
     clock,
     id_factory,
@@ -179,6 +180,11 @@ async def activate(
     new_id: Annotated[Callable[[], str], Depends(id_factory)],
 ) -> ApiResponse[ActivationResult]:
     """A manager signs a tablet in to an outlet once; the device then works with its own token."""
+    await rate_limit.enforce(
+        request,
+        (rate_limit.ACTIVATE_IP, rate_limit.client_address(request)),
+        (rate_limit.ACTIVATE_EMAIL, rate_limit.email_subject(body.email)),
+    )
     manager = await identity.authenticate(system, body.email, body.password)
     async with open_uow(request, manager.tenant_id) as uow:
         outlet = await get_outlet(uow, body.outlet_id)
