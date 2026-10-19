@@ -1,6 +1,8 @@
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import CHAR, BigInteger, Date, DateTime, Integer, String, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.database import Base
@@ -71,3 +73,16 @@ class DailyCashierSalesModel(Base):
     cashier_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     order_count: Mapped[int] = mapped_column(Integer)
     net: Mapped[int] = mapped_column(BigInteger)
+
+
+class DayClosingModel(Base):
+    __tablename__ = "day_closings"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26))
+    business_date: Mapped[date] = mapped_column(Date)
+    closed_by: Mapped[str] = mapped_column(CHAR(26))
+    closed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    notes: Mapped[str] = mapped_column(String(500))
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)

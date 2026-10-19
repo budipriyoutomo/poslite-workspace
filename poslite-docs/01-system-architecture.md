@@ -212,6 +212,11 @@ flowchart LR
 - **Aturan backend**: bacaan lintas tenant berupa read model di `platform_admin` (role `poslite_system`, filter `tenant_id` sendiri). Setiap perubahan lewat `api.py` modul pemiliknya (`identity.reset_password`/`set_user_active`, `billing.extend_trial`/`settle_invoice`); perubahan user tenant berjalan di UoW tenant itu sehingga RLS & aturan `LAST_OWNER` tetap berlaku. Setiap aksi dicatat di `platform_audit_log` (append-only, tanpa rahasia — password sementara tidak pernah disimpan).
 - **Konsekuensi**: komponen shadcn/ui, klien API (`src/shared/api`), dan tooling diduplikasi untuk ketiga kalinya (masih belum ada paket bersama). Tipe API di-generate dari `openapi.json` yang sama (`make operator-types`, dicek CI `operator.yml`). `CORS_ORIGINS` API harus memuat origin konsol (`OPERATOR_DOMAIN` di staging, `http://localhost:3002` di dev). E2E operator (`make operator-e2e`) memakai database `poslite_e2e_operator` sendiri.
 
+### ADR-026 — Tutup hari = snapshot per outlet × business date di back-office; tidak memblok device
+
+- **Keputusan**: Manajer menutup satu `business_date` satu outlet dari back-office setelah hari operasional berakhir (cutoff hari berikutnya). Server menyimpan snapshot penjualan, pembayaran per metode, dan kas gabungan semua shift di `day_closings` (sekali per outlet × tanggal). Shift terbuka & device yang belum sync hanya jadi peringatan; data yang datang belakangan tetap diterima dan ditampilkan sebagai selisih (`changed_since_close`).
+- Detail: [13](./13-day-closing.md).
+
 ## Non-Functional Requirements
 
 | NFR | Target |

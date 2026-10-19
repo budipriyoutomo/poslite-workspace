@@ -10,11 +10,13 @@ from poslite.shift.application.handlers import (
     ShiftUnitOfWork,
 )
 from poslite.shift.domain.repository import ShiftRepository
+from poslite.shift.infrastructure.queries import DayShift, shifts_of_day
 from poslite.shift.infrastructure.repository import SqlAlchemyShiftRepository
 
 __all__ = [
     "CloseShift",
     "CloseShiftHandler",
+    "DayShift",
     "MoveCash",
     "MoveCashHandler",
     "OpenShift",
@@ -22,4 +24,5 @@ __all__ = [
     "ShiftRepository",
     "ShiftUnitOfWork",
     "SqlAlchemyShiftRepository",
+    "shifts_of_day",
 ]

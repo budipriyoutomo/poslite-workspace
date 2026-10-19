@@ -11,6 +11,7 @@ TABLES = [
     "refund_payments",
     "outlet_payment_method",
     "device_imports",
+    "day_closings",
 ]
 
 
