@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     migration_database_url: str = "postgresql+asyncpg://poslite:poslite@localhost:5432/poslite"
     system_database_url: str = "postgresql+asyncpg://poslite_system:poslite@localhost:5432/poslite"
     redis_url: str = "redis://localhost:6379/0"
+    # ADR-027: "redis" whenever more than one API process runs (staging/production).
+    rate_limit_backend: Literal["memory", "redis"] = "memory"
     min_app_version: str = "0.0.0"
     cors_origins: list[str] = []
     # ADR-017/018: payment gateway adapter and subscription price (integer Rupiah per outlet/month).

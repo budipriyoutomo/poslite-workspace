@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from poslite.shared.domain.errors import DomainError, ErrorKind
+from poslite.shared.domain.errors import DomainError, ErrorKind, RateLimitedError
 
 STATUS: dict[ErrorKind, int] = {
     "invalid": 422,
@@ -10,6 +10,7 @@ STATUS: dict[ErrorKind, int] = {
     "forbidden": 403,
     "not_found": 404,
     "conflict": 409,
+    "rate_limited": 429,
 }
 
 
@@ -27,7 +28,10 @@ def install_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(DomainError)
     async def domain_error(_: Request, exc: DomainError) -> JSONResponse:
-        return _error(STATUS[exc.kind], exc.code, str(exc))
+        response = _error(STATUS[exc.kind], exc.code, str(exc))
+        if isinstance(exc, RateLimitedError):
+            response.headers["Retry-After"] = str(exc.retry_after)
+        return response
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:

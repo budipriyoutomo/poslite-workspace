@@ -77,6 +77,9 @@ markers = ["integration: needs the local PostgreSQL test database (TEST_DATABASE
 [tool.coverage.run]
 source = ["poslite"]
 branch = true
+# SQLAlchemy async resumes our coroutines inside greenlets; without this, lines after an
+# `await` on the session are not traced and coverage is under-reported.
+concurrency = ["thread", "greenlet"]
 
 [tool.coverage.report]
 show_missing = true

@@ -212,6 +212,13 @@ flowchart LR
 - **Aturan backend**: bacaan lintas tenant berupa read model di `platform_admin` (role `poslite_system`, filter `tenant_id` sendiri). Setiap perubahan lewat `api.py` modul pemiliknya (`identity.reset_password`/`set_user_active`, `billing.extend_trial`/`settle_invoice`); perubahan user tenant berjalan di UoW tenant itu sehingga RLS & aturan `LAST_OWNER` tetap berlaku. Setiap aksi dicatat di `platform_audit_log` (append-only, tanpa rahasia — password sementara tidak pernah disimpan).
 - **Konsekuensi**: komponen shadcn/ui, klien API (`src/shared/api`), dan tooling diduplikasi untuk ketiga kalinya (masih belum ada paket bersama). Tipe API di-generate dari `openapi.json` yang sama (`make operator-types`, dicek CI `operator.yml`). `CORS_ORIGINS` API harus memuat origin konsol (`OPERATOR_DOMAIN` di staging, `http://localhost:3002` di dev). E2E operator (`make operator-e2e`) memakai database `poslite_e2e_operator` sendiri.
 
+### ADR-027 — Rate limit fixed-window di API untuk endpoint publik yang menerima kredensial
+
+- **Keputusan**: `POST /tenants/signup`, `/auth/login`, `/devices/activate`, dan `/platform/auth/login` dibatasi di API (bukan hanya di proxy) dengan fixed window per subjek: alamat klien, dan untuk login/aktivasi juga email (di-hash SHA-256, tidak disimpan mentah). Batas: signup 5/jam per IP; login 30/5 menit per IP + 10/15 menit per email; aktivasi device sama dengan login; login operator 10/5 menit per IP + 5/15 menit per email. Setiap percobaan dihitung (berhasil atau tidak). Lewat batas → 429 `RATE_LIMITED` + `Retry-After`.
+- **Implementasi**: port `RateLimiter` (`shared/application`); `RedisRateLimiter` (INCR + EXPIRE dalam satu pipeline) bila `RATE_LIMIT_BACKEND=redis` — wajib di staging/production karena gunicorn menjalankan beberapa worker; `InMemoryRateLimiter` untuk dev & test. Alamat klien dari `request.client` yang sudah ditulis ulang gunicorn dari `X-Forwarded-For` (`--forwarded-allow-ips`, API hanya terjangkau lewat Caddy).
+- **Kenapa**: kontrak sudah menjanjikan 429, tapi belum ada; login dan aktivasi menerima password owner/manajer sehingga terbuka untuk brute force. Redis sudah dipakai worker (tanpa dependency baru). Batas di aplikasi bisa memakai email, yang tidak terlihat oleh proxy.
+- **Konsekuensi**: Redis mati → **fail open** (dicatat di log), karena mengunci semua owner keluar lebih buruk daripada kehilangan rate limit sementara. Kasir di belakang satu NAT berbagi kuota per IP — batas per IP sengaja longgar, yang ketat per email. PIN kasir diverifikasi offline di device, jadi tidak tercakup di sini.
+
 ## Non-Functional Requirements
 
 | NFR | Target |
