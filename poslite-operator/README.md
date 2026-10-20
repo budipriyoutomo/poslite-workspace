@@ -5,4 +5,4 @@ Konsol operator SaaS POSLite: ringkasan platform, tenant (cari, detail, tangguhk
 - Aturan kerja: [`AGENTS.md`](AGENTS.md)
 - Jalankan dari root monorepo: `make dev` (API :8000, POS :3000, back-office :3001, operator http://localhost:3002) atau `make dev-operator`.
 - Akun operator: `make platform-admin email=ops@x.id name=Ops`.
-- Tipe API: `make operator-types` (dari `poslite-api/openapi.json`).
+- Tipe API: `make operator-types` (dari `poslite-api/openapi.json`)
