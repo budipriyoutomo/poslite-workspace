@@ -2639,6 +2639,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Price Includes Tax
+             * @default false
+             */
+            price_includes_tax: boolean;
+            /**
              * Receipt Footer
              * @default
              */
@@ -2664,6 +2669,8 @@ export interface components {
             logo_url: string | null;
             /** Name */
             name: string;
+            /** Price Includes Tax */
+            price_includes_tax: boolean;
             /** Receipt Footer */
             receipt_footer: string;
             /** Receipt Header */
@@ -3372,6 +3379,8 @@ export interface components {
             paid_amount: number;
             /** Payments */
             payments: components["schemas"]["OrderPaymentOut"][];
+            /** Price Includes Tax */
+            price_includes_tax: boolean;
             /** Receipt No */
             receipt_no: string;
             /** Refunds */
