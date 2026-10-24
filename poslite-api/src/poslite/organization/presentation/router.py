@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization.domain.discount_policy import DiscountPolicy
 from poslite.organization.infrastructure.service import (
@@ -445,6 +446,7 @@ async def add_brand(
             **body.model_dump(exclude={"discount"}),
             discount=_policy(body),
         )
+        await catalog.seed_channels(uow, new_id, brand_id=brand_id)
         brand = await get_brand(uow, brand_id)
         await uow.commit()
     return ok(_brand_out(brand, base_url))

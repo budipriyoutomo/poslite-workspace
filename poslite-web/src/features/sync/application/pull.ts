@@ -43,6 +43,8 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         return void (await db.diningTables.delete(change.id));
       case "promotion":
         return void (await db.promotions.delete(change.id));
+      case "sales_channel":
+        return void (await db.salesChannels.delete(change.id));
     }
   }
   switch (change.entity) {
@@ -133,6 +135,24 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         endsOn: d.ends_on,
       }));
     }
+    case "sales_channel": {
+      const d = change.data;
+      return void (await db.salesChannels.put({
+        id: change.id,
+        code: d.code,
+        name: d.name,
+        kind: d.kind,
+        priceMode: d.price_mode,
+        markupBps: d.markup_bps,
+        markupRoundingUnit: d.markup_rounding_unit,
+        defaultPaymentMethodId: d.default_payment_method_id,
+        appliesService: d.applies_service,
+        appliesTax: d.applies_tax,
+        requiresExternalRef: d.requires_external_ref,
+        sortOrder: d.sort_order,
+        prices: Object.fromEntries(d.prices.map((p) => [p.product_id, p.price])),
+      }));
+    }
   }
 }
 
@@ -158,7 +178,7 @@ export async function pullAll(deps: { db: PosDb; api: BaseApi }): Promise<void> 
   while (hasMore) {
     const cursor = (await readState(db, "pullCursor")) ?? 0;
     const page = await apiRequest(api, "GET", `/sync/pull?cursor=${cursor}&limit=${PAGE_SIZE}`, pullPageSchema);
-    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.diningTables, db.promotions, db.syncState], async () => {
+    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.diningTables, db.promotions, db.salesChannels, db.syncState], async () => {
       const touchedGroups = new Set<string>();
       for (const change of page.changes) await applyChange(db, change, device, touchedGroups);
       await embedOptions(db, touchedGroups);

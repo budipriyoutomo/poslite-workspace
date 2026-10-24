@@ -76,6 +76,48 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(false);
   });
 
+  it("keeps sales channels with their prices, and drops one switched off (ADR-029)", async () => {
+    const gofood = {
+      entity: "sales_channel",
+      op: "upsert",
+      id: ULID("H", 1),
+      version: 9,
+      data: {
+        code: "GOFOOD",
+        name: "GoFood",
+        kind: "delivery",
+        price_mode: "price_list",
+        markup_bps: 0,
+        markup_rounding_unit: 100,
+        default_payment_method_id: null,
+        applies_service: false,
+        applies_tax: true,
+        requires_external_ref: true,
+        sort_order: 3,
+        prices: [{ product_id: ULID("P", 1), price: 22_000 }],
+      },
+    };
+    await pullAll(deps(vi.fn(async () => page([...MENU, gofood], 9))));
+    expect(await db.salesChannels.get(ULID("H", 1))).toEqual({
+      id: ULID("H", 1),
+      code: "GOFOOD",
+      name: "GoFood",
+      kind: "delivery",
+      priceMode: "price_list",
+      markupBps: 0,
+      markupRoundingUnit: 100,
+      defaultPaymentMethodId: null,
+      appliesService: false,
+      appliesTax: true,
+      requiresExternalRef: true,
+      sortOrder: 3,
+      prices: { [ULID("P", 1)]: 22_000 },
+    });
+
+    await pullAll(deps(vi.fn(async () => page([{ entity: "sales_channel", op: "delete", id: ULID("H", 1), version: 10 }], 10))));
+    expect(await db.salesChannels.count()).toBe(0);
+  });
+
   it("keeps image keys and the server's current media base URL (ADR-021)", async () => {
     await pullAll(deps(vi.fn(async () => page(MENU, 9))));
 

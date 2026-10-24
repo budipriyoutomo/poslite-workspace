@@ -305,6 +305,24 @@ export interface PromotionRow {
   endsOn: string | null;
 }
 
+/** Where a sale comes from and how it is priced (ADR-029); pulled, inactive ones are deleted. */
+export interface SalesChannelRow {
+  id: string;
+  code: string;
+  name: string;
+  kind: "dine_in" | "take_away" | "delivery";
+  priceMode: "base" | "markup_bps" | "price_list";
+  markupBps: number;
+  markupRoundingUnit: number;
+  defaultPaymentMethodId: string | null;
+  appliesService: boolean;
+  appliesTax: boolean;
+  requiresExternalRef: boolean;
+  sortOrder: number;
+  /** price_list channels: productId → price; a product missing here is not sold on the channel. */
+  prices: Record<string, number>;
+}
+
 export type LineDiscount = { type: "percentage" | "fixed"; value: number };
 
 /** A cart line kept on an open bill (same shape as the cart feature's CartLine). */

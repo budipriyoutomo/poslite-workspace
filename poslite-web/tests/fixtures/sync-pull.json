@@ -137,6 +137,26 @@
       }
     },
     {
+      "entity": "sales_channel",
+      "op": "upsert",
+      "id": "01K5ZH00000000000000000003",
+      "version": 9,
+      "data": {
+        "code": "GOFOOD",
+        "name": "GoFood",
+        "kind": "delivery",
+        "price_mode": "price_list",
+        "markup_bps": 0,
+        "markup_rounding_unit": 100,
+        "default_payment_method_id": "01K5ZY00000000000000000002",
+        "applies_service": false,
+        "applies_tax": true,
+        "requires_external_ref": true,
+        "sort_order": 3,
+        "prices": [{ "product_id": "01K5ZP00000000000000000001", "price": 22000 }]
+      }
+    },
+    {
       "entity": "product",
       "op": "delete",
       "id": "01K5ZP00000000000000000002",

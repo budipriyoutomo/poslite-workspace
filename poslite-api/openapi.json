@@ -861,6 +861,29 @@
         "title": "ApiResponse[RefundDetailOut]",
         "type": "object"
       },
+      "ApiResponse_SalesChannelOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SalesChannelOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[SalesChannelOut]",
+        "type": "object"
+      },
       "ApiResponse_SalesSummaryOut_": {
         "properties": {
           "data": {
@@ -1540,6 +1563,33 @@
           "data"
         ],
         "title": "ApiResponse[list[RefundOut]]",
+        "type": "object"
+      },
+      "ApiResponse_list_SalesChannelOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SalesChannelOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[SalesChannelOut]]",
         "type": "object"
       },
       "ApiResponse_list_ShiftOut__": {
@@ -2451,6 +2501,45 @@
           "version"
         ],
         "title": "ChangeOut",
+        "type": "object"
+      },
+      "ChannelPrice": {
+        "properties": {
+          "price": {
+            "maximum": 1000000000000.0,
+            "minimum": 0.0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "product_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Product Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_id",
+          "price"
+        ],
+        "title": "ChannelPrice",
+        "type": "object"
+      },
+      "ChannelPricesIn": {
+        "description": "The whole price list of a channel: products left out are no longer sold there.",
+        "properties": {
+          "prices": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelPrice"
+            },
+            "maxItems": 2000,
+            "title": "Prices",
+            "type": "array"
+          }
+        },
+        "required": [
+          "prices"
+        ],
+        "title": "ChannelPricesIn",
         "type": "object"
       },
       "CloseDayIn": {
@@ -5576,6 +5665,204 @@
           "code"
         ],
         "title": "RejectedEventOut",
+        "type": "object"
+      },
+      "SalesChannelIn": {
+        "description": "ADR-029. A markup needs a rounding unit; only `markup_bps` channels carry a markup.",
+        "properties": {
+          "applies_service": {
+            "default": true,
+            "title": "Applies Service",
+            "type": "boolean"
+          },
+          "applies_tax": {
+            "default": true,
+            "title": "Applies Tax",
+            "type": "boolean"
+          },
+          "code": {
+            "pattern": "^[A-Za-z0-9_]{2,20}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "default_payment_method_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Payment Method Id"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dine_in",
+              "take_away",
+              "delivery"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "markup_bps": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Markup Bps",
+            "type": "integer"
+          },
+          "markup_rounding_unit": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Markup Rounding Unit",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "price_mode": {
+            "default": "base",
+            "enum": [
+              "base",
+              "markup_bps",
+              "price_list"
+            ],
+            "title": "Price Mode",
+            "type": "string"
+          },
+          "requires_external_ref": {
+            "default": false,
+            "title": "Requires External Ref",
+            "type": "boolean"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind"
+        ],
+        "title": "SalesChannelIn",
+        "type": "object"
+      },
+      "SalesChannelOut": {
+        "properties": {
+          "applies_service": {
+            "default": true,
+            "title": "Applies Service",
+            "type": "boolean"
+          },
+          "applies_tax": {
+            "default": true,
+            "title": "Applies Tax",
+            "type": "boolean"
+          },
+          "code": {
+            "pattern": "^[A-Za-z0-9_]{2,20}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "default_payment_method_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Payment Method Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dine_in",
+              "take_away",
+              "delivery"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "markup_bps": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Markup Bps",
+            "type": "integer"
+          },
+          "markup_rounding_unit": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Markup Rounding Unit",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "price_mode": {
+            "default": "base",
+            "enum": [
+              "base",
+              "markup_bps",
+              "price_list"
+            ],
+            "title": "Price Mode",
+            "type": "string"
+          },
+          "prices": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelPrice"
+            },
+            "title": "Prices",
+            "type": "array"
+          },
+          "requires_external_ref": {
+            "default": false,
+            "title": "Requires External Ref",
+            "type": "boolean"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind",
+          "id",
+          "prices"
+        ],
+        "title": "SalesChannelOut",
         "type": "object"
       },
       "SalesSummaryOut": {
@@ -11385,6 +11672,330 @@
         "summary": "Export Sales Summary",
         "tags": [
           "reporting"
+        ]
+      }
+    },
+    "/api/v1/sales-channels": {
+      "get": {
+        "operationId": "list_channels_api_v1_sales_channels_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_SalesChannelOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Channels",
+        "tags": [
+          "catalog"
+        ]
+      },
+      "post": {
+        "operationId": "create_channel_api_v1_sales_channels_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesChannelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Channel",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/sales-channels/{channel_id}": {
+      "delete": {
+        "operationId": "delete_channel_api_v1_sales_channels__channel_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Channel",
+        "tags": [
+          "catalog"
+        ]
+      },
+      "put": {
+        "operationId": "update_channel_api_v1_sales_channels__channel_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesChannelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Channel",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/sales-channels/{channel_id}/prices": {
+      "put": {
+        "description": "The whole price list of a `price_list` channel; products left out are not sold there.",
+        "operationId": "set_channel_prices_api_v1_sales_channels__channel_id__prices_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChannelPricesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Channel Prices",
+        "tags": [
+          "catalog"
         ]
       }
     },

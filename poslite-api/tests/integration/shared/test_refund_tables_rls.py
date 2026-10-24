@@ -15,6 +15,8 @@ TABLES = [
     "day_closings",
     "bill_voids",
     "bill_void_lines",
+    "sales_channels",
+    "channel_prices",
 ]
 
 

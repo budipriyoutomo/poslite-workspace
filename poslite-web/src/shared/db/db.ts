@@ -16,6 +16,7 @@ import type {
   PrintJobRow,
   ProductRow,
   PromotionRow,
+  SalesChannelRow,
   SettingRow,
   ShiftRow,
   SyncStateRow,
@@ -34,6 +35,7 @@ export class PosDb extends Dexie {
   users!: Table<UserRow, string>;
   diningTables!: Table<DiningTableRow, string>;
   promotions!: Table<PromotionRow, string>;
+  salesChannels!: Table<SalesChannelRow, string>;
 
   // Transactional (created on the device)
   shifts!: Table<ShiftRow, string>;
@@ -86,6 +88,8 @@ export class PosDb extends Dexie {
     );
     // v5 (ADR-023): refund documents; void and refund state on orders needs no index.
     this.version(5).stores({ refunds: "id, orderId, shiftId, businessDate, createdAt, syncStatus" });
+    // v6 (ADR-029): sales channels from the server, each with its price list embedded.
+    this.version(6).stores({ salesChannels: "id, sortOrder" });
   }
 }
 
