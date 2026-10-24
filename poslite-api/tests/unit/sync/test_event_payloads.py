@@ -142,8 +142,9 @@ def test_maps_bill_item_voided_into_the_domain_command() -> None:
         {"scope": "everything"},
         {"lines": []},
         {"reason": ""},
+        {"lines": [{**BILL_VOIDS[0]["payload"]["lines"][0], "amount": 35_001}]},
     ],
-    ids=["unknown scope", "no lines", "empty reason"],
+    ids=["unknown scope", "no lines", "empty reason", "amount is not price x quantity"],
 )
 def test_rejects_a_bill_void_that_breaks_the_contract(broken: dict[str, Any]) -> None:
     event = {**BILL_VOIDS[0], "payload": {**BILL_VOIDS[0]["payload"], **broken}}

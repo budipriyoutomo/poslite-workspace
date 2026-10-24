@@ -5,7 +5,15 @@ event (SCHEMA_INVALID), never the whole batch."""
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StringConstraints, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictInt,
+    StringConstraints,
+    ValidationError,
+    model_validator,
+)
 
 from poslite.sales.api import (
     Discount,
@@ -172,6 +180,12 @@ class _VoidedBillLine(_Strict):
     unit_price: Rupiah
     quantity: Annotated[StrictInt, Field(gt=0)]
     amount: Rupiah
+
+    @model_validator(mode="after")
+    def _amount_is_price_times_quantity(self) -> "_VoidedBillLine":
+        if self.amount != self.unit_price * self.quantity:
+            raise ValueError("amount must be unit_price x quantity")
+        return self
 
 
 class BillItemVoidedPayload(_Strict):
