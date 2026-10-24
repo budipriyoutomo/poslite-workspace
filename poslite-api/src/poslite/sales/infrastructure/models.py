@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import CHAR, BigInteger, Boolean, Date, DateTime, Integer, String
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.database import Base
@@ -178,3 +178,26 @@ class BillVoidLineModel(Base):
     quantity: Mapped[int] = mapped_column(Integer)
     amount: Mapped[int] = mapped_column(BigInteger)
     sort_order: Mapped[int] = mapped_column(Integer)
+
+
+class OpenBillModel(Base):
+    """An unpaid bill of a table-service outlet (ADR-031); lines are the device's cart lines."""
+
+    __tablename__ = "open_bills"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26))
+    table_id: Mapped[str | None] = mapped_column(CHAR(26))
+    table_label: Mapped[str] = mapped_column(String(30))
+    lines: Mapped[list[dict[str, object]]] = mapped_column(JSONB)
+    discount: Mapped[dict[str, object] | None] = mapped_column(JSONB)
+    opened_by: Mapped[str] = mapped_column(CHAR(26))
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    version: Mapped[int] = mapped_column(Integer)
+    lease_device_id: Mapped[str | None] = mapped_column(CHAR(26))
+    lease_user_id: Mapped[str | None] = mapped_column(CHAR(26))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_by_order_id: Mapped[str | None] = mapped_column(CHAR(26))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

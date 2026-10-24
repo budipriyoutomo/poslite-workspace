@@ -25,8 +25,9 @@ class Assignment:
 
 
 def check_assignment(a: Assignment) -> None:
-    """Scope rules (doc 10): owners are company-wide, cashiers are not; a brand scope names a
-    brand, an outlet scope names an outlet and its brand. Mirrors the table's CHECK constraints."""
+    """Scope rules (doc 10): owners are company-wide, cashiers and waiters are not; a brand scope
+    names a brand, an outlet scope names an outlet and its brand. Mirrors the table's CHECK
+    constraints."""
     shape_ok = {
         "company": a.brand_id is None and a.outlet_id is None,
         "brand": a.brand_id is not None and a.outlet_id is None,
@@ -36,8 +37,8 @@ def check_assignment(a: Assignment) -> None:
         raise DomainError("INVALID_ASSIGNMENT", f"A {a.scope_type} scope has the wrong ids")
     if a.role == "owner" and a.scope_type != "company":
         raise DomainError("INVALID_ASSIGNMENT", "An owner is always company-wide")
-    if a.role == "cashier" and a.scope_type == "company":
-        raise DomainError("INVALID_ASSIGNMENT", "A cashier works at a brand or an outlet")
+    if a.role in ("cashier", "waiter") and a.scope_type == "company":
+        raise DomainError("INVALID_ASSIGNMENT", f"A {a.role} works at a brand or an outlet")
 
 
 def role_at_outlet(assignments: list[Assignment], *, outlet_id: str, brand_id: str) -> Role | None:

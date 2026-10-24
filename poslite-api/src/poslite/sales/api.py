@@ -16,6 +16,7 @@ from poslite.sales.domain.corrections import (
 from poslite.sales.domain.entities import LineModifier, OrderLine, Payment, PlaceOrderData
 from poslite.sales.domain.repository import OrderRepository
 from poslite.sales.domain.value_objects import Discount, PriceBreakdown, Rates
+from poslite.sales.infrastructure.open_bills import SqlAlchemyOpenBills, has_open_bills
 from poslite.sales.infrastructure.queries import (
     CashierSales,
     CategorySales,
@@ -62,6 +63,7 @@ __all__ = [
     "RefundOrderHandler",
     "RefundPaymentData",
     "SalesUnitOfWork",
+    "SqlAlchemyOpenBills",
     "SqlAlchemyOrderRepository",
     "VoidBillItemsData",
     "VoidBillItemsHandler",
@@ -75,6 +77,7 @@ __all__ = [
     "daily_payment_sales",
     "daily_product_sales",
     "daily_totals",
+    "has_open_bills",
     "list_bill_voids",
     "list_orders",
     "list_refunds",

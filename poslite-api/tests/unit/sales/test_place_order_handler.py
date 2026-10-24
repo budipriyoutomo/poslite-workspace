@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import time
+from datetime import datetime, time
 
 import pytest
 
@@ -179,3 +179,33 @@ async def test_a_missing_order_number_of_a_delivery_app_is_flagged() -> None:
     outcome = await channel_handler()(replace(ON_GOFOOD, external_ref=None), CTX, FakeUnitOfWork())
 
     assert outcome == EventOutcome("flagged", ("EXTERNAL_REF_MISSING",))
+
+
+class FakeOpenBills:
+    """OpenBillPort (ADR-031): bills closed by their payment."""
+
+    def __init__(self) -> None:
+        self.closed: list[tuple[str, str, str]] = []
+
+    async def close(self, bill_id: str, *, outlet_id: str, order_id: str, at: datetime) -> None:
+        self.closed.append((bill_id, outlet_id, order_id))
+
+
+async def test_paying_a_shared_bill_closes_it() -> None:
+    bills = FakeOpenBills()
+
+    await PlaceOrderHandler(FakeOutlets(), FakeCashiers({"U1"}), bills=bills)(
+        replace(DATA, closes_bill_id="B1"), CTX, FakeUnitOfWork()
+    )
+
+    assert bills.closed == [("B1", "T1", "O1")]
+
+
+async def test_a_sale_without_a_bill_closes_nothing() -> None:
+    bills = FakeOpenBills()
+
+    await PlaceOrderHandler(FakeOutlets(), FakeCashiers({"U1"}), bills=bills)(
+        DATA, CTX, FakeUnitOfWork()
+    )
+
+    assert bills.closed == []

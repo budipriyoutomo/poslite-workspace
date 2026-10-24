@@ -20,6 +20,7 @@ from poslite.payment.presentation.router import router as payment_router
 from poslite.platform_admin.presentation.router import router as platform_router
 from poslite.promotion.presentation.router import router as promotion_router
 from poslite.reporting.presentation.router import router as reporting_router
+from poslite.sales.presentation.open_bills import router as open_bills_router
 from poslite.sales.presentation.router import router as sales_router
 from poslite.shared.application.clock import SystemClock
 from poslite.shared.config import Settings, get_settings
@@ -87,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         shift_router,
         reporting_router,
         sales_router,
+        open_bills_router,
         platform_router,
     ):
         api.include_router(module_router)

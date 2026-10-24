@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Protocol
 
 from poslite.sales.domain.discount_policy import DiscountLimits, manual_discounts, needs_approval
@@ -23,6 +24,12 @@ class SalesUnitOfWork(EventRecorder, Protocol):
     orders: OrderRepository
 
 
+class OpenBillPort(Protocol):
+    """Shared open bills of a table-service outlet (ADR-031)."""
+
+    async def close(self, bill_id: str, *, outlet_id: str, order_id: str, at: datetime) -> None: ...
+
+
 class PlaceOrderHandler:
     """order.placed from a device → stored order (+ flags). Never commits (ADR-010)."""
 
@@ -34,9 +41,11 @@ class PlaceOrderHandler:
         methods: PaymentMethodPort | None = None,
         approvers: ApproverPort | None = None,
         channels: ChannelPort | None = None,
+        bills: OpenBillPort | None = None,
     ) -> None:
         self._outlets, self._cashiers, self._qris = outlets, cashiers, qris
         self._methods, self._approvers, self._channels = methods, approvers, channels
+        self._bills = bills
 
     async def _channel(
         self, cmd: PlaceOrderData, outlet_id: str
@@ -120,4 +129,9 @@ class PlaceOrderHandler:
         await uow.orders.add(order)
         for event in order.events:
             uow.record(event)
+        # The payment is the truth: it closes the bill whoever holds its lease.
+        if cmd.closes_bill_id is not None and self._bills is not None:
+            await self._bills.close(
+                cmd.closes_bill_id, outlet_id=ctx.outlet_id, order_id=order.id, at=cmd.occurred_at
+            )
         return EventOutcome.of(order.flags)

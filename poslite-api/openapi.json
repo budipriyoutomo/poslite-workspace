@@ -28,7 +28,8 @@
                 "enum": [
                   "owner",
                   "manager",
-                  "cashier"
+                  "cashier",
+                  "waiter"
                 ],
                 "type": "string"
               },
@@ -68,7 +69,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -560,6 +562,29 @@
           "data"
         ],
         "title": "ApiResponse[NoneType]",
+        "type": "object"
+      },
+      "ApiResponse_OpenBillOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OpenBillOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[OpenBillOut]",
         "type": "object"
       },
       "ApiResponse_OperatorOut_": {
@@ -1349,6 +1374,33 @@
         "title": "ApiResponse[list[ModifierGroupOut]]",
         "type": "object"
       },
+      "ApiResponse_list_OpenBillOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OpenBillOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[OpenBillOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_OperatorOut__": {
         "properties": {
           "data": {
@@ -1758,7 +1810,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -1808,7 +1861,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -3582,6 +3636,50 @@
         "title": "InvoiceOut",
         "type": "object"
       },
+      "JsonValue": {},
+      "LeaseIn": {
+        "properties": {
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "LeaseIn",
+        "type": "object"
+      },
+      "LeaseOut": {
+        "properties": {
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "device_name": {
+            "title": "Device Name",
+            "type": "string"
+          },
+          "until": {
+            "format": "date-time",
+            "title": "Until",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_id",
+          "device_name",
+          "user_id",
+          "until"
+        ],
+        "title": "LeaseOut",
+        "type": "object"
+      },
       "LoginIn": {
         "properties": {
           "email": {
@@ -3754,6 +3852,89 @@
         "title": "ModifierOut",
         "type": "object"
       },
+      "NewBillIn": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Opened By",
+            "type": "string"
+          },
+          "release_lease": {
+            "default": false,
+            "title": "Release Lease",
+            "type": "boolean"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Table Label",
+            "type": "string"
+          },
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_label",
+          "lines",
+          "user_id",
+          "id",
+          "opened_by",
+          "opened_at"
+        ],
+        "title": "NewBillIn",
+        "type": "object"
+      },
       "NewOutlet": {
         "properties": {
           "code": {
@@ -3874,6 +4055,96 @@
           "name"
         ],
         "title": "NewPaymentMethodIn",
+        "type": "object"
+      },
+      "OpenBillOut": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lease": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeaseOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when nobody is editing the bill"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "title": "Opened By",
+            "type": "string"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "title": "Table Label",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "table_id",
+          "table_label",
+          "lines",
+          "discount",
+          "opened_by",
+          "opened_at",
+          "version",
+          "lease",
+          "updated_at"
+        ],
+        "title": "OpenBillOut",
         "type": "object"
       },
       "OperatorIn": {
@@ -4470,7 +4741,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -4506,6 +4778,15 @@
             "default": "",
             "maxLength": 500,
             "title": "Receipt Header",
+            "type": "string"
+          },
+          "service_mode": {
+            "default": "counter",
+            "enum": [
+              "counter",
+              "table_service"
+            ],
+            "title": "Service Mode",
             "type": "string"
           },
           "service_rate_bps": {
@@ -4566,6 +4847,15 @@
             "default": "",
             "maxLength": 500,
             "title": "Receipt Header",
+            "type": "string"
+          },
+          "service_mode": {
+            "default": "counter",
+            "enum": [
+              "counter",
+              "table_service"
+            ],
+            "title": "Service Mode",
             "type": "string"
           },
           "service_rate_bps": {
@@ -5985,6 +6275,77 @@
           "channels"
         ],
         "title": "SalesSummaryOut",
+        "type": "object"
+      },
+      "SaveBillIn": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "release_lease": {
+            "default": false,
+            "title": "Release Lease",
+            "type": "boolean"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Table Label",
+            "type": "string"
+          },
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "table_label",
+          "lines",
+          "user_id",
+          "version"
+        ],
+        "title": "SaveBillIn",
         "type": "object"
       },
       "ShiftDetailOut": {
@@ -8760,6 +9121,293 @@
         "summary": "Update Modifier Group",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/open-bills": {
+      "get": {
+        "description": "The outlet's open bills; devices poll this every few seconds while online.",
+        "operationId": "list_open_bills_api_v1_open_bills_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_OpenBillOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Open Bills",
+        "tags": [
+          "sales"
+        ]
+      },
+      "post": {
+        "operationId": "open_bill_api_v1_open_bills_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewBillIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Open Bill",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/open-bills/{bill_id}": {
+      "delete": {
+        "operationId": "cancel_bill_api_v1_open_bills__bill_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Bill",
+        "tags": [
+          "sales"
+        ]
+      },
+      "put": {
+        "description": "Saves over `version`; an older version is 409 BILL_VERSION_CONFLICT (never merged).",
+        "operationId": "save_bill_api_v1_open_bills__bill_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBillIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Bill",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/open-bills/{bill_id}/lease": {
+      "delete": {
+        "operationId": "release_lease_api_v1_open_bills__bill_id__lease_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Release Lease",
+        "tags": [
+          "sales"
+        ]
+      },
+      "post": {
+        "description": "Takes the bill for editing, or renews the lease while it stays on screen.",
+        "operationId": "lease_bill_api_v1_open_bills__bill_id__lease_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lease Bill",
+        "tags": [
+          "sales"
         ]
       }
     },

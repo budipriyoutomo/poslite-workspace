@@ -62,6 +62,7 @@ class OutletModel(MasterColumns, Base):
     service_rate_bps: Mapped[int] = mapped_column(Integer, server_default="0")
     receipt_header: Mapped[str] = mapped_column(Text, server_default="")
     receipt_footer: Mapped[str] = mapped_column(Text, server_default="")
+    service_mode: Mapped[str] = mapped_column(String(20), server_default="counter")  # ADR-031
 
 
 class DeviceModel(Base):

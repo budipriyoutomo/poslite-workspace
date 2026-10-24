@@ -14,7 +14,7 @@ class OutletOut(BaseModel):
     timezone: str = "Asia/Jakarta"
 
 
-Role = Literal["owner", "manager", "cashier"]
+Role = Literal["owner", "manager", "cashier", "waiter"]
 
 
 class AccessTenant(BaseModel):
@@ -79,6 +79,8 @@ class OutletSettingsIn(BaseModel):
     service_rate_bps: Bps
     receipt_header: Annotated[str, StringConstraints(max_length=500)] = ""
     receipt_footer: Annotated[str, StringConstraints(max_length=500)] = ""
+    # ADR-031: open bills on each device (counter) or shared through the server (table_service).
+    service_mode: Literal["counter", "table_service"] = "counter"
 
 
 class OutletSettingsOut(OutletSettingsIn):

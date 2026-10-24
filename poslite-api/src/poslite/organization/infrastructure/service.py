@@ -303,6 +303,7 @@ class OutletSettings:
     service_rate_bps: int
     receipt_header: str
     receipt_footer: str
+    service_mode: str
 
 
 async def update_outlet_settings(
@@ -316,14 +317,17 @@ async def update_outlet_settings(
     service_rate_bps: int,
     receipt_header: str,
     receipt_footer: str,
+    service_mode: str,
 ) -> OutletSettings:
-    """New rates apply to new orders; devices keep the snapshot they sold with (ADR-011)."""
+    """New rates apply to new orders; devices keep the snapshot they sold with (ADR-011). A
+    device switches service mode once it has no open bill of its own (ADR-031 rule 1)."""
     outlet = await uow.session.get(OutletModel, outlet_id)
     if outlet is None or outlet.deleted_at is not None:
         raise DomainError("OUTLET_NOT_FOUND", "Outlet not found", kind="not_found")
     outlet.name, outlet.timezone, outlet.business_day_cutoff = name, timezone, business_day_cutoff
     outlet.tax_rate_bps, outlet.service_rate_bps = tax_rate_bps, service_rate_bps
     outlet.receipt_header, outlet.receipt_footer = receipt_header, receipt_footer
+    outlet.service_mode = service_mode
     await uow.session.flush()
     return _settings(outlet)
 
@@ -346,6 +350,7 @@ def _settings(outlet: OutletModel) -> OutletSettings:
         service_rate_bps=outlet.service_rate_bps,
         receipt_header=outlet.receipt_header,
         receipt_footer=outlet.receipt_footer,
+        service_mode=outlet.service_mode,
     )
 
 
@@ -386,6 +391,7 @@ async def outlet_changes(
             },
             "discount_policy": _policy(brand).as_data(),
             "price_includes_tax": brand.price_includes_tax,
+            "service_mode": o.service_mode,
         },
     )
 

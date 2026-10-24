@@ -57,6 +57,7 @@ from poslite.organization.presentation.schemas import (
     TableOut,
 )
 from poslite.payment import api as payment
+from poslite.sales import api as sales
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.domain.media import media_url
@@ -149,6 +150,7 @@ def _settings_out(s: OutletSettings) -> OutletSettingsOut:
         service_rate_bps=s.service_rate_bps,
         receipt_header=s.receipt_header,
         receipt_footer=s.receipt_footer,
+        service_mode=s.service_mode,
     )
 
 
@@ -253,6 +255,13 @@ async def update_settings(
     hour, minute = map(int, body.business_day_cutoff.split(":"))
     async with open_uow(request, principal.tenant_id) as uow:
         await _outlet_in_scope(uow, scope, outlet_id, brand)
+        # Bills on the server would be stranded: devices in counter mode never fetch them.
+        if body.service_mode == "counter" and await sales.has_open_bills(uow, outlet_id):
+            raise DomainError(
+                "OPEN_BILLS_EXIST",
+                "Close the outlet's open bills before switching to counter mode",
+                kind="conflict",
+            )
         saved = await update_outlet_settings(
             uow,
             outlet_id,
@@ -263,6 +272,7 @@ async def update_settings(
             service_rate_bps=body.service_rate_bps,
             receipt_header=body.receipt_header,
             receipt_footer=body.receipt_footer,
+            service_mode=body.service_mode,
         )
         await uow.commit()
     return ok(_settings_out(saved))

@@ -140,6 +140,8 @@ class OrderPlacedPayload(_Strict):
     # ADR-029; optional for devices from before sales channels.
     channel_id: Ulid | None = None
     external_ref: Annotated[str, StringConstraints(min_length=1, max_length=50)] | None = None
+    # ADR-031: a full payment of a shared open bill closes it on the server.
+    closes_bill_id: Ulid | None = None
 
 
 Reason = Annotated[str, StringConstraints(min_length=1, max_length=200)]
@@ -305,6 +307,7 @@ def to_command(event: IncomingEvent) -> Command:
                     discount_approved_by=p.discount_approved_by,
                     channel_id=p.channel_id,
                     external_ref=p.external_ref,
+                    closes_bill_id=p.closes_bill_id,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err

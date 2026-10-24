@@ -57,6 +57,7 @@ class PlaceOrderData:
     discount_approved_by: str | None = None  # manager who approved a discount over the limit
     channel_id: str | None = None  # ADR-029; absent on devices from before channels
     external_ref: str | None = None  # the delivery app's order number
+    closes_bill_id: str | None = None  # ADR-031: the shared open bill this payment closes
 
 
 @dataclass

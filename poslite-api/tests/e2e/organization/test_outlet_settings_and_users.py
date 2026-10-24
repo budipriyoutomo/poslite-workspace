@@ -43,6 +43,7 @@ async def test_updates_outlet_rates_and_receipt_text(api: AsyncClient) -> None:
         "service_rate_bps": 500,
         "receipt_header": "Warung Maharasa",
         "receipt_footer": "Terima kasih",
+        "service_mode": "counter",
     }
 
 
@@ -63,6 +64,7 @@ async def test_reads_outlet_settings_for_the_back_office_form(api: AsyncClient) 
         "service_rate_bps": 0,
         "receipt_header": "",
         "receipt_footer": "",
+        "service_mode": "counter",
     }
 
 
