@@ -140,6 +140,8 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 - `rates` wajib di `order.placed`. Server menghitung ulang `totals` memakai `rates` ini, bukan tarif outlet saat ini (ADR-011).
 - Error non-bisnis (5xx) berarti **seluruh batch** di-rollback → device retry batch yang sama; idempotency menjamin tidak ada duplikat.
 
+`order.placed` boleh membawa `queue_no` (≤ 20, mis. `A-012`) dan `customer_name` (≤ 40) untuk take away/delivery (P1-1); keduanya ikut di detail order.
+
 `order.placed` boleh membawa `closes_bill_id` (ULID, ADR-031): pembayaran yang melunasi bill bersama menutupnya di server (tanpa melihat lease); bill yang tidak dikenal server diabaikan.
 
 Tipe event: `shift.opened`, `shift.closed`, `cash.moved`, `order.placed`, `order.voided`, `order.refunded` (ADR-023), `bill.item_voided` (ADR-028). Tipe lain → `rejected` `UNSUPPORTED_EVENT_TYPE`.

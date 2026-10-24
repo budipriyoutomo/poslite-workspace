@@ -172,6 +172,7 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  service_rate_bps, tax_rate_bps (snapshot tarif dari device),
                  price_includes_tax (snapshot mode harga, ADR-030),
                  channel_id (ADR-029, nullable untuk data lama; diisi migrasi 0026), external_ref (no. order aplikasi),
+                 queue_no, customer_name (P1-1, migrasi 0028; hanya take away/delivery),
                  service_charge, tax, total, paid_amount, change_amount,
                  status (paid|voided), flags (text[], kosong = bersih), notes,
                  created_at (waktu device), synced_at (waktu server)
