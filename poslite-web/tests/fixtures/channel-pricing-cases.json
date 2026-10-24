@@ -1,0 +1,3876 @@
+[
+  {
+    "name": "before tax, service + PB1 \u00b7 base \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 0,
+        "service_charge": 3725,
+        "tax": 7823,
+        "total": 86048
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 base \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 8400,
+        "service_charge": 3305,
+        "tax": 6941,
+        "total": 76346
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 base \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 10000,
+        "service_charge": 3225,
+        "tax": 6773,
+        "total": 74498
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 base \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 28000,
+        "discount_amount": 0,
+        "service_charge": 1400,
+        "tax": 2940,
+        "total": 32340
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 markup 20% to 500 \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 0,
+        "service_charge": 4425,
+        "tax": 9293,
+        "total": 102218
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 markup 20% to 500 \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 9900,
+        "service_charge": 3930,
+        "tax": 8253,
+        "total": 90783
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 markup 20% to 500 \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 10000,
+        "service_charge": 3925,
+        "tax": 8243,
+        "total": 90668
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 markup 20% to 500 \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 33000,
+        "discount_amount": 0,
+        "service_charge": 1650,
+        "tax": 3465,
+        "total": 38115
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 price list \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 0,
+        "service_charge": 4300,
+        "tax": 9030,
+        "total": 99330
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 price list \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 9600,
+        "service_charge": 3820,
+        "tax": 8022,
+        "total": 88242
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 price list \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 10000,
+        "service_charge": 3800,
+        "tax": 7980,
+        "total": 87780
+      }
+    }
+  },
+  {
+    "name": "before tax, service + PB1 \u00b7 price list \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 32000,
+        "discount_amount": 0,
+        "service_charge": 1600,
+        "tax": 3360,
+        "total": 36960
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 base \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 7450,
+        "total": 81950
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 base \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 8400,
+        "service_charge": 0,
+        "tax": 6610,
+        "total": 72710
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 base \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 6450,
+        "total": 70950
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 base \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 28000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 2800,
+        "total": 30800
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 markup 20% to 500 \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 8850,
+        "total": 97350
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 markup 20% to 500 \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 9900,
+        "service_charge": 0,
+        "tax": 7860,
+        "total": 86460
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 markup 20% to 500 \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 7850,
+        "total": 86350
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 markup 20% to 500 \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 33000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 3300,
+        "total": 36300
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 price list \u00b7 no discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 8600,
+        "total": 94600
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 price list \u00b7 line discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 9600,
+        "service_charge": 0,
+        "tax": 7640,
+        "total": 84040
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 price list \u00b7 order discount",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 7600,
+        "total": 83600
+      }
+    }
+  },
+  {
+    "name": "before tax, no service \u00b7 price list \u00b7 split bill part",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 32000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 3200,
+        "total": 35200
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 base \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 0,
+        "service_charge": 3225,
+        "tax": 6773,
+        "total": 74500
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 base \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 8400,
+        "service_charge": 2861,
+        "tax": 6009,
+        "total": 66100
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 base \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 10000,
+        "service_charge": 2792,
+        "tax": 5864,
+        "total": 64500
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 base \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 28000,
+        "discount_amount": 0,
+        "service_charge": 1212,
+        "tax": 2545,
+        "total": 28000
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 markup 20% to 500 \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 0,
+        "service_charge": 3831,
+        "tax": 8045,
+        "total": 88500
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 markup 20% to 500 \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 9900,
+        "service_charge": 3403,
+        "tax": 7145,
+        "total": 78600
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 markup 20% to 500 \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 10000,
+        "service_charge": 3398,
+        "tax": 7136,
+        "total": 78500
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 markup 20% to 500 \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 33000,
+        "discount_amount": 0,
+        "service_charge": 1429,
+        "tax": 3000,
+        "total": 33000
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 price list \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 0,
+        "service_charge": 3723,
+        "tax": 7818,
+        "total": 86000
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 price list \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 9600,
+        "service_charge": 3307,
+        "tax": 6945,
+        "total": 76400
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 price list \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 10000,
+        "service_charge": 3290,
+        "tax": 6909,
+        "total": 76000
+      }
+    }
+  },
+  {
+    "name": "tax included, service + PB1 \u00b7 price list \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 32000,
+        "discount_amount": 0,
+        "service_charge": 1385,
+        "tax": 2909,
+        "total": 32000
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 base \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 0,
+        "service_charge": 3548,
+        "tax": 0,
+        "total": 74500
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 base \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 8400,
+        "service_charge": 3148,
+        "tax": 0,
+        "total": 66100
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 base \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 10000,
+        "service_charge": 3071,
+        "tax": 0,
+        "total": 64500
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 base \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 28000,
+        "discount_amount": 0,
+        "service_charge": 1333,
+        "tax": 0,
+        "total": 28000
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 markup 20% to 500 \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 0,
+        "service_charge": 4214,
+        "tax": 0,
+        "total": 88500
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 markup 20% to 500 \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 9900,
+        "service_charge": 3743,
+        "tax": 0,
+        "total": 78600
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 markup 20% to 500 \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 10000,
+        "service_charge": 3738,
+        "tax": 0,
+        "total": 78500
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 markup 20% to 500 \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 33000,
+        "discount_amount": 0,
+        "service_charge": 1571,
+        "tax": 0,
+        "total": 33000
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 price list \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 0,
+        "service_charge": 4095,
+        "tax": 0,
+        "total": 86000
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 price list \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 9600,
+        "service_charge": 3638,
+        "tax": 0,
+        "total": 76400
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 price list \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 10000,
+        "service_charge": 3619,
+        "tax": 0,
+        "total": 76000
+      }
+    }
+  },
+  {
+    "name": "tax included, no PB1 \u00b7 price list \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 32000,
+        "discount_amount": 0,
+        "service_charge": 1524,
+        "tax": 0,
+        "total": 32000
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 base \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 74500
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 base \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 8400,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 66100
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 base \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 74500,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 64500
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 base \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "base",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        25000,
+        18500,
+        12000
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 28000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 28000
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 markup 20% to 500 \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 88500
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 markup 20% to 500 \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 9900,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 78600
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 markup 20% to 500 \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 88500,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 78500
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 markup 20% to 500 \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000,
+        22500,
+        14500
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 33000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 33000
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 price list \u00b7 no discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 86000
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 price list \u00b7 line discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2,
+        "discount": {
+          "type": "percentage",
+          "value": 15
+        }
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 9600,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 76400
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 price list \u00b7 order discount",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 2
+      },
+      {
+        "product": 1,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": {
+      "type": "fixed",
+      "value": 10000
+    },
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 86000,
+        "discount_amount": 10000,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 76000
+      }
+    }
+  },
+  {
+    "name": "tax included, neither \u00b7 price list \u00b7 split bill part",
+    "brand_includes_tax": true,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "price_list",
+      "markup_bps": 0,
+      "markup_rounding_unit": 100,
+      "applies_service": false,
+      "applies_tax": false
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": 29000
+      },
+      {
+        "base_price": 18500,
+        "list_price": 22000
+      },
+      {
+        "base_price": 12000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 3000,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        29000,
+        22000,
+        null
+      ],
+      "rates": {
+        "service_bps": 0,
+        "tax_bps": 0,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 32000,
+        "discount_amount": 0,
+        "service_charge": 0,
+        "tax": 0,
+        "total": 32000
+      }
+    }
+  },
+  {
+    "name": "markup lands exactly on the unit",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25000,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30000
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 30000,
+        "discount_amount": 0,
+        "service_charge": 1500,
+        "tax": 3150,
+        "total": 34650
+      }
+    }
+  },
+  {
+    "name": "markup one rupiah over rounds up a unit",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 2000,
+      "markup_rounding_unit": 500,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 25001,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        30500
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 30500,
+        "discount_amount": 0,
+        "service_charge": 1525,
+        "tax": 3203,
+        "total": 35228
+      }
+    }
+  },
+  {
+    "name": "markup to 100 rupiah",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 1500,
+      "markup_rounding_unit": 100,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 18350,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        21200
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 21200,
+        "discount_amount": 0,
+        "service_charge": 1060,
+        "tax": 2226,
+        "total": 24486
+      }
+    }
+  },
+  {
+    "name": "markup to 1 rupiah keeps the exact value",
+    "brand_includes_tax": false,
+    "outlet_rates": {
+      "service_bps": 500,
+      "tax_bps": 1000
+    },
+    "channel": {
+      "price_mode": "markup_bps",
+      "markup_bps": 1500,
+      "markup_rounding_unit": 1,
+      "applies_service": true,
+      "applies_tax": true
+    },
+    "products": [
+      {
+        "base_price": 18350,
+        "list_price": null
+      }
+    ],
+    "lines": [
+      {
+        "product": 0,
+        "modifiers_total": 0,
+        "quantity": 1
+      }
+    ],
+    "discount": null,
+    "expected": {
+      "unit_prices": [
+        21103
+      ],
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": false
+      },
+      "totals": {
+        "subtotal": 21103,
+        "discount_amount": 0,
+        "service_charge": 1055,
+        "tax": 2216,
+        "total": 24374
+      }
+    }
+  }
+]
