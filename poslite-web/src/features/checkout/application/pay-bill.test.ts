@@ -82,7 +82,59 @@ describe("payBill", () => {
 
     await payBill(input({ paying: [esTeh], remaining: [gudeg] }), testDeps(db));
 
-    expect(await db.openBills.get(BILL.id)).toMatchObject({ tableLabel: "A1", openedAt: BILL.openedAt, lines: [gudeg] });
+    expect(await db.openBills.get(BILL.id)).toMatchObject({
+      tableLabel: "A1",
+      openedAt: BILL.openedAt,
+      lines: [gudeg],
+    });
+  });
+});
+
+describe("payBill at a table-service outlet (ADR-031)", () => {
+  const SHARED = { ...BILL, id: "01J8Z000000000000000000SB1" }; // a ULID: the server gets it
+  beforeEach(async () => {
+    await db.openBills.put({
+      ...SHARED,
+      lines: [gudeg, esTeh],
+      discount: null,
+      updatedAt: BILL.openedAt,
+      origin: "server",
+      serverVersion: 3,
+    });
+  });
+  const placedPayload = async () => (await db.outbox.filter((e) => e.type === "order.placed").first())?.payload;
+
+  it("closes the server's bill with the payment", async () => {
+    await payBill(input({ bill: SHARED, shared: true }), testDeps(db));
+
+    expect(await placedPayload()).toMatchObject({ closes_bill_id: SHARED.id });
+    expect(await db.openBills.count()).toBe(0);
+  });
+
+  it("keeps the bill open on the server after a split payment, sending what is left", async () => {
+    await payBill(
+      input({
+        bill: SHARED,
+        shared: true,
+        paying: [gudeg],
+        remaining: [esTeh],
+      }),
+      testDeps(db),
+    );
+
+    expect(await placedPayload()).not.toHaveProperty("closes_bill_id");
+    expect(await db.openBills.get(SHARED.id)).toMatchObject({
+      lines: [esTeh],
+      origin: "server",
+      serverVersion: 3,
+      dirty: true,
+    });
+  });
+
+  it("never names a bill at a counter outlet", async () => {
+    await payBill(input(), testDeps(db));
+
+    expect(await placedPayload()).not.toHaveProperty("closes_bill_id");
   });
 });
 

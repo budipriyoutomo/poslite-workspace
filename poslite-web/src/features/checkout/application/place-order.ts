@@ -3,7 +3,7 @@ import { localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
-import { DEFAULT_DISCOUNT_POLICY, getDb, readState, writeState } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, getDb, isManager, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
@@ -39,6 +39,8 @@ export interface PlaceOrderInput {
   channelId?: string | null;
   /** The delivery app's order number, required by channels that ask for it. */
   externalRef?: string | null;
+  /** ADR-031: the shared open bill this payment closes on the server. */
+  closesBillId?: string | null;
 }
 
 export interface PlaceOrderDeps {
@@ -146,7 +148,11 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       type: "order.placed",
       aggregateId: order.id,
       occurredAt: createdAt,
-      payload: { ...toOrderPlacedPayload(order, payments), discount_approved_by: approvedBy },
+      payload: {
+        ...toOrderPlacedPayload(order, payments),
+        discount_approved_by: approvedBy,
+        ...(input.closesBillId && { closes_bill_id: input.closesBillId }),
+      },
     });
     return order;
   });
@@ -163,12 +169,22 @@ async function checkDiscount(
   policy: { cashierMaxPercentage: number; cashierMaxAmount: number },
 ): Promise<string | null> {
   const { percentages, amount } = manualDiscounts(priced.lines, input.discount, priced.orderDiscount);
-  const role = (await db.users.get(input.cashier.id))?.role ?? "cashier";
-  if (!needsApproval({ role, manualPercentages: percentages, manualAmount: amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } })) {
+  const role = isManager((await db.users.get(input.cashier.id))?.role) ? "manager" : "cashier";
+  if (
+    !needsApproval({
+      role,
+      manualPercentages: percentages,
+      manualAmount: amount,
+      limits: {
+        maxPercentage: policy.cashierMaxPercentage,
+        maxAmount: policy.cashierMaxAmount,
+      },
+    })
+  ) {
     return null;
   }
   const approver = input.discountApprovedBy ? await db.users.get(input.discountApprovedBy) : undefined;
-  if (!approver || approver.role === "cashier") throw new AppError("DISCOUNT_APPROVAL_REQUIRED");
+  if (!approver || !isManager(approver.role)) throw new AppError("DISCOUNT_APPROVAL_REQUIRED");
   return approver.id;
 }
 

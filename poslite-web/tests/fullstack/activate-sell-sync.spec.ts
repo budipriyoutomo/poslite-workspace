@@ -1,4 +1,4 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 
 import { API_URL } from "../../playwright.fullstack.config";
 
@@ -357,4 +357,59 @@ test("a GoFood sale offline is priced on its channel and reaches the server on t
   const [order] = await call(request, "get", `/orders?outlet_id=${tenant.outletId}&business_date=${businessDate}`, tenant.token);
   const detail = await call(request, "get", `/orders/${order.id}`, tenant.token);
   expect([detail.channel_id, detail.external_ref]).toEqual([gofood.id, "GF-881234"]);
+});
+
+// P0-4 (ADR-031): at a table-service outlet a waiter's tablet opens a bill and sends it to the
+// kitchen; the cashier's device sees it, takes it and is paid; the bill leaves the waiter's list.
+test("a waiter's bill is paid on the cashier's device without typing it again", async ({ browser, request }) => {
+  const tenant = await tenantWithMenu(request);
+  await call(request, "post", `/outlets/${tenant.outletId}/tables`, tenant.token, { label: "A1", area: "Dalam", seats: 4, sort_order: 0 });
+  await call(request, "post", "/users", tenant.token, { name: "Dewi", pin: "1357", outlets: [{ outlet_id: tenant.outletId, role: "waiter" }] });
+  await call(request, "put", `/outlets/${tenant.outletId}`, tenant.token, {
+    name: "Outlet E2E",
+    timezone: "Asia/Jakarta",
+    business_day_cutoff: "04:00",
+    tax_rate_bps: 1000,
+    service_rate_bps: 500,
+    service_mode: "table_service",
+  });
+
+  const nav = (page: Page, label: string) => page.getByRole("navigation", { name: "Menu utama" }).getByRole("link", { name: label, exact: true }).click();
+  const device = async (user: string, pin: string) => {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto("/");
+    await page.getByLabel("Email").fill(tenant.owner.email);
+    await page.getByLabel("Password").fill(tenant.owner.password);
+    await page.getByRole("button", { name: "Masuk" }).click();
+    await page.getByRole("button", { name: "Aktifkan" }).click();
+    await page.getByRole("button", { name: new RegExp(user) }).click();
+    for (const digit of pin) await page.getByRole("button", { name: digit, exact: true }).click();
+    await expect(page).not.toHaveURL(/\/lock$/);
+    // The device works in table-service mode once its bill loop has seen the outlet's mode.
+    await nav(page, "Bill");
+    await expect(page.getByText("dari semua perangkat outlet ini")).toBeVisible({ timeout: 20_000 });
+    return page;
+  };
+
+  const waiter = await device("Dewi", "1357");
+  await nav(waiter, "Jual");
+  await expect(waiter.getByRole("link", { name: /Bayar/ })).toHaveCount(0); // a waiter never takes money
+  await waiter.getByRole("button", { name: "Makan di tempat" }).click();
+  await waiter.getByRole("button", { name: /A1/ }).click();
+  await waiter.getByRole("button", { name: /^Kopi Susu E2E/ }).click();
+  await waiter.getByRole("button", { name: "Simpan bill" }).click();
+
+  const cashier = await device("Rina", "2468");
+  await nav(cashier, "Shift");
+  await cashier.getByRole("button", { name: "Buka Shift" }).click();
+  await nav(cashier, "Bill");
+  await cashier.getByRole("button", { name: "Lanjutkan A1" }).click({ timeout: 20_000 });
+  await expect(cashier).toHaveURL(/\/sell$/);
+  await cashier.getByRole("link", { name: /Bayar · Rp 20\.790/ }).click();
+  await cashier.getByRole("button", { name: "Rp 20.790" }).click();
+  await cashier.getByRole("button", { name: "Selesaikan" }).click();
+  await expect(cashier.getByRole("dialog", { name: "Transaksi berhasil" })).toBeVisible();
+
+  await nav(waiter, "Bill");
+  await expect(waiter.getByText("Tidak ada bill terbuka")).toBeVisible({ timeout: 30_000 });
 });

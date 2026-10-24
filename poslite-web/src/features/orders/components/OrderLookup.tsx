@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth";
+import { isManager } from "@/shared/db";
 import { useOnlineStatus } from "@/shared/hooks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -48,7 +49,7 @@ export function OrderLookup() {
           source={found.source}
           methods={methods}
           defaultMethodId={methods.find((m) => found.paymentMethodIds.includes(m.id))?.id ?? methods[0]?.id ?? ""}
-          actorIsManager={user.role !== "cashier"}
+          actorIsManager={isManager(user.role)}
           approvers={approvers}
           verifyApprover={verifyApprover}
           onConfirm={async (request) => {

@@ -18,7 +18,11 @@ export interface OutletSetting {
   brand?: BrandIdentityRow; // ADR-022; missing on a device set up by a server before brands
   discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
   priceIncludesTax?: boolean; // the brand's prices include service and PB1 (ADR-030); missing = they do not
+  serviceMode?: ServiceMode; // ADR-031; missing = counter
 }
+
+/** ADR-031: open bills kept on each device (counter) or shared through the server (table_service). */
+export type ServiceMode = "counter" | "table_service";
 
 /** A brand's manual-discount rules (06 Order rule 5). */
 export interface DiscountPolicyRow {
@@ -83,7 +87,11 @@ export interface PaymentMethodRow {
   sortOrder: number;
 }
 
-export type UserRole = "owner" | "manager" | "cashier";
+/** A waiter takes orders on a table-service outlet but never takes money (ADR-031). */
+export type UserRole = "owner" | "manager" | "cashier" | "waiter";
+
+/** Who may approve voids, refunds and discounts over the limit (never a cashier or a waiter). */
+export const isManager = (role: UserRole | undefined): boolean => role === "owner" || role === "manager";
 
 export interface UserRow {
   id: string;
@@ -229,7 +237,8 @@ export type SyncStateRow =
   | { key: "pullCursor"; value: number }
   | { key: "lastSyncAt"; value: string }
   | { key: "mediaBaseUrl"; value: string } // from every pull page: follows an S3 vendor switch
-  | { key: "recentLogins"; value: string[] }; // user ids, most recent first: the lock screen opens on the first
+  | { key: "recentLogins"; value: string[] } // user ids, most recent first: the lock screen opens on the first
+  | { key: "serviceMode"; value: ServiceMode }; // the mode this device works in (ADR-031 rule 1)
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =
@@ -345,7 +354,10 @@ export interface OpenBillLine {
   sentQuantity?: number;
 }
 
-/** A dine-in bill not paid yet: lives only on this device, never synced (ADR-015). */
+/**
+ * A dine-in bill not paid yet. At a counter outlet it lives only on this device (ADR-015); at a
+ * table-service outlet it is a copy of the server's bill, edited by one device at a time (ADR-031).
+ */
 export interface OpenBillRow {
   id: string;
   tableId: string | null;
@@ -355,4 +367,16 @@ export interface OpenBillRow {
   openedBy: string;
   openedAt: string;
   updatedAt: string;
+  /** `local`: only on this device (counter mode, or opened offline and not uploaded yet). */
+  origin?: "local" | "server";
+  /** The server version this copy is based on; a save names it. */
+  serverVersion?: number | null;
+  /** Changed here and not on the server yet. */
+  dirty?: boolean;
+  /** Until when this device may edit the bill (its lease). */
+  leaseUntil?: string | null;
+  /** Another device is editing the bill: read-only here. */
+  leaseHolder?: { deviceName: string; userId: string; until: string } | null;
+  /** This device's edit the server refused (another device changed the bill): shown, never merged. */
+  conflict?: { lines: OpenBillLine[]; at: string } | null;
 }

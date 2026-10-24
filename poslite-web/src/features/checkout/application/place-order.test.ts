@@ -241,6 +241,13 @@ describe("placeOrder discount approval (06 Order rule 5)", () => {
     expect(placed.status).toBe("paid");
   });
 
+  it("never takes a waiter as the approver (ADR-031)", async () => {
+    await strict();
+    await db.users.put({ ...MANAGER, role: "waiter" });
+
+    await expect(placeOrder(order({ discount: { type: "percentage", value: 15 }, discountApprovedBy: IDS.manager }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
+  });
+
   it("keeps the old 20% limit on an outlet synced before brands had a policy", async () => {
     await expect(placeOrder(order({ discount: { type: "percentage", value: 25 } }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
   });

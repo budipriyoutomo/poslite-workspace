@@ -1,7 +1,7 @@
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { PosDb, RefundRow } from "@/shared/db";
-import { getDb, readState, writeState } from "@/shared/db";
+import { getDb, isManager, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 import { discountAmount } from "@/shared/money";
@@ -25,11 +25,11 @@ const defaultDeps = (): CorrectionDeps => ({ db: getDb(), now: () => new Date(),
 export async function checkApproval(db: PosDb, actorId: string, approvedBy: string | null): Promise<void> {
   const actor = await db.users.get(actorId);
   if (approvedBy === null) {
-    if (actor && actor.role !== "cashier") return;
+    if (actor && isManager(actor.role)) return;
     throw new AppError("APPROVAL_REQUIRED");
   }
   const approver = await db.users.get(approvedBy);
-  if (!approver || approver.role === "cashier") throw new AppError("APPROVER_NOT_ALLOWED");
+  if (!approver || !isManager(approver.role)) throw new AppError("APPROVER_NOT_ALLOWED");
 }
 
 /** Cancels a whole order of this device while its shift is open (ADR-023), offline. */

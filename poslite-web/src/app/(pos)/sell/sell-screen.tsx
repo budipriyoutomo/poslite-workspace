@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useSession } from "@/features/auth";
 import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
 import { LineEditorDialog, type LineChoice, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
@@ -28,6 +29,7 @@ function appliedLabel(line: { discount: { type: string; value: number } | null; 
 /** Sell screen: catalog plus the order — a side panel from tablet width, a bottom bar and drawer on phones. */
 export function SellScreen() {
   const menu = useCatalog();
+  const isWaiter = useSession((s) => s.user?.role) === "waiter";
   const cart = useCart();
   const sale = useSaleChannel();
   const { rates } = sale; // the sale channel's rates (ADR-029), as placeOrder snapshots them
@@ -78,11 +80,14 @@ export function SellScreen() {
       <DineInBar />
       <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
       <OrderSummary rates={rates}>
-        <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
-          <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
-            Bayar · {formatRupiah(totals.total)}
-          </Link>
-        </Button>
+        {/* A waiter saves the bill; the cashier takes the money (ADR-031). */}
+        {!isWaiter && (
+          <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
+            <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
+              Bayar · {formatRupiah(totals.total)}
+            </Link>
+          </Button>
+        )}
       </OrderSummary>
     </div>
   );

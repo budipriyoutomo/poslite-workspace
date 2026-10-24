@@ -2,12 +2,13 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth";
 import { useCart } from "@/features/cart";
-import { DEFAULT_DISCOUNT_POLICY, type OrderRow } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, getDb, isManager, type OrderRow, readState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
@@ -62,7 +63,10 @@ export function CheckoutScreen() {
   const manual = manualDiscounts(totals.lines, discount, totals.orderDiscount);
   const needsManager =
     !!user &&
-    needsApproval({ role: user.role, manualPercentages: manual.percentages, manualAmount: manual.amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } });
+    needsApproval({ role: isManager(user.role) ? "manager" : "cashier", manualPercentages: manual.percentages, manualAmount: manual.amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } });
+
+  // ADR-031: a table-service outlet's payment closes the shared bill on the server.
+  const serviceMode = useLiveQuery(() => readState(getDb(), "serviceMode"), []);
 
   const confirm = async (payments: TenderedInput[]) => {
     if (!user) return;
@@ -78,6 +82,7 @@ export function CheckoutScreen() {
             promotionIds,
             payments,
             discountApprovedBy,
+            shared: serviceMode === "table_service",
           })
         : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy, channelId: channel?.id ?? null, externalRef });
       if (bill && remaining.length > 0) loadBill(bill, remaining, discount, promotionIds);

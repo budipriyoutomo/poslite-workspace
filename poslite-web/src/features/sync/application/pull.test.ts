@@ -76,6 +76,28 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(false);
   });
 
+  it("keeps the outlet's service mode (ADR-031); an older server means counter", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, service_mode: "table_service" } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.serviceMode).toBe("table_service");
+
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.serviceMode).toBe("counter");
+  });
+
+  it("keeps a waiter (ADR-031)", async () => {
+    const waiter = {
+      entity: "user",
+      op: "upsert",
+      id: ULID("A", 7),
+      version: 9,
+      data: { name: "Dewi", role: "waiter", pin_hash: "aGFzaA==", pin_salt: "c2FsdA==", pin_iterations: 310000 },
+    };
+    await pullAll(deps(vi.fn(async () => page([...MENU, waiter], 9))));
+
+    expect((await db.users.get(ULID("A", 7)))?.role).toBe("waiter");
+  });
+
   it("keeps sales channels with their prices, and drops one switched off (ADR-029)", async () => {
     const gofood = {
       entity: "sales_channel",

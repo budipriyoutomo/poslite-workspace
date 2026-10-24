@@ -8,7 +8,7 @@ import { useSession } from "@/features/auth";
 import { printRefundSlip, printVoidSlip } from "@/features/printing";
 import { useOpenShift } from "@/features/shift";
 import type { OrderRow, PaymentRow, RefundRow } from "@/shared/db";
-import { getDb } from "@/shared/db";
+import { getDb, isManager } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
@@ -31,7 +31,7 @@ export function OrderCorrections({ order, payments, refunds }: { order: OrderRow
   const approvers = useApprovers();
   const methods = usePaymentMethods();
   if (!user) return null;
-  const actorIsManager = user.role !== "cashier";
+  const actorIsManager = isManager(user.role);
   const canVoid = voidBlocker({ status: order.status, deviceId: "here", shiftId: order.shiftId }, { deviceId: "here", openShiftId: shift?.id ?? null, refunded: refunds.length > 0 }) === null;
 
   const confirmVoid = async (input: { reason: string; approvedBy: string | null }) => {

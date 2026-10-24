@@ -43,7 +43,7 @@ export class PosDb extends Dexie {
   payments!: Table<PaymentRow, string>;
   refunds!: Table<RefundRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
-  /** Unpaid dine-in bills: device-local, never synced or pushed (ADR-015). */
+  /** Unpaid dine-in bills: this device's own (ADR-015), or copies of the outlet's shared bills (ADR-031). */
   openBills!: Table<OpenBillRow, string>;
 
   // Infrastructure
@@ -90,6 +90,17 @@ export class PosDb extends Dexie {
     this.version(5).stores({ refunds: "id, orderId, shiftId, businessDate, createdAt, syncStatus" });
     // v6 (ADR-029): sales channels from the server, each with its price list embedded.
     this.version(6).stores({ salesChannels: "id, sortOrder" });
+    // v7 (ADR-031): shared open bills of a table-service outlet; the bills already here are this device's own.
+    this.version(7)
+      .stores({ openBills: "id, tableId, openedAt, origin" })
+      .upgrade((tx) =>
+        tx
+          .table("openBills")
+          .toCollection()
+          .modify((b: Record<string, unknown>) => {
+            b.origin = "local";
+          }),
+      );
   }
 }
 

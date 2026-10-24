@@ -36,6 +36,8 @@ export const changeSchema = z.union([
         .optional(),
       // ADR-030; optional for older servers (prices before tax).
       price_includes_tax: z.boolean().optional(),
+      // ADR-031; optional for older servers (counter).
+      service_mode: z.enum(["counter", "table_service"]).optional(),
     }),
   ),
   upsert("category", z.object({ name: z.string(), sort_order: z.number().int(), print_role: z.enum(["receipt", "kitchen", "bar"]) })),
@@ -67,7 +69,7 @@ export const changeSchema = z.union([
     "user",
     z.object({
       name: z.string(),
-      role: z.enum(["owner", "manager", "cashier"]),
+      role: z.enum(["owner", "manager", "cashier", "waiter"]),
       pin_hash: z.string().nullable(),
       pin_salt: z.string().nullable(),
       pin_iterations: z.number().int().nullable(),

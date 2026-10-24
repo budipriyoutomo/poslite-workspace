@@ -16,6 +16,37 @@ describe("OpenBillList", () => {
     expect(a1.getByText("Dibuka 09:00")).toBeInTheDocument();
   });
 
+  it("shows which device is editing a shared bill (ADR-031)", () => {
+    const held = [
+      {
+        ...bills[0]!,
+        leaseHolder: {
+          deviceName: "Pelayan 1",
+          userId: "U2",
+          until: "2099-01-01T00:00:00.000Z",
+        },
+      },
+    ];
+    render(<OpenBillList bills={held} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={vi.fn()} />);
+
+    expect(screen.getByText("Sedang diedit di Pelayan 1")).toBeInTheDocument();
+  });
+
+  it("shows this device's refused edit beside the bill, never merged", () => {
+    const refused = [
+      {
+        ...bills[0]!,
+        conflict: {
+          lines: [{ ...line, quantity: 3 }],
+          at: "2026-09-25T03:00:00.000Z",
+        },
+      },
+    ];
+    render(<OpenBillList bills={refused} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={vi.fn()} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("3× Kopi");
+  });
+
   it("resumes a bill", async () => {
     const onResume = vi.fn();
     render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={onResume} onCancel={vi.fn()} onMove={vi.fn()} />);

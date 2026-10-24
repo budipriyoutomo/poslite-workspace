@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import type { PosDb } from "@/shared/db";
+import { type OpenBillRow, type PosDb, writeState } from "@/shared/db";
 
 import { IDS, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
@@ -90,5 +90,51 @@ describe("closeShift with open bills (ADR-015)", () => {
 
     await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "OPEN_BILLS" });
     expect((await getOpenShift(db))?.status).toBe("open");
+  });
+});
+
+describe("closeShift at a table-service outlet (ADR-031 rule 7)", () => {
+  const shared = (id: string, extra: Partial<OpenBillRow>): OpenBillRow => ({
+    id,
+    tableId: null,
+    tableLabel: "A1",
+    lines: [],
+    discount: null,
+    openedBy: IDS.cashier,
+    openedAt: "2026-09-25T03:00:00.000Z",
+    updatedAt: "2026-09-25T03:00:00.000Z",
+    origin: "server",
+    serverVersion: 1,
+    ...extra,
+  });
+  beforeEach(async () => {
+    await writeState(db, "serviceMode", "table_service");
+    await openShift({ cashierId: IDS.cashier, openingCash: 0 }, testDeps(db));
+  });
+
+  it("closes while the outlet's other bills stay open: they belong to the outlet", async () => {
+    await db.openBills.put(
+      shared("B1", {
+        leaseHolder: {
+          deviceName: "Pelayan 1",
+          userId: "U2",
+          until: "2099-01-01T00:00:00.000Z",
+        },
+      }),
+    );
+
+    await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).resolves.toMatchObject({ status: "closed" });
+  });
+
+  it("refuses while this device holds a bill's lease", async () => {
+    await db.openBills.put(shared("B1", { leaseUntil: "2099-01-01T00:00:00.000Z" }));
+
+    await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "OPEN_BILLS" });
+  });
+
+  it("refuses while a bill change of this device has not reached the server", async () => {
+    await db.openBills.put(shared("B1", { dirty: true }));
+
+    await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "OPEN_BILLS" });
   });
 });
