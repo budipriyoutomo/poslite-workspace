@@ -1,4 +1,4 @@
-type Role = "owner" | "manager" | "cashier";
+type Role = "owner" | "manager" | "cashier" | "waiter";
 
 /** GET /me/access: the brands and outlets this user may pick (ADR-022). Mirrors the API schema
  * (domain stays free of the generated client). */

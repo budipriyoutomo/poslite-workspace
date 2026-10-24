@@ -45,6 +45,7 @@ describe("problem", () => {
   it("follows the server's scope rules", () => {
     expect(problem({ role: "owner", scope: "brand:B1" })).toBe("Pemilik selalu untuk seluruh perusahaan");
     expect(problem({ role: "cashier", scope: "company" })).toBe("Kasir bekerja di brand atau outlet");
+    expect(problem({ role: "waiter", scope: "company" })).toBe("Pelayan bekerja di brand atau outlet");
     expect(problem({ role: "manager", scope: "company" })).toBeNull();
   });
 });

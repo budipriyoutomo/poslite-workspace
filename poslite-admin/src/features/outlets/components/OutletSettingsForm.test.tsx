@@ -16,6 +16,7 @@ const SETTINGS = {
   service_rate_bps: 550,
   receipt_header: "Kopi Maharasa",
   receipt_footer: "",
+  service_mode: "counter",
 };
 
 function server() {
@@ -51,7 +52,17 @@ describe("OutletSettingsForm", () => {
       service_rate_bps: 0,
       receipt_header: "Kopi Maharasa",
       receipt_footer: "",
+      service_mode: "counter",
     });
+  });
+
+  it("switches the outlet to table service (ADR-031)", async () => {
+    const { calls } = server();
+    await userEvent.selectOptions(await screen.findByLabelText("Mode layanan"), "table_service");
+    await userEvent.click(screen.getByRole("button", { name: "Simpan pengaturan" }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(calls.find((c) => c.method === "PUT")!.body).toMatchObject({ service_mode: "table_service" });
   });
 
   it("does not save an invalid rate", async () => {

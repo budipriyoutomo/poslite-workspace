@@ -11,6 +11,7 @@ export type AssignmentIn = components["schemas"]["AssignmentIn"];
 export type Role = AssignmentIn["role"];
 
 export const ROLES: { value: Role; label: string }[] = [
+  { value: "waiter", label: "Pelayan" },
   { value: "cashier", label: "Kasir" },
   { value: "manager", label: "Manajer" },
   { value: "owner", label: "Pemilik" },

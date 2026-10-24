@@ -377,6 +377,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/open-bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Open Bills
+         * @description The outlet's open bills; devices poll this every few seconds while online.
+         */
+        get: operations["list_open_bills_api_v1_open_bills_get"];
+        put?: never;
+        /** Open Bill */
+        post: operations["open_bill_api_v1_open_bills_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/open-bills/{bill_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Bill
+         * @description Saves over `version`; an older version is 409 BILL_VERSION_CONFLICT (never merged).
+         */
+        put: operations["save_bill_api_v1_open_bills__bill_id__put"];
+        post?: never;
+        /** Cancel Bill */
+        delete: operations["cancel_bill_api_v1_open_bills__bill_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/open-bills/{bill_id}/lease": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lease Bill
+         * @description Takes the bill for editing, or renews the lease while it stays on screen.
+         */
+        post: operations["lease_bill_api_v1_open_bills__bill_id__lease_post"];
+        /** Release Lease */
+        delete: operations["release_lease_api_v1_open_bills__bill_id__lease_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders": {
         parameters: {
             query?: never;
@@ -1462,7 +1525,7 @@ export interface components {
              * Role
              * @description Role over the whole brand; null = access to some of its outlets only
              */
-            role: ("owner" | "manager" | "cashier") | null;
+            role: ("owner" | "manager" | "cashier" | "waiter") | null;
         };
         /** AccessOutlet */
         AccessOutlet: {
@@ -1476,7 +1539,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
         };
         /** AccessTenant */
         AccessTenant: {
@@ -1766,6 +1829,22 @@ export interface components {
         ApiResponse_NoneType_: {
             /** Data */
             data: null;
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[OpenBillOut] */
+        ApiResponse_OpenBillOut_: {
+            data: components["schemas"]["OpenBillOut"];
             /**
              * Message
              * @default OK
@@ -2304,6 +2383,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[OpenBillOut]] */
+        ApiResponse_list_OpenBillOut__: {
+            /** Data */
+            data: components["schemas"]["OpenBillOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[OperatorOut]] */
         ApiResponse_list_OperatorOut__: {
             /** Data */
@@ -2555,7 +2651,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
             /**
              * Scope Type
              * @enum {string}
@@ -2572,7 +2668,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
             /**
              * Scope Type
              * @enum {string}
@@ -3297,6 +3393,26 @@ export interface components {
             /** Unit Price */
             unit_price: number;
         };
+        JsonValue: unknown;
+        /** LeaseIn */
+        LeaseIn: {
+            /** User Id */
+            user_id: string;
+        };
+        /** LeaseOut */
+        LeaseOut: {
+            /** Device Id */
+            device_id: string;
+            /** Device Name */
+            device_name: string;
+            /**
+             * Until
+             * Format: date-time
+             */
+            until: string;
+            /** User Id */
+            user_id: string;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -3365,6 +3481,37 @@ export interface components {
             /** Price */
             price: number;
         };
+        /** NewBillIn */
+        NewBillIn: {
+            /** Discount */
+            discount?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /**
+             * Release Lease
+             * @default false
+             */
+            release_lease: boolean;
+            /** Table Id */
+            table_id?: string | null;
+            /** Table Label */
+            table_label: string;
+            /** User Id */
+            user_id: string;
+        };
         /** NewOutlet */
         NewOutlet: {
             /** Code */
@@ -3417,6 +3564,39 @@ export interface components {
              * @enum {string}
              */
             type: "cash" | "debit" | "qris" | "credit_card" | "voucher" | "other";
+        };
+        /** OpenBillOut */
+        OpenBillOut: {
+            /** Discount */
+            discount: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Id */
+            id: string;
+            /** @description null when nobody is editing the bill */
+            lease: components["schemas"]["LeaseOut"] | null;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /** Table Id */
+            table_id: string | null;
+            /** Table Label */
+            table_label: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
         };
         /** OperatorIn */
         OperatorIn: {
@@ -3638,7 +3818,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
         };
         /** OutletSettingsIn */
         OutletSettingsIn: {
@@ -3656,6 +3836,12 @@ export interface components {
              * @default
              */
             receipt_header: string;
+            /**
+             * Service Mode
+             * @default counter
+             * @enum {string}
+             */
+            service_mode: "counter" | "table_service";
             /** Service Rate Bps */
             service_rate_bps: number;
             /** Tax Rate Bps */
@@ -3683,6 +3869,12 @@ export interface components {
              * @default
              */
             receipt_header: string;
+            /**
+             * Service Mode
+             * @default counter
+             * @enum {string}
+             */
+            service_mode: "counter" | "table_service";
             /** Service Rate Bps */
             service_rate_bps: number;
             /** Tax Rate Bps */
@@ -4240,6 +4432,30 @@ export interface components {
             /** Products */
             products: components["schemas"]["ProductSales"][];
             totals: components["schemas"]["Totals"];
+        };
+        /** SaveBillIn */
+        SaveBillIn: {
+            /** Discount */
+            discount?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Release Lease
+             * @default false
+             */
+            release_lease: boolean;
+            /** Table Id */
+            table_id?: string | null;
+            /** Table Label */
+            table_label: string;
+            /** User Id */
+            user_id: string;
+            /** Version */
+            version: number;
         };
         /** ShiftDetailOut */
         ShiftDetailOut: {
@@ -5521,6 +5737,193 @@ export interface operations {
             };
             path: {
                 group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_open_bills_api_v1_open_bills_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_OpenBillOut__"];
+                };
+            };
+        };
+    };
+    open_bill_api_v1_open_bills_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewBillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_bill_api_v1_open_bills__bill_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveBillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_bill_api_v1_open_bills__bill_id__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lease_bill_api_v1_open_bills__bill_id__lease_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_lease_api_v1_open_bills__bill_id__lease_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
             };
             cookie?: never;
         };
