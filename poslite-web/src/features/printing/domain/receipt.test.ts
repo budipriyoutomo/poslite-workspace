@@ -55,6 +55,17 @@ describe("receipt (58 mm, 32 columns)", () => {
     ]);
   });
 
+  it("shows service and PB1 as included in the price when the brand's prices include tax (ADR-030)", () => {
+    const inclusive = { ...example.order, rates: { serviceBps: 500, taxBps: 1_000, includesTax: true }, serviceCharge: 2_922, tax: 6_136, total: 67_500, changeAmount: 32_500 };
+    const lines = renderText(buildReceipt({ ...example, order: inclusive }), 32);
+
+    expect(lines.slice(lines.indexOf("Diskon 10%                -7.500") + 1, lines.indexOf("Tunai                    100.000"))).toEqual([
+      "TOTAL                     67.500",
+      "Termasuk service 5%        2.922",
+      "Termasuk PB1 10%           6.136",
+    ]);
+  });
+
   it("omits discount, service and PB1 rows when they are zero", () => {
     const lines = renderText(
       buildReceipt({ ...example, order: { ...example.order, discount: null, discountAmount: 0, rates: { serviceBps: 0, taxBps: 0 }, serviceCharge: 0, tax: 0 } }),

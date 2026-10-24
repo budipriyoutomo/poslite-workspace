@@ -14,7 +14,7 @@ describe("calculate (shared pricing fixture)", () => {
         discount: "discount" in l ? (l.discount as Discount) : null,
       })),
       discount as Discount | null,
-      { serviceBps: rates.service_bps, taxBps: rates.tax_bps },
+      { serviceBps: rates.service_bps, taxBps: rates.tax_bps, includesTax: "includes_tax" in rates && rates.includes_tax === true },
     );
 
     expect(result).toEqual({

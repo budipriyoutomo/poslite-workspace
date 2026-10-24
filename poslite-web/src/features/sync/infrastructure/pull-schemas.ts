@@ -34,6 +34,8 @@ export const changeSchema = z.union([
           cashier_max_amount: z.number().int(),
         })
         .optional(),
+      // ADR-030; optional for older servers (prices before tax).
+      price_includes_tax: z.boolean().optional(),
     }),
   ),
   upsert("category", z.object({ name: z.string(), sort_order: z.number().int(), print_role: z.enum(["receipt", "kitchen", "bar"]) })),

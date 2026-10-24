@@ -27,6 +27,13 @@ describe("OrderSummary", () => {
     expect(row("Total")).toHaveTextContent("Rp 80.850");
   });
 
+  it("totals the menu price and shows service and PB1 inside it when prices include tax (ADR-030)", () => {
+    render(<OrderSummary rates={{ ...rates, includesTax: true }} />);
+    expect(row("Total")).toHaveTextContent("Rp 70.000");
+    expect(row("Termasuk service 5%")).toHaveTextContent("Rp 3.030");
+    expect(row("Termasuk PB1 10%")).toHaveTextContent("Rp 6.364");
+  });
+
   it("hides service and PB1 when the outlet does not charge them", () => {
     render(<OrderSummary rates={{ serviceBps: 0, taxBps: 0 }} />);
     expect(screen.queryByText(/Service|PB1/)).not.toBeInTheDocument();

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { openShift } from "@/features/shift";
 import type { PosDb } from "@/shared/db";
 
-import { IDS, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
+import { IDS, OUTLET, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
 import { type PlaceOrderInput, placeOrder } from "./place-order";
 
@@ -54,6 +54,16 @@ describe("placeOrder", () => {
       changeAmount: 27_235,
     });
     expect(await db.orders.get(placed.id)).toEqual(placed);
+  });
+
+  it("charges the menu price when the brand's prices include tax, and says so in order.placed (ADR-030)", async () => {
+    await seedOutlet(db, { ...OUTLET, priceIncludesTax: true });
+
+    const placed = await placeOrder(order(), testDeps(db));
+
+    expect(placed).toMatchObject({ rates: { serviceBps: 500, taxBps: 1_000, includesTax: true }, serviceCharge: 2_727, tax: 5_727, total: 63_000, changeAmount: 37_000 });
+    const event = (await nonShiftEvents())[0]!;
+    expect((event.payload as { rates: unknown }).rates).toEqual({ service_bps: 500, tax_bps: 1_000, includes_tax: true });
   });
 
   it("snapshots product and modifier names and prices on the lines", async () => {

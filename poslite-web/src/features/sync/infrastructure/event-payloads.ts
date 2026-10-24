@@ -59,7 +59,8 @@ export const orderPlaced = z.strictObject({
     )
     .min(1),
   discount: discount.nullable(),
-  rates: z.strictObject({ service_bps: bps, tax_bps: bps }),
+  // includes_tax (ADR-030) is sent only when true, so a server from before it still accepts the rest.
+  rates: z.strictObject({ service_bps: bps, tax_bps: bps, includes_tax: z.boolean().optional() }),
   totals: z.strictObject({ subtotal: rupiah, discount_amount: rupiah, service_charge: rupiah, tax: rupiah, total: rupiah }),
   payments: z
     .array(

@@ -257,3 +257,43 @@ test("a void and a refund made offline reach the server without flags", async ({
       [[20_790, []]],
     ]);
 });
+
+// P0-3 (ADR-030): a brand whose menu prices include service and PB1. The device charges the menu
+// price offline, the receipt shows what is inside it, and the server agrees without flags.
+test("prices that include tax: the guest pays the menu price and the server stores the same split", async ({ page, context, request }) => {
+  const tenant = await tenantWithMenu(request);
+  const [brand] = await call(request, "get", "/brands", tenant.token);
+  await call(request, "put", `/brands/${brand.id}`, tenant.token, { code: brand.code, name: brand.name, price_includes_tax: true });
+
+  await page.goto("/");
+  await page.getByLabel("Email").fill(tenant.owner.email);
+  await page.getByLabel("Password").fill(tenant.owner.password);
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await page.getByRole("button", { name: "Aktifkan" }).click();
+  await page.getByRole("button", { name: /Rina/ }).click();
+  for (const digit of "2468") await page.getByRole("button", { name: digit, exact: true }).click();
+  await page.getByRole("button", { name: "Buka Shift" }).click();
+  await expect(page).toHaveURL(/\/sell$/);
+
+  await context.setOffline(true);
+  await page.getByRole("button", { name: /Kopi Susu E2E/ }).click();
+  // 18.000 already holds PB1 10% (1.636) and service 5% (779)
+  await page.getByRole("link", { name: /Bayar · Rp 18\.000/ }).click();
+  await page.getByRole("button", { name: "Rp 18.000" }).click();
+  await page.getByRole("button", { name: "Selesaikan" }).click();
+  const done = page.getByRole("dialog", { name: "Transaksi berhasil" });
+  await expect(done.getByLabel("Pratinjau struk")).toContainText("Termasuk PB1 10%");
+  const receiptNo = (await done.getByText(/^JKT01A-\d{6}-0001$/).textContent())!;
+
+  await context.setOffline(false);
+  const businessDate = `20${receiptNo.slice(7, 9)}-${receiptNo.slice(9, 11)}-${receiptNo.slice(11, 13)}`;
+  await expect
+    .poll(
+      async () => {
+        const orders = await call(request, "get", `/orders?outlet_id=${tenant.outletId}&business_date=${businessDate}`, tenant.token);
+        return orders.map((o: { total: number; flags: string[] }) => [o.total, o.flags]);
+      },
+      { timeout: 30_000 },
+    )
+    .toEqual([[18_000, []]]);
+});

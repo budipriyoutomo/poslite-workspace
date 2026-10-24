@@ -29,7 +29,7 @@ export function SellScreen() {
   const catalog = useCatalog();
   const outlet = useOutletSetting();
   const cart = useCart();
-  const rates = { serviceBps: outlet?.serviceBps ?? 0, taxBps: outlet?.taxBps ?? 0 };
+  const rates = { serviceBps: outlet?.serviceBps ?? 0, taxBps: outlet?.taxBps ?? 0, includesTax: outlet?.priceIncludesTax === true };
   const totals = useCartTotals(rates);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);

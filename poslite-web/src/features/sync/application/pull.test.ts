@@ -65,6 +65,17 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.discountPolicy).toEqual({ percentages: [5], amounts: [2_000], allowCustom: false, cashierMaxPercentage: 5, cashierMaxAmount: 2_000 });
   });
 
+  it("keeps whether the brand's prices include tax (ADR-030); an older server means they do not", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, price_includes_tax: true } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(true);
+
+    const older: Record<string, unknown> = { ...setting!.data };
+    delete older.price_includes_tax;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: older, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(false);
+  });
+
   it("keeps image keys and the server's current media base URL (ADR-021)", async () => {
     await pullAll(deps(vi.fn(async () => page(MENU, 9))));
 

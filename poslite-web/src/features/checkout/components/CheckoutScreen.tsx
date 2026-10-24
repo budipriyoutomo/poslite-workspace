@@ -49,6 +49,7 @@ export function CheckoutScreen() {
   const rates = {
     serviceBps: outlet?.serviceBps ?? 0,
     taxBps: outlet?.taxBps ?? 0,
+    includesTax: outlet?.priceIncludesTax === true, // ADR-030
   };
   const [take, setTake] = useState<Record<string, number> | null>(null);
   const { paying, remaining } = toPay(lines, take);

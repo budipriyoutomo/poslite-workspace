@@ -70,6 +70,7 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
             cashierMaxPercentage: d.discount_policy.cashier_max_percentage,
             cashierMaxAmount: d.discount_policy.cashier_max_amount,
           },
+          priceIncludesTax: d.price_includes_tax ?? false,
         },
       }));
     }
