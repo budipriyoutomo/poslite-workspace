@@ -54,7 +54,7 @@ export class PosDb extends Dexie {
 
 Perubahan skema = `this.version(n).stores(...).upgrade(tx => ...)` — jangan edit versi lama.
 
-Versi yang sudah ada: v2 `modifierOptions`; v3 `diningTables`, `promotions`, `openBills`; v4 `products.imageKey` (ADR-021); **v5** `refunds: 'id, orderId, shiftId, businessDate, createdAt, syncStatus'` (ADR-023 — baris & pembayaran refund disimpan di dalam dokumennya). `orders.voidedAt`/`voidReason` dan `syncState.refundCounter` tidak butuh index. Event outbox baru: `order.voided`, `order.refunded`. Export darurat (ADR-024) membaca seluruh `outbox` tanpa menghapusnya.
+Versi yang sudah ada: v2 `modifierOptions`; v3 `diningTables`, `promotions`, `openBills`; v4 `products.imageKey` (ADR-021); **v5** `refunds: 'id, orderId, shiftId, businessDate, createdAt, syncStatus'` (ADR-023 — baris & pembayaran refund disimpan di dalam dokumennya). `orders.voidedAt`/`voidReason` dan `syncState.refundCounter` tidak butuh index. Event outbox baru: `order.voided`, `order.refunded`; lalu `bill.item_voided` (ADR-028) — ditulis dalam transaksi yang sama dengan `openBills`, tanpa versi Dexie baru. Export darurat (ADR-024) membaca seluruh `outbox` tanpa menghapusnya.
 
 ## Outbox Pattern (Push)
 
@@ -64,7 +64,7 @@ Setiap aksi kasir menulis **data + event outbox dalam satu Dexie transaction**. 
 interface OutboxRow {
   seq?: number;                 // auto increment lokal → urutan kirim
   id: string;                   // ULID = Idempotency-Key
-  type: 'shift.opened' | 'shift.closed' | 'order.placed' | 'order.voided' | 'cash.moved';
+  type: 'shift.opened' | 'shift.closed' | 'cash.moved' | 'order.placed' | 'order.voided' | 'order.refunded' | 'bill.item_voided';
   aggregateId: string;
   payload: unknown;             // divalidasi Zod sebelum enqueue
   status: 'pending' | 'sending' | 'failed' | 'dead';

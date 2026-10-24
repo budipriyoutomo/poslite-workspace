@@ -4,7 +4,7 @@ Status per **2026-10-24**, berdasarkan review repo `poslite-workspace` commit `2
 
 Pekerjaan dibagi ke dalam **Tahap A–F** (§4). Penamaan "Tahap" sengaja dibedakan dari **Fase 0–7** di [08](./08-roadmap-and-testing.md) agar tidak tertukar.
 
-Penomoran melanjutkan yang sudah ada (ADR terakhir ADR-027, migrasi terakhir `0022`, Dexie terakhir v5). Nomor di dokumen ini dialokasikan **sesuai urutan pengerjaan** (lihat §3.1). Bila urutan berubah, nomor diambil ulang saat item dikerjakan, bukan dipaksa sesuai tabel.
+Penomoran melanjutkan yang sudah ada (ADR terakhir ADR-027, migrasi terakhir `0022`, Dexie terakhir v5; P0-1 tidak butuh versi Dexie, jadi v6 dipakai P0-2). Nomor di dokumen ini dialokasikan **sesuai urutan pengerjaan** (lihat §3.1). Bila urutan berubah, nomor diambil ulang saat item dikerjakan, bukan dipaksa sesuai tabel.
 
 ---
 
@@ -58,16 +58,16 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 
 | Item | ADR | Migrasi | Dexie |
 |---|---|---|---|
-| P0-1 | ADR-028 | `0023_bill_item_voids` (tabel + kolom void di `rpt_daily_sales`) | **v6**: index `openBills.updatedAt` |
+| P0-1 ✅ | ADR-028 | `0023_bill_item_voids` (`bill_voids`, `bill_void_lines`, kolom void di `rpt_daily_sales`) | — (tidak perlu; event masuk `outbox`) |
 | P0-3 | ADR-030 | `0024_brand_price_includes_tax` | — (flag ikut data brand di `settings`) |
-| P0-2 | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v7**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
-| P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v8**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
-| P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v9**: `queueCounters: "businessDate"` |
-| P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v9**: `availabilityOverrides: "productId"` |
+| P0-2 | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
+| P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
+| P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v8**: `queueCounters: "businessDate"` |
+| P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v8**: `availabilityOverrides: "productId"` |
 | P1-3 | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `payments.rounding_amount`, `refunds.rounding_amount`) | — (pengaturan outlet di `settings`) |
 | P1-8 | — | `0031_operator_totp` (secret TOTP terenkripsi, `operator_recovery_codes`) | — |
 
-ADR-029 dan ADR-030 dinomori sesuai urutan dokumen (channel lebih dulu dibahas), walaupun P0-3 dikerjakan lebih dulu. v9 menggabungkan perubahan P1-1 dan P1-2 karena dikerjakan di tahap yang sama.
+ADR-029 dan ADR-030 dinomori sesuai urutan dokumen (channel lebih dulu dibahas), walaupun P0-3 dikerjakan lebih dulu. v8 menggabungkan perubahan P1-1 dan P1-2 karena dikerjakan di tahap yang sama.
 
 ---
 
@@ -88,7 +88,7 @@ Minggu  1    2    3    4    5    6    7    8    9   10   11   12   13
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P0-1 Audit batal bill & item (ADR-028, migrasi `0023`, Dexie v6) | Putuskan D2–D5 dan catat di §2 (D1 sudah) |
+| P0-1 Audit batal bill & item (ADR-028, migrasi `0023`) ✅ | Putuskan D2–D5 dan catat di §2 (D1 sudah) |
 | P1-9 bagian 1 (perbaikan 09) | Pesan printer & perangkat sesuai D4 |
 | | Provisioning VPS + Vercel staging (bagian awal P1-7) |
 | | Hubungi calon restoran pilot, minta data menu |
@@ -104,7 +104,7 @@ Urutan wajib: **P0-3 dulu, baru P0-2**, karena aturan pajak per channel (ADR-029
 | Kode | Non-kode (paralel) |
 |---|---|
 | P0-3 Harga inklusif (ADR-030, migrasi `0024`) | Kumpulkan struktur komisi & harga ojol restoran pilot |
-| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v7) | Draf SOP Kasir |
+| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) | Draf SOP Kasir |
 | Fixture matriks channel × inklusif × diskon (§5, P0-2) | |
 
 **Gerbang keluar**: fixture `pricing-cases.json` (termasuk matriks) hijau di web & API; e2e jual GoFood offline → sync → laporan channel benar.
@@ -117,7 +117,7 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v8) | Draf SOP Pelayan |
+| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v7) | Draf SOP Pelayan |
 | Uji konkurensi: dua device mengedit bill yang sama, lease kedaluwarsa, device offline memegang lease | Survei alur pesanan di restoran pilot (siapa input, siapa menagih) |
 
 **Gerbang keluar**: P0-4 DoD hijau, termasuk e2e dua device; outlet counter-service tetap berperilaku sama seperti sebelum P0-4.
@@ -128,8 +128,8 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P1-1 Nama pelanggan & nomor antrian (migrasi `0028`, Dexie v9) | Draf SOP Gangguan & SOP Manajer |
-| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v9) | Checklist onboarding tenant |
+| P1-1 Nama pelanggan & nomor antrian (migrasi `0028`, Dexie v8) | Draf SOP Gangguan & SOP Manajer |
+| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) | Checklist onboarding tenant |
 | P1-3 Pembulatan tunai (migrasi `0030`) | |
 | P1-10 Uji beban device | |
 
@@ -171,83 +171,41 @@ Minggu 1 pendampingan intensif, minggu 2 lepas tangan. **Freeze fitur**: hanya p
 
 ## 5. Detail Perbaikan
 
-### P0-1 — Audit Batal Bill & Batal Item Sebelum Bayar (ADR-028)
+### P0-1 — Audit Batal Bill & Batal Item Sebelum Bayar (ADR-028) ✅
 
-**Masalah.** `cancelBill()` di `poslite-web/src/features/bills/application/bills.ts` menghapus open bill dari IndexedDB tanpa PIN, alasan, maupun event. Kasir juga bisa mengurangi qty baris yang sudah terkirim ke dapur (`sentQuantity > 0`). Di laporan, kejadian ini tidak terlihat sama sekali.
+**Status 2026-10-24: selesai** (branch `feat/bill-void-audit`). Keputusan lengkap di [01 ADR-028](./01-system-architecture.md).
 
-**ADR-028 — Batal setelah dapur = event immutable yang disetujui manajer.**
+**Masalah.** `cancelBill()` menghapus open bill dari IndexedDB tanpa PIN, alasan, maupun event, dan kasir bisa mengurangi qty baris yang sudah terkirim ke dapur (`sentQuantity > 0`). Di laporan kejadian ini tidak terlihat.
 
-- **Keputusan**:
-  - Baris yang **belum** terkirim ke dapur boleh dihapus bebas (belum ada biaya bahan).
-  - Mengurangi qty atau menghapus baris yang **sudah** terkirim, serta membatalkan bill yang memiliki baris terkirim, wajib PIN manajer dan alasan dari daftar baku.
-  - Setiap kejadian ditulis sebagai event `bill.item_voided` ke outbox, berjalan lewat jalur push yang sama dengan `order.voided`. Server menyimpan dan melaporkannya.
-  - Dapur menerima tiket **BATAL**.
-- **Alternatif ditolak**: menyimpan open bill di server hanya demi audit. Itu bertentangan dengan ADR-015 dan tetap tidak menolong saat offline.
+**Aturan yang dibangun**
 
-**Aturan domain**
+1. Unit yang **belum** terkirim boleh dihapus bebas.
+2. `voidedUnits(saved, next)` (`cart/domain/kitchen.ts`): unit terkirim yang tidak ada lagi di bill = void. Mengubah pilihan/catatan baris terkirim menghasilkan key baru, jadi dihitung void (item baru bagi dapur).
+3. `saveBill` dan `cancelBill` menolak void tanpa approval (`VOID_APPROVAL_REQUIRED`). Dengan approval: `checkApproval` (ADR-023 — kasir butuh manajer; manajer sendiri → `approved_by` null), satu event `bill.item_voided` per aksi (`scope: line | bill_cancelled`), lalu `reconcileSent` menurunkan `sentQuantity` ke sisa unit. Semua dalam satu transaksi Dexie.
+4. `payBill` menolak bill yang mengurangi unit terkirim tanpa disimpan dulu (`VOID_APPROVAL_REQUIRED`), sehingga void tidak bisa lolos lewat pembayaran.
+5. Alasan memakai daftar void yang sudah ada (`Salah input`, `Pelanggan batal`, `Lainnya` + teks).
+6. Nilai void = (harga + pilihan) × unit, sebelum diskon. Hanya laporan; tidak menyentuh kas atau pajak.
+7. Tiket **BATAL** ke stasiun dapur/bar (alasan + penyetuju), best effort; gagal cetak → toast "beri tahu dapur langsung".
+8. Server tidak pernah menolak karena alasan bisnis (ADR-003); hanya kontrak, `CASHIER_NOT_IN_OUTLET`, `APPROVER_NOT_ALLOWED` (`order.void`), `SHIFT_NOT_FOUND`.
 
-1. `voidableWithoutApproval(line) = (line.sentQuantity ?? 0) === 0`.
-2. Mengurangi qty baris dari `q` ke `q'`:
-   - Bila `q' ≥ sentQuantity` → bebas, `sentQuantity` tidak berubah.
-   - Bila `q' < sentQuantity` → void untuk `sentQuantity - q'` unit, butuh approval. Setelah disetujui, **`sentQuantity` diturunkan menjadi `q'`**. Tanpa ini, `kitchenPending()` di `cart/domain/kitchen.ts` dan `splitLines()` di `checkout/domain/split.ts` akan menghitung porsi terkirim yang sudah tidak ada.
-   - Menghapus baris = `q' = 0`.
-3. `cancelBill(bill)`:
-   - Bila tidak ada baris terkirim → hapus tanpa event (perilaku sekarang).
-   - Bila ada baris terkirim → satu event `bill.item_voided` per baris terkirim (`scope: "bill_cancelled"`), lalu bill dihapus.
-4. Alasan baku (dapat diatur per brand nanti): `CUSTOMER_CANCELLED`, `WRONG_INPUT`, `ITEM_UNAVAILABLE`, `QUALITY_ISSUE`, `OTHER` (wajib catatan).
-5. Nilai void = harga baris × qty yang dibatalkan, sebelum diskon order. Nilai ini hanya untuk laporan, tidak mempengaruhi kas.
-6. Approval memakai komponen PIN manajer yang sama dengan void/refund (ADR-023). `approved_by` wajib.
-7. Push **tidak pernah menolak** event ini karena alasan bisnis (konsisten dengan ADR-003).
-8. Tiket BATAL masuk antrian `printJobs` seperti tiket dapur biasa. Bila printer mati atau device offline, tiket tetap tercetak saat printer kembali.
-
-**Payload event** (`sync/push`, tipe `bill.item_voided`)
-
-```json
-{
-  "id": "01J…",
-  "type": "bill.item_voided",
-  "occurred_at": "2026-11-02T12:31:05+07:00",
-  "payload": {
-    "bill_id": "01J…",
-    "scope": "line",
-    "table_label": "A3",
-    "shift_id": "01J…",
-    "business_date": "2026-11-02",
-    "cashier_id": "01J…",
-    "approved_by": "01J…",
-    "reason": "CUSTOMER_CANCELLED",
-    "note": null,
-    "lines": [
-      { "product_id": "01J…", "name": "Salmon Roll", "modifiers": ["Extra mayo"], "unit_price": 45000, "quantity": 1, "amount": 45000 }
-    ]
-  }
-}
-```
+**Payload** — lihat [07](./07-api-contract.md) (`bill.item_voided`) dan fixture bersama `tests/fixtures/bill-void-events.json`. `business_date` diturunkan server dari `occurred_at`.
 
 **Perubahan**
 
 | Lapisan | Perubahan |
 |---|---|
-| Web — domain | `features/bills/domain/bill-void.ts`: `needsApproval(before, after)`, `buildVoidedLines()`, `applyVoid(line, q')` yang menurunkan `sentQuantity`; `cart/domain/kitchen.ts` mengekspor `sentPortion()` |
-| Web — application | `cancelBill()` dan `saveBill()` mengembalikan `pendingVoids`; use case baru `voidBillItems({ billId, lines, reason, approverPin })` menulis event outbox + bill + print job dalam satu transaksi Dexie |
-| Web — UI | Dialog alasan + PIN manajer saat mengurangi baris terkirim atau batal bill; label "sudah ke dapur" di baris cart |
-| Web — printing | `kitchen-ticket` mode `cancel`: header besar **BATAL**, meja, item, qty, alasan, nama penyetuju |
-| Web — Dexie v6 | Tidak ada tabel baru; event masuk `outbox`. Tambah index `openBills.updatedAt` (saat ini belum ada) |
-| API — migrasi `0023` | Tabel `bill_item_voids`: `id, tenant_id, outlet_id, device_id, shift_id, business_date, bill_id, table_label, product_id, name, quantity, unit_price, amount, reason, note, cashier_id, approved_by, occurred_at`, RLS tenant, index `(tenant_id, outlet_id, business_date)`; kolom `pre_payment_void_count`, `pre_payment_void_amount` di `rpt_daily_sales` |
-| API — reporting | Endpoint `reports/voids?from&to&outlet_id` per kasir/penyetuju/alasan |
-| API — day closing | Snapshot `totals` menambah `pre_payment_void_count` dan `pre_payment_void_amount` ([13](./13-day-closing.md)) |
-| Admin | Halaman **Laporan → Void & Batal**: tabel per kasir, penyetuju, alasan, item; export CSV |
-| Integrasi | Webhook baru `bill.item_voided` (ADR-020) agar ERP/inventory bisa mencatat waste |
-| Fixture | `bill-void-cases.json` dipakai oleh test web & API |
+| Web — domain | `voidedUnits`, `reconcileSent` (`features/cart/domain/kitchen.ts`); tiket dapur mode `cancel` (`printing/domain/kitchen-ticket.ts`) |
+| Web — application | `saveBill` / `cancelBill` menerima `void` (alasan, pelaku, penyetuju) dan mengembalikan baris yang dibatalkan; `sendVoidToKitchen`; guard di `payBill` |
+| Web — UI | `BillVoidDialog` (daftar item + nilai, alasan, PIN manajer) dari tombol **Simpan bill** dan **Batalkan** di daftar bill; label "N sudah ke dapur" di baris cart |
+| Web — Dexie | Tidak ada versi baru; event masuk `outbox` |
+| API — migrasi `0023` | `bill_voids` + `bill_void_lines` (RLS, trigger brand), `rpt_daily_sales.pre_payment_void_count` / `pre_payment_void_amount` |
+| API — sales / reporting | `VoidBillItemsHandler`; projector juga untuk `sales.bill_items_voided`; totals laporan, export CSV/XLSX, snapshot tutup hari; `GET /reports/bill-voids` |
+| Integrasi | Webhook `bill.item_voided` (detail void + `brand_id`) |
+| Admin | Halaman **Batal Sebelum Bayar** (tabel + CSV); baris "Batal sebelum bayar" di **Tutup Hari** |
 
-**Test (TDD, tulis dulu)**
+**Test**: unit domain & use case web (approval, event, `sentQuantity`, guard bayar), komponen dialog & daftar bill, kontrak Zod/Pydantic dari fixture bersama, unit & e2e API (push → laporan, replay → duplicate, hari tanpa penjualan, tutup hari, isolasi tenant, RLS), webhook, e2e Playwright `tests/e2e/bill-void.spec.ts` di 4 layout, komponen admin.
 
-- Unit web: `needsApproval` untuk semua kombinasi qty/sent; `applyVoid` menurunkan `sentQuantity`; setelah void, `kitchenPending()` tidak mengirim ulang porsi yang dibatalkan; split bill setelah void membagi `sentQuantity` dengan benar; `cancelBill` tanpa baris terkirim tidak membuat event, dengan baris terkirim membuat N event.
-- Komponen: mengurangi baris terkirim membuka dialog PIN; PIN salah → bill tidak berubah.
-- Integrasi API: push `bill.item_voided` idempoten (event sama dua kali → satu baris); isolasi tenant.
-- E2E `tests/e2e/bill-void.spec.ts`: buka bill → kirim dapur → batal bill → PIN manajer → tiket BATAL tercetak (fake driver) → sync → muncul di laporan admin.
-
-**DoD**: tidak ada jalur di UI untuk menghilangkan item terkirim tanpa approval; laporan void sebelum bayar tampil di admin dan snapshot tutup hari.
+**DoD**: ✅ tidak ada jalur di UI untuk menghilangkan item terkirim tanpa approval; laporan void sebelum bayar tampil di admin dan snapshot tutup hari.
 
 ---
 
@@ -281,7 +239,7 @@ Minggu 1 pendampingan intensif, minggu 2 lepas tangan. **Freeze fitur**: hanya p
 | API — migrasi `0026` | `orders.channel_id` (nullable untuk data lama, backfill dari `order_type`), `orders.external_ref`, read model `rpt_daily_channel_sales (tenant_id, outlet_id, business_date, channel_id, order_count, gross, net, total)` |
 | API — catalog | CRUD channel + bulk upsert `channel_prices`; delta pull menyertakan channel & harga |
 | API — sales | `place_order` memvalidasi harga baris terhadap channel (flag, bukan tolak — sama dengan kebijakan ADR-003); `PriceCalculator` memakai tarif efektif channel |
-| Web — Dexie v7 | Tabel `salesChannels` dan `channelPrices` (`[channelId+productId]`) diisi dari delta pull |
+| Web — Dexie v6 | Tabel `salesChannels` dan `channelPrices` (`[channelId+productId]`) diisi dari delta pull |
 | Web | Pemilih channel di header cart (default dari pengaturan device); grid produk menampilkan harga channel; field `external_ref` wajib bila `requires_external_ref`; metode bayar default dari channel |
 | Web — struk & tiket dapur | Nama channel + `external_ref` dicetak besar (driver ojol menyebut nomor ini) |
 | Admin | Halaman **Channel**: daftar, mode harga, matriks harga per produk (bisa import, lihat P1-4); dashboard breakdown per channel |
@@ -377,7 +335,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 | API — migrasi `0027` | `outlets.service_mode`; `open_bills (id, tenant_id, outlet_id, table_id, table_label, channel_id, opened_by, opened_at, version, lease_device_id, lease_user_id, lease_until, closed_at, closed_by_order_id)`; `open_bill_lines (bill_id, line_key, product_id, …, quantity, sent_quantity)`; RLS tenant |
 | API — sales | Modul open bill: buat, ambil lease, perpanjang, lepas, simpan dengan versi, daftar per outlet; `order.placed` dengan `bill_id` menutup bill |
 | API — organization | `service_mode` di endpoint outlet + validasi 409 `OPEN_BILLS_EXIST`; peran Pelayan di seed role |
-| Web — Dexie v8 | `openBills` menambah `serverVersion`, `leaseUntil`, `origin`; index `origin` |
+| Web — Dexie v7 | `openBills` menambah `serverVersion`, `leaseUntil`, `origin`; index `origin` |
 | Web — application | Repository open bill dengan dua implementasi (`LocalBillStore` untuk `counter`, `ServerBillStore` untuk `table_service`) di balik satu port, sehingga UI cart tidak tahu mode |
 | Web — UI | Daftar bill outlet dengan status lease; banner pergantian mode; mode read-only |
 | Admin | Pilihan mode layanan di halaman Outlet, dengan penjelasan dampaknya |
@@ -399,7 +357,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 
 - Field opsional `customer_name` (≤ 40 karakter) di cart untuk channel `take_away` dan `delivery`.
 - `queue_no` per device per `business_date`, dengan format `<kode device>-<nomor 3 digit>`, misalnya `A-012`. Kode device (`A`, `B`, …; unik per outlet) dipakai sebagai prefix agar nomor tidak bentrok antar tablet saat offline. Reset setiap ganti business date.
-- Counter disimpan di Dexie v9 (`queueCounters`) dan dinaikkan dalam transaksi yang sama dengan penyimpanan order.
+- Counter disimpan di Dexie v8 (`queueCounters`) dan dinaikkan dalam transaksi yang sama dengan penyimpanan order.
 - Dicetak besar di struk dan tiket dapur; tampil di riwayat order.
 - API (migrasi `0028`): kolom `orders.customer_name`, `orders.queue_no`.
 - **DoD**: dua device offline menghasilkan nomor antrian yang tidak bentrok; reload aplikasi di tengah hari tidak me-reset counter.
@@ -407,7 +365,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 ### P1-2 — Tandai Menu Habis dari POS
 
 - Manajer atau kasir dengan izin `pos:availability` menandai produk **habis** dari grid produk (tekan lama → "Tandai habis").
-- Efek lokal langsung, termasuk saat offline (Dexie v9, `availabilityOverrides`). Event `product.availability_changed { product_id, outlet_id, is_available, until }` masuk ke outbox.
+- Efek lokal langsung, termasuk saat offline (Dexie v8, `availabilityOverrides`). Event `product.availability_changed { product_id, outlet_id, is_available, until }` masuk ke outbox.
 - `until` default = akhir business date (menu otomatis tersedia lagi besok). Opsi "sampai diaktifkan lagi".
 - Server menulis `outlet_products.is_available` (kolom sudah ada sejak migrasi `0007`) dan `available_until` (migrasi `0029`); device lain mendapatkannya lewat delta pull. Konflik: event terbaru menang (berdasarkan `occurred_at` server-adjusted).
 - **DoD**: tandai habis di tablet A → tablet B ikut habis setelah pull berikutnya; besok kembali tersedia otomatis.
@@ -484,7 +442,7 @@ Provisioning VPS + Vercel dimulai di Tahap A; sisanya di Tahap D.
 
 **Bagian 2 (rutin, tiap item selesai; dicek ulang di Tahap E)**
 
-- ADR-028 sampai ADR-031 ke [01](./01-system-architecture.md), schema ke [06](./06-domain-and-database.md), event & endpoint ke [07](./07-api-contract.md), Dexie v6–v9 ke [03](./03-offline-sync.md), jumlah migrasi di 09.
+- ADR-028 sampai ADR-031 ke [01](./01-system-architecture.md), schema ke [06](./06-domain-and-database.md), event & endpoint ke [07](./07-api-contract.md), Dexie v6–v8 ke [03](./03-offline-sync.md), jumlah migrasi di 09.
 
 ### P1-10 — Uji Beban Device
 
@@ -601,24 +559,24 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 **Tahap A — Fondasi & Integritas Transaksi**
 - [x] D1 diputuskan: kedua mode, per outlet (2026-10-24)
 - [ ] D2–D5 diputuskan dan dicatat di §2
-- [ ] P0-1 Audit batal bill & item (ADR-028, `0023`, Dexie v6)
+- [x] P0-1 Audit batal bill & item (ADR-028, `0023`)
 - [x] P1-9 bagian 1 (perbaikan 08/09)
 - [ ] Hardware dipesan sesuai D4
 - [ ] Staging VPS + Vercel ter-provision
 
 **Tahap B — Harga & Channel**
 - [ ] P0-3 Harga inklusif pajak (ADR-030, `0024`)
-- [ ] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v7)
+- [ ] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
 - [ ] Fixture matriks channel × inklusif × diskon hijau di web & API
 
 **Tahap B2 — Mode Layanan & Shared Open Bill**
-- [ ] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v8)
+- [ ] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)
 - [ ] Uji konkurensi & e2e dua device hijau
 - [ ] Regresi mode `counter` hijau
 
 **Tahap C — Operasional Kasir**
-- [ ] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v9)
-- [ ] P1-2 Tandai habis dari POS (`0029`, Dexie v9)
+- [ ] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
+- [ ] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
 - [ ] P1-3 Pembulatan tunai (`0030`)
 - [ ] P1-10 Uji beban device memenuhi target
 - [ ] Checklist onboarding tenant
