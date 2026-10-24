@@ -7,6 +7,7 @@ from poslite.sales.application.correct_order import (
 )
 from poslite.sales.application.place_order import PlaceOrderHandler, SalesUnitOfWork
 from poslite.sales.domain.bill_voids import VoidBillItemsData, VoidedBillLine
+from poslite.sales.domain.cash_rounding import CashRounding
 from poslite.sales.domain.corrections import (
     RefundLineData,
     RefundOrderData,
@@ -42,6 +43,7 @@ from poslite.sales.infrastructure.queries import (
 from poslite.sales.infrastructure.repository import SqlAlchemyOrderRepository
 
 __all__ = [
+    "CashRounding",
     "CashierSales",
     "CategorySales",
     "ChannelSales",

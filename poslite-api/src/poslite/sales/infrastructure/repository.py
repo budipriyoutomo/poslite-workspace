@@ -55,6 +55,7 @@ class SqlAlchemyOrderRepository:
                 channel_id=order.channel_id,
                 external_ref=d.external_ref,
                 queue_no=d.queue_no,
+                rounding_amount=d.rounding_amount,
                 customer_name=d.customer_name,
                 service_charge=d.totals.service_charge,
                 tax=d.totals.tax,

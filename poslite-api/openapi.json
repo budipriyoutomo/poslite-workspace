@@ -2843,6 +2843,10 @@
             "title": "Business Date",
             "type": "string"
           },
+          "cash_rounding": {
+            "title": "Cash Rounding",
+            "type": "integer"
+          },
           "discount": {
             "title": "Discount",
             "type": "integer"
@@ -2900,6 +2904,7 @@
           "refund_count",
           "pre_payment_void_count",
           "pre_payment_void_amount",
+          "cash_rounding",
           "business_date"
         ],
         "title": "DaySales",
@@ -4399,6 +4404,10 @@
             "title": "Refunds",
             "type": "array"
           },
+          "rounding_amount": {
+            "title": "Rounding Amount",
+            "type": "integer"
+          },
           "service_charge": {
             "title": "Service Charge",
             "type": "integer"
@@ -4462,6 +4471,7 @@
           "channel_id",
           "external_ref",
           "queue_no",
+          "rounding_amount",
           "customer_name",
           "service_charge",
           "tax",
@@ -4786,6 +4796,26 @@
             "title": "Business Day Cutoff",
             "type": "string"
           },
+          "cash_rounding_mode": {
+            "default": "nearest",
+            "enum": [
+              "nearest",
+              "down"
+            ],
+            "title": "Cash Rounding Mode",
+            "type": "string"
+          },
+          "cash_rounding_unit": {
+            "default": 0,
+            "enum": [
+              0,
+              100,
+              500,
+              1000
+            ],
+            "title": "Cash Rounding Unit",
+            "type": "integer"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -4846,6 +4876,26 @@
             "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
             "title": "Business Day Cutoff",
             "type": "string"
+          },
+          "cash_rounding_mode": {
+            "default": "nearest",
+            "enum": [
+              "nearest",
+              "down"
+            ],
+            "title": "Cash Rounding Mode",
+            "type": "string"
+          },
+          "cash_rounding_unit": {
+            "default": 0,
+            "enum": [
+              0,
+              100,
+              500,
+              1000
+            ],
+            "title": "Cash Rounding Unit",
+            "type": "integer"
           },
           "code": {
             "title": "Code",
@@ -7399,6 +7449,10 @@
       },
       "Totals": {
         "properties": {
+          "cash_rounding": {
+            "title": "Cash Rounding",
+            "type": "integer"
+          },
           "discount": {
             "title": "Discount",
             "type": "integer"
@@ -7455,7 +7509,8 @@
           "refund_amount",
           "refund_count",
           "pre_payment_void_count",
-          "pre_payment_void_amount"
+          "pre_payment_void_amount",
+          "cash_rounding"
         ],
         "title": "Totals",
         "type": "object"

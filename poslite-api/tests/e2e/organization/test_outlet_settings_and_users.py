@@ -44,6 +44,8 @@ async def test_updates_outlet_rates_and_receipt_text(api: AsyncClient) -> None:
         "receipt_header": "Warung Maharasa",
         "receipt_footer": "Terima kasih",
         "service_mode": "counter",
+        "cash_rounding_unit": 0,
+        "cash_rounding_mode": "nearest",
     }
 
 
@@ -65,6 +67,8 @@ async def test_reads_outlet_settings_for_the_back_office_form(api: AsyncClient) 
         "receipt_header": "",
         "receipt_footer": "",
         "service_mode": "counter",
+        "cash_rounding_unit": 0,
+        "cash_rounding_mode": "nearest",
     }
 
 

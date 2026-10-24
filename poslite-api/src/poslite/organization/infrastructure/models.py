@@ -63,6 +63,8 @@ class OutletModel(MasterColumns, Base):
     receipt_header: Mapped[str] = mapped_column(Text, server_default="")
     receipt_footer: Mapped[str] = mapped_column(Text, server_default="")
     service_mode: Mapped[str] = mapped_column(String(20), server_default="counter")  # ADR-031
+    cash_rounding_unit: Mapped[int] = mapped_column(Integer, server_default="0")  # P1-3
+    cash_rounding_mode: Mapped[str] = mapped_column(String(10), server_default="nearest")
 
 
 class DeviceModel(Base):

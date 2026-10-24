@@ -32,6 +32,7 @@ class DailyTotals:
     refund_count: int = 0
     pre_payment_void_count: int = 0  # bill items cancelled after the kitchen had them (ADR-028)
     pre_payment_void_amount: int = 0
+    cash_rounding: int = 0  # P1-3: added to the cash part of the day's sales (may be < 0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,6 +75,7 @@ async def daily_totals(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> 
                 func.coalesce(func.sum(OrderModel.total).filter(paid), 0),
                 func.count().filter(paid),
                 func.count().filter(OrderModel.status == "voided"),
+                func.coalesce(func.sum(OrderModel.rounding_amount).filter(paid), 0),
             ).where(_day(outlet_id, day))
         )
     ).one()
@@ -91,7 +93,21 @@ async def daily_totals(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> 
             )
         )
     ).one()
-    return DailyTotals(*(int(v) for v in (*row, *refunds, *bill_voids)))
+    gross, discount, service, tax, net, orders, voids, rounding = (int(v) for v in row)
+    return DailyTotals(
+        gross,
+        discount,
+        service,
+        tax,
+        net,
+        orders,
+        voids,
+        refund_amount=int(refunds[0]),
+        refund_count=int(refunds[1]),
+        pre_payment_void_count=int(bill_voids[0]),
+        pre_payment_void_amount=int(bill_voids[1]),
+        cash_rounding=rounding,
+    )
 
 
 async def daily_product_sales(
@@ -330,6 +346,7 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
         "channel_id": order.channel_id,
         "external_ref": order.external_ref,
         "queue_no": order.queue_no,
+        "rounding_amount": order.rounding_amount,
         "customer_name": order.customer_name,
         "service_charge": order.service_charge,
         "tax": order.tax,

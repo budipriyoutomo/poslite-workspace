@@ -19,6 +19,7 @@ from pydantic import (
 
 from poslite.catalog.api import ChangeAvailability
 from poslite.sales.api import (
+    CashRounding,
     Discount,
     LineModifier,
     OrderLine,
@@ -125,6 +126,12 @@ class _Payment(_Strict):
     reference: Annotated[str, StringConstraints(max_length=64)] | None
 
 
+class _CashRounding(_Strict):
+    unit: Literal[100, 500, 1000]
+    mode: Literal["nearest", "down"]
+    amount: StrictInt
+
+
 class OrderPlacedPayload(_Strict):
     shift_id: Ulid
     receipt_no: Annotated[str, StringConstraints(min_length=1, max_length=40)]
@@ -144,6 +151,8 @@ class OrderPlacedPayload(_Strict):
     external_ref: Annotated[str, StringConstraints(min_length=1, max_length=50)] | None = None
     # ADR-031: a full payment of a shared open bill closes it on the server.
     closes_bill_id: Ulid | None = None
+    # P1-3: the outlet's cash rounding the device sold with, and what it added (may be < 0).
+    cash_rounding: _CashRounding | None = None
     # P1-1: the take-away/delivery queue number and the guest's name.
     queue_no: Annotated[str, StringConstraints(min_length=1, max_length=20)] | None = None
     customer_name: Annotated[str, StringConstraints(min_length=1, max_length=40)] | None = None
@@ -321,6 +330,12 @@ def to_command(event: IncomingEvent) -> Command:
                     channel_id=p.channel_id,
                     external_ref=p.external_ref,
                     closes_bill_id=p.closes_bill_id,
+                    cash_rounding=(
+                        CashRounding(p.cash_rounding.unit, p.cash_rounding.mode)
+                        if p.cash_rounding
+                        else None
+                    ),
+                    rounding_amount=p.cash_rounding.amount if p.cash_rounding else 0,
                     queue_no=p.queue_no,
                     customer_name=p.customer_name,
                 )

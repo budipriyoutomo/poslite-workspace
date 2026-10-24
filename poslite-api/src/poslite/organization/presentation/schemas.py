@@ -81,6 +81,9 @@ class OutletSettingsIn(BaseModel):
     receipt_footer: Annotated[str, StringConstraints(max_length=500)] = ""
     # ADR-031: open bills on each device (counter) or shared through the server (table_service).
     service_mode: Literal["counter", "table_service"] = "counter"
+    # P1-3: the part paid in cash is rounded to this unit (0 = off).
+    cash_rounding_unit: Literal[0, 100, 500, 1000] = 0
+    cash_rounding_mode: Literal["nearest", "down"] = "nearest"
 
 
 class OutletSettingsOut(OutletSettingsIn):

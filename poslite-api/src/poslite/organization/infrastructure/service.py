@@ -304,6 +304,8 @@ class OutletSettings:
     receipt_header: str
     receipt_footer: str
     service_mode: str
+    cash_rounding_unit: int = 0
+    cash_rounding_mode: str = "nearest"
 
 
 async def update_outlet_settings(
@@ -318,6 +320,8 @@ async def update_outlet_settings(
     receipt_header: str,
     receipt_footer: str,
     service_mode: str,
+    cash_rounding_unit: int = 0,
+    cash_rounding_mode: str = "nearest",
 ) -> OutletSettings:
     """New rates apply to new orders; devices keep the snapshot they sold with (ADR-011). A
     device switches service mode once it has no open bill of its own (ADR-031 rule 1)."""
@@ -328,6 +332,7 @@ async def update_outlet_settings(
     outlet.tax_rate_bps, outlet.service_rate_bps = tax_rate_bps, service_rate_bps
     outlet.receipt_header, outlet.receipt_footer = receipt_header, receipt_footer
     outlet.service_mode = service_mode
+    outlet.cash_rounding_unit, outlet.cash_rounding_mode = cash_rounding_unit, cash_rounding_mode
     await uow.session.flush()
     return _settings(outlet)
 
@@ -351,6 +356,8 @@ def _settings(outlet: OutletModel) -> OutletSettings:
         receipt_header=outlet.receipt_header,
         receipt_footer=outlet.receipt_footer,
         service_mode=outlet.service_mode,
+        cash_rounding_unit=outlet.cash_rounding_unit,
+        cash_rounding_mode=outlet.cash_rounding_mode,
     )
 
 
@@ -392,6 +399,8 @@ async def outlet_changes(
             "discount_policy": _policy(brand).as_data(),
             "price_includes_tax": brand.price_includes_tax,
             "service_mode": o.service_mode,
+            "cash_rounding_unit": o.cash_rounding_unit,
+            "cash_rounding_mode": o.cash_rounding_mode,
         },
     )
 

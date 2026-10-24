@@ -30,6 +30,7 @@ class OrderModel(Base):
     channel_id: Mapped[str | None] = mapped_column(CHAR(26))  # ADR-029
     external_ref: Mapped[str | None] = mapped_column(String(50))
     queue_no: Mapped[str | None] = mapped_column(String(20))  # P1-1
+    rounding_amount: Mapped[int] = mapped_column(BigInteger, default=0)  # P1-3
     customer_name: Mapped[str | None] = mapped_column(String(40))
     service_charge: Mapped[int] = mapped_column(BigInteger)
     tax: Mapped[int] = mapped_column(BigInteger)

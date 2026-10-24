@@ -45,6 +45,8 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
         },
         "price_includes_tax": False,
         "service_mode": "counter",
+        "cash_rounding_unit": 0,
+        "cash_rounding_mode": "nearest",
     }
     assert changes["product"][0]["data"] == {
         "category_id": s.ids["category"],

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Literal
 
+from poslite.sales.domain.cash_rounding import CashRounding, cash_rounding
 from poslite.sales.domain.events import OrderPlaced
 from poslite.sales.domain.services import PriceCalculator
 from poslite.sales.domain.value_objects import Discount, PriceBreakdown, PricedLine, Rates
@@ -60,6 +61,17 @@ class PlaceOrderData:
     closes_bill_id: str | None = None  # ADR-031: the shared open bill this payment closes
     queue_no: str | None = None  # P1-1: take-away/delivery number, unique per device and day
     customer_name: str | None = None
+    # P1-3: the outlet's rule the device rounded the cash part with, and the result (may be < 0).
+    cash_rounding: CashRounding | None = None
+    rounding_amount: int = 0
+
+
+def _expected_rounding(data: PlaceOrderData) -> int:
+    """The rounding the device's own rule gives (P1-3); nothing without a rule or cash."""
+    if data.cash_rounding is None or not any(p.method_type == "cash" for p in data.payments):
+        return 0
+    non_cash = sum(p.amount for p in data.payments if p.method_type != "cash")
+    return cash_rounding(data.totals.total, non_cash, data.cash_rounding).rounding
 
 
 @dataclass
@@ -113,7 +125,8 @@ class Order:
         non_cash = sum(p.amount for p in data.payments if p.method_type != "cash")
         if non_cash > total:
             raise DomainError("NON_CASH_EXCEEDS_TOTAL", "Non-cash payments exceed the bill")
-        if sum(p.amount for p in data.payments) < total:
+        # The cash part is due rounded (P1-3): it may cover less than the total when rounding down.
+        if sum(p.amount for p in data.payments) < total + data.rounding_amount:
             raise DomainError("PAYMENT_INSUFFICIENT", "Payments do not cover the total")
 
         expected = PriceCalculator().calculate(
@@ -132,6 +145,8 @@ class Order:
         flags = []
         if expected != data.totals:
             flags.append("TOTAL_MISMATCH")
+        if data.rounding_amount != _expected_rounding(data):
+            flags.append("ROUNDING_MISMATCH")
         if data.rates != current_rates:
             flags.append("RATES_OUTDATED")
         if qris_unpaid:  # dynamic QRIS the gateway has not confirmed (ADR-019)

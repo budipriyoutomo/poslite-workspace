@@ -151,6 +151,8 @@ def _settings_out(s: OutletSettings) -> OutletSettingsOut:
         receipt_header=s.receipt_header,
         receipt_footer=s.receipt_footer,
         service_mode=s.service_mode,
+        cash_rounding_unit=s.cash_rounding_unit,
+        cash_rounding_mode=s.cash_rounding_mode,
     )
 
 
@@ -273,6 +275,8 @@ async def update_settings(
             receipt_header=body.receipt_header,
             receipt_footer=body.receipt_footer,
             service_mode=body.service_mode,
+            cash_rounding_unit=body.cash_rounding_unit,
+            cash_rounding_mode=body.cash_rounding_mode,
         )
         await uow.commit()
     return ok(_settings_out(saved))

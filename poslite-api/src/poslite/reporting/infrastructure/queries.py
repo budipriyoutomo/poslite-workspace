@@ -28,6 +28,7 @@ TOTAL_FIELDS = (
     "refund_count",
     "pre_payment_void_count",  # bill items cancelled after the kitchen had them (ADR-028)
     "pre_payment_void_amount",
+    "cash_rounding",  # P1-3: what cash rounding added to the drawer (may be < 0)
 )
 
 
