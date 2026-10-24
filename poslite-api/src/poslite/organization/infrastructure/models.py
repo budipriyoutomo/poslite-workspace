@@ -42,6 +42,8 @@ class BrandModel(MasterColumns, Base):
     allow_custom_discount: Mapped[bool] = mapped_column(Boolean, server_default="true")
     cashier_max_discount_percentage: Mapped[int] = mapped_column(SmallInteger, server_default="20")
     cashier_max_discount_amount: Mapped[int] = mapped_column(BigInteger, server_default="50000")
+    # Menu prices already include service and PB1 (ADR-030).
+    price_includes_tax: Mapped[bool] = mapped_column(Boolean, server_default="false")
 
 
 class OutletModel(MasterColumns, Base):

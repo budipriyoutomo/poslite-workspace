@@ -185,5 +185,58 @@
       "change_amount": 0,
       "discount_approved_by": "01K5ZA00000000000000000002"
     }
+  },
+  {
+    "name": "prices that include service and PB1 (ADR-030)",
+    "payload": {
+      "shift_id": "01K5ZS00000000000000000001",
+      "receipt_no": "JKT01A-260925-0004",
+      "cashier_id": "01K5ZA00000000000000000001",
+      "order_type": "take_away",
+      "lines": [
+        {
+          "id": "01K5ZN00000000000000000001",
+          "product_id": "01K5ZP00000000000000000001",
+          "product_name": "Nasi Gudeg",
+          "category_name": "Makanan",
+          "unit_price": 25000,
+          "quantity": 2,
+          "notes": "tidak pedas",
+          "modifiers": [
+            {
+              "modifier_option_id": "01K5ZM00000000000000000001",
+              "name": "Tambah Ayam",
+              "price": 10000
+            }
+          ]
+        }
+      ],
+      "discount": {
+        "type": "percentage",
+        "value": 10
+      },
+      "rates": {
+        "service_bps": 500,
+        "tax_bps": 1000,
+        "includes_tax": true
+      },
+      "totals": {
+        "subtotal": 70000,
+        "discount_amount": 7000,
+        "service_charge": 2727,
+        "tax": 5727,
+        "total": 63000
+      },
+      "payments": [
+        {
+          "id": "01K5ZY10000000000000000001",
+          "payment_method_id": "01K5ZY00000000000000000001",
+          "method_type": "cash",
+          "amount": 100000,
+          "reference": null
+        }
+      ],
+      "change_amount": 37000
+    }
   }
 ]

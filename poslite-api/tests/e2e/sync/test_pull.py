@@ -43,6 +43,7 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
             "cashier_max_percentage": 20,
             "cashier_max_amount": 50000,
         },
+        "price_includes_tax": False,
     }
     assert changes["product"][0]["data"] == {
         "category_id": s.ids["category"],

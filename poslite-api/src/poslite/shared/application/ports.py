@@ -14,6 +14,8 @@ class OutletProfile:
     # Manual discounts a cashier may give alone, from the outlet's brand (06 Order rule 5).
     cashier_max_discount_percentage: int = 20
     cashier_max_discount_amount: int = 50_000
+    # Prices of the outlet's brand include service and PB1 (ADR-030).
+    price_includes_tax: bool = False
 
 
 class OutletPort(Protocol):

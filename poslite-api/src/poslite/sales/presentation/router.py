@@ -113,6 +113,7 @@ class OrderDetailOut(BaseModel):
     status: str
     subtotal: int
     discount_amount: int
+    price_includes_tax: bool  # ADR-030: service and tax are inside the prices
     service_charge: int
     tax: int
     total: int

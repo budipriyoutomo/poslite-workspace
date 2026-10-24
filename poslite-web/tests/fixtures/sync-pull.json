@@ -15,7 +15,8 @@
         "receipt_header": "POSLite\nJl. Kemang Raya No. 1",
         "receipt_footer": "Terima kasih",
         "brand": { "id": "01K5ZB00000000000000000001", "code": "POSLITE", "name": "POSLite", "logo_key": null },
-        "discount_policy": { "percentages": [5, 10, 15, 20], "amounts": [5000, 10000, 25000, 50000], "allow_custom": true, "cashier_max_percentage": 20, "cashier_max_amount": 50000 }
+        "discount_policy": { "percentages": [5, 10, 15, 20], "amounts": [5000, 10000, 25000, 50000], "allow_custom": true, "cashier_max_percentage": 20, "cashier_max_amount": 50000 },
+        "price_includes_tax": false
       }
     },
     {

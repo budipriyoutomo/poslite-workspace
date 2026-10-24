@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import CHAR, BigInteger, Date, DateTime, Integer, String
+from sqlalchemy import CHAR, BigInteger, Boolean, Date, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,6 +26,7 @@ class OrderModel(Base):
     discount_amount: Mapped[int] = mapped_column(BigInteger)
     service_rate_bps: Mapped[int] = mapped_column(Integer)
     tax_rate_bps: Mapped[int] = mapped_column(Integer)
+    price_includes_tax: Mapped[bool] = mapped_column(Boolean, default=False)  # ADR-030
     service_charge: Mapped[int] = mapped_column(BigInteger)
     tax: Mapped[int] = mapped_column(BigInteger)
     total: Mapped[int] = mapped_column(BigInteger)

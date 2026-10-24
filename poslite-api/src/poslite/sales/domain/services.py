@@ -5,7 +5,8 @@ from poslite.shared.domain.money import div_round_half_up
 class PriceCalculator:
     """Order totals (06-domain-and-database.md, Order rules 8-9), identical to the device's
     calculate(): line discounts, then the order discount on what is left, service on the net,
-    PB1 on net + service, all half-up integers."""
+    PB1 on net + service, all half-up integers. With prices that include tax (ADR-030) the
+    guest pays the discounted price and PB1, then service, are taken out of it backwards."""
 
     def calculate(
         self, lines: list[PricedLine], discount: Discount | None, rates: Rates
@@ -14,6 +15,12 @@ class PriceCalculator:
         item_discounts = sum(self.line_discount(line.total, line.discount) for line in lines)
         discount_amount = item_discounts + self._discount(subtotal - item_discounts, discount)
         net = subtotal - discount_amount
+        if rates.includes_tax:
+            pre_tax = div_round_half_up(net * 10_000, 10_000 + rates.tax_bps)
+            before_service = div_round_half_up(pre_tax * 10_000, 10_000 + rates.service_bps)
+            return PriceBreakdown(
+                subtotal, discount_amount, pre_tax - before_service, net - pre_tax, net
+            )
         service = div_round_half_up(net * rates.service_bps, 10_000)
         tax = div_round_half_up((net + service) * rates.tax_bps, 10_000)
         return PriceBreakdown(subtotal, discount_amount, service, tax, net + service + tax)

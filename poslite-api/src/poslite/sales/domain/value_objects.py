@@ -11,10 +11,12 @@ def _rupiah(value: int, what: str) -> None:
 
 @dataclass(frozen=True, slots=True)
 class Rates:
-    """Outlet rates in basis points (500 = 5%); an order carries the snapshot it was sold with."""
+    """Outlet rates in basis points (500 = 5%); an order carries the snapshot it was sold with.
+    `includes_tax`: the brand's prices already include service and PB1 (ADR-030)."""
 
     service_bps: int
     tax_bps: int
+    includes_tax: bool = False
 
     def __post_init__(self) -> None:
         _rupiah(self.service_bps, "service_bps")
