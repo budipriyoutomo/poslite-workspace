@@ -9,6 +9,8 @@ export type Discount =
 export interface Rates {
   serviceBps: number; // basis points: 500 = 5%
   taxBps: number; // PB1, 1000 = 10%
+  /** The brand's prices already include service and PB1 (ADR-030); absent = they do not. */
+  includesTax?: boolean;
 }
 
 export interface PricedLine {
@@ -44,13 +46,19 @@ export function lineTotal(line: PricedLine): number {
 /**
  * Order totals (06-domain-and-database.md, Order rules 8–9): line discounts, then the order
  * discount on what is left, service on the net, PB1 on net + service. `rates` is the outlet
- * snapshot sent with order.placed (ADR-011).
+ * snapshot sent with order.placed (ADR-011). With prices that include tax (ADR-030) the guest pays
+ * the discounted price and PB1, then service, are taken out of it backwards.
  */
 export function calculate(lines: PricedLine[], discount: Discount | null, rates: Rates): PriceBreakdown {
   const subtotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
   const itemDiscounts = lines.reduce((sum, line) => sum + discountAmount(lineTotal(line), line.discount), 0);
   const discounted = itemDiscounts + discountAmount(subtotal - itemDiscounts, discount);
   const net = subtotal - discounted;
+  if (rates.includesTax) {
+    const preTax = divRoundHalfUp(net * 10_000, 10_000 + rates.taxBps);
+    const beforeService = divRoundHalfUp(preTax * 10_000, 10_000 + rates.serviceBps);
+    return { subtotal, discountAmount: discounted, serviceCharge: preTax - beforeService, tax: net - preTax, total: net };
+  }
   const serviceCharge = divRoundHalfUp(net * rates.serviceBps, 10_000);
   const tax = divRoundHalfUp((net + serviceCharge) * rates.taxBps, 10_000);
   return { subtotal, discountAmount: discounted, serviceCharge, tax, total: net + serviceCharge + tax };

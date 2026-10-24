@@ -74,5 +74,20 @@
     "total": 0,
     "expected_allocation": [0],
     "refunds": [{ "line": 0, "quantity": 1, "expected_amount": 0 }]
+  },
+  {
+    "name": "prices that include tax (ADR-030): the guest gets back what they paid, no tax on top",
+    "lines": [
+      { "gross": 50000, "line_discount": 0, "quantity": 2 },
+      { "gross": 20000, "line_discount": 0, "quantity": 2 }
+    ],
+    "order_discount": 7000,
+    "total": 63000,
+    "expected_allocation": [45000, 18000],
+    "refunds": [
+      { "line": 0, "quantity": 1, "expected_amount": 22500 },
+      { "line": 1, "quantity": 1, "expected_amount": 9000 },
+      { "line": 0, "quantity": 1, "expected_amount": 22500 }
+    ]
   }
 ]

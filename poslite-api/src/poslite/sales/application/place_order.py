@@ -84,7 +84,9 @@ class PlaceOrderHandler:
             business_date=business_date(
                 cmd.occurred_at, outlet.timezone, outlet.business_day_cutoff
             ),
-            current_rates=Rates(outlet.service_bps, outlet.tax_bps),
+            current_rates=Rates(
+                outlet.service_bps, outlet.tax_bps, includes_tax=outlet.price_includes_tax
+            ),
             qris_unpaid=qris_unpaid,
             method_inactive=method_inactive,
             discount_unapproved=await self._discount_unapproved(cmd, ctx.outlet_id, limits),

@@ -129,6 +129,7 @@ class BrandIn(BaseModel):
     receipt_footer: ReceiptText = ""
     is_active: bool = True
     discount: DiscountPolicyIn = DiscountPolicyIn()
+    price_includes_tax: bool = False  # ADR-030; applies to new orders only
 
 
 class BrandOut(BaseModel):
@@ -141,6 +142,7 @@ class BrandOut(BaseModel):
     receipt_footer: str
     is_active: bool
     discount: DiscountPolicyIn
+    price_includes_tax: bool
 
 
 class DeviceListItem(BaseModel):

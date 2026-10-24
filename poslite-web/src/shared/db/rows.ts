@@ -17,6 +17,7 @@ export interface OutletSetting {
   receiptFooter: string;
   brand?: BrandIdentityRow; // ADR-022; missing on a device set up by a server before brands
   discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
+  priceIncludesTax?: boolean; // the brand's prices include service and PB1 (ADR-030); missing = they do not
 }
 
 /** A brand's manual-discount rules (06 Order rule 5). */
@@ -134,7 +135,7 @@ export interface OrderRow {
   tableLabel?: string | null;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
-  rates: { serviceBps: number; taxBps: number };
+  rates: { serviceBps: number; taxBps: number; includesTax?: boolean };
   subtotal: number;
   discountAmount: number;
   serviceCharge: number;

@@ -23,7 +23,7 @@ export interface ReceiptInput {
       promotion?: { id: string; name: string } | null;
     }[];
     discount: { type: "percentage" | "fixed"; value: number } | null;
-    rates: { serviceBps: number; taxBps: number };
+    rates: { serviceBps: number; taxBps: number; includesTax?: boolean };
     subtotal: number;
     discountAmount: number;
     serviceCharge: number;
@@ -38,7 +38,10 @@ function percent(bps: number): string {
   return `${String(bps / 100).replace(".", ",")}%`;
 }
 
-/** Customer receipt as laid out in 04-printing.md. Service and PB1 rows only when the rate > 0. */
+/**
+ * Customer receipt as laid out in 04-printing.md. Service and PB1 rows only when the rate > 0; with
+ * prices that include tax (ADR-030) they follow TOTAL as "Termasuk …", since the guest pays no more.
+ */
 export function buildReceipt({ header, footer, timezone, order, payments }: ReceiptInput): ReceiptDocument {
   const doc: ReceiptDocument = [{ kind: "text", text: header, align: "center", bold: true }, { kind: "rule" }];
   if (order.status === "voided") doc.push({ kind: "text", text: "** VOID **", align: "center", bold: true });
@@ -67,9 +70,12 @@ export function buildReceipt({ header, footer, timezone, order, payments }: Rece
     const label = order.discount?.type === "percentage" ? `Diskon ${order.discount.value}%` : "Diskon";
     doc.push({ kind: "row", left: label, right: amount(-orderDiscount) });
   }
-  if (order.rates.serviceBps > 0) doc.push({ kind: "row", left: `Service ${percent(order.rates.serviceBps)}`, right: amount(order.serviceCharge) });
-  if (order.rates.taxBps > 0) doc.push({ kind: "row", left: `PB1 ${percent(order.rates.taxBps)}`, right: amount(order.tax) });
-  doc.push({ kind: "row", left: "TOTAL", right: amount(order.total), bold: true });
+  const included = order.rates.includesTax === true;
+  const rateRows: ReceiptDocument = [];
+  if (order.rates.serviceBps > 0) rateRows.push({ kind: "row", left: `${included ? "Termasuk service" : "Service"} ${percent(order.rates.serviceBps)}`, right: amount(order.serviceCharge) });
+  if (order.rates.taxBps > 0) rateRows.push({ kind: "row", left: `${included ? "Termasuk PB1" : "PB1"} ${percent(order.rates.taxBps)}`, right: amount(order.tax) });
+  const total: ReceiptDocument[number] = { kind: "row", left: "TOTAL", right: amount(order.total), bold: true };
+  doc.push(...(included ? [total, ...rateRows] : [...rateRows, total]));
   for (const p of payments) doc.push({ kind: "row", left: p.methodName, right: amount(p.amount) });
   if (order.changeAmount > 0) doc.push({ kind: "row", left: "Kembali", right: amount(order.changeAmount) });
   doc.push({ kind: "rule" }, { kind: "text", text: footer, align: "center" });

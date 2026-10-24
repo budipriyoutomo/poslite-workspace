@@ -2141,6 +2141,11 @@
             "title": "Name",
             "type": "string"
           },
+          "price_includes_tax": {
+            "default": false,
+            "title": "Price Includes Tax",
+            "type": "boolean"
+          },
           "receipt_footer": {
             "default": "",
             "maxLength": 500,
@@ -2204,6 +2209,10 @@
             "title": "Name",
             "type": "string"
           },
+          "price_includes_tax": {
+            "title": "Price Includes Tax",
+            "type": "boolean"
+          },
           "receipt_footer": {
             "title": "Receipt Footer",
             "type": "string"
@@ -2222,7 +2231,8 @@
           "receipt_header",
           "receipt_footer",
           "is_active",
-          "discount"
+          "discount",
+          "price_includes_tax"
         ],
         "title": "BrandOut",
         "type": "object"
@@ -3932,6 +3942,10 @@
             "title": "Payments",
             "type": "array"
           },
+          "price_includes_tax": {
+            "title": "Price Includes Tax",
+            "type": "boolean"
+          },
           "receipt_no": {
             "title": "Receipt No",
             "type": "string"
@@ -4002,6 +4016,7 @@
           "status",
           "subtotal",
           "discount_amount",
+          "price_includes_tax",
           "service_charge",
           "tax",
           "total",

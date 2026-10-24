@@ -31,7 +31,7 @@
 6. Qty > 0, integer (MVP; qty desimal untuk produk timbang = fase lanjut).
 7. Total dihitung dengan tarif **snapshot** yang disimpan di order (`service_rate_bps`, `tax_rate_bps`), memakai `divRoundHalfUp` / `div_round_half_up` (ADR-005, ADR-011).
 8. Diskon **per baris**: paling banyak satu per baris (manual atau promo). `line_gross = (unit_price + modifiers_total) × qty`; persen → `divRoundHalfUp(line_gross × pct, 100)`, nominal → `min(value, line_gross)`.
-9. Rumus total: `subtotal = Σ line_gross`; `item_discounts = Σ diskon baris`; diskon order dihitung dari `subtotal − item_discounts` (persen/nominal, dibatasi); `discount_amount = item_discounts + diskon order`; `net = subtotal − discount_amount`; lalu service & PB1 seperti biasa. Tanpa diskon baris, hasilnya sama persis dengan rumus lama.
+9. Rumus total: `subtotal = Σ line_gross`; `item_discounts = Σ diskon baris`; diskon order dihitung dari `subtotal − item_discounts` (persen/nominal, dibatasi); `discount_amount = item_discounts + diskon order`; `net = subtotal − discount_amount`; lalu service & PB1 seperti biasa. Tanpa diskon baris, hasilnya sama persis dengan rumus lama. Brand dengan harga termasuk pajak (ADR-030): `total = net`, PB1 lalu service dihitung mundur dari `net`.
 
 **Promo (ADR-016)**
 1. `percent_off`: `percentage` 1..100 untuk baris yang masuk cakupan. `buy_x_get_y`: per baris, `gratis = floor(qty / (x + y)) × y` unit → diskon nominal `gratis × (unit_price + modifiers_total)`; wajib punya cakupan produk/kategori.
@@ -107,6 +107,7 @@ users            id, name, email (unik global, nullable untuk kasir), password_h
 brands           id, code (unik per tenant), name, logo_key, receipt_header, receipt_footer, is_active,
                  discount_percentages[], discount_amounts[], allow_custom_discount,
                  cashier_max_discount_percentage, cashier_max_discount_amount   -- migrasi 0020
+                 price_includes_tax (bool, default false)                       -- ADR-030, migrasi 0024
                  version, timestamps, deleted_at           -- ubah → touch outlets.version (ADR-022)
 user_assignments id, user_id, role_id, scope_type (company|brand|outlet), brand_id, outlet_id
                  -- CHECK owner hanya company, cashier bukan company; FK (outlet_id, brand_id) → outlets;
@@ -159,6 +160,7 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  cashier_id, business_date, order_type (take_away|dine_in), table_label (nullable, snapshot),
                  subtotal, discount_type, discount_value, discount_amount,
                  service_rate_bps, tax_rate_bps (snapshot tarif dari device),
+                 price_includes_tax (snapshot mode harga, ADR-030),
                  service_charge, tax, total, paid_amount, change_amount,
                  status (paid|voided), flags (text[], kosong = bersih), notes,
                  created_at (waktu device), synced_at (waktu server)

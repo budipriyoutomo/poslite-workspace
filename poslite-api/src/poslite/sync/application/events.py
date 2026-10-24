@@ -9,6 +9,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StrictBool,
     StrictInt,
     StringConstraints,
     ValidationError,
@@ -102,6 +103,8 @@ class _Line(_Strict):
 class _Rates(_Strict):
     service_bps: Rupiah
     tax_bps: Rupiah
+    # ADR-030; optional so devices from before it stay valid (prices before tax).
+    includes_tax: StrictBool = False
 
 
 class _Totals(_Strict):
@@ -281,7 +284,7 @@ def to_command(event: IncomingEvent) -> Command:
                         for line in p.lines
                     ),
                     discount=_discount(p.discount),
-                    rates=Rates(p.rates.service_bps, p.rates.tax_bps),
+                    rates=Rates(p.rates.service_bps, p.rates.tax_bps, p.rates.includes_tax),
                     totals=PriceBreakdown(
                         p.totals.subtotal,
                         p.totals.discount_amount,

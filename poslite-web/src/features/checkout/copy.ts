@@ -5,6 +5,8 @@ export const copy = {
   itemDiscount: "Diskon item",
   service: (bps: number) => `Service ${bps / 100}%`,
   tax: (bps: number) => `PB1 ${bps / 100}%`,
+  includedService: (bps: number) => `Termasuk service ${bps / 100}%`,
+  includedTax: (bps: number) => `Termasuk PB1 ${bps / 100}%`,
   total: "Total",
   pay: "Bayar",
   addDiscount: "Diskon",

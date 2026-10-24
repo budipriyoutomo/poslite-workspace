@@ -25,6 +25,7 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
   const [header, setHeader] = useState(brand?.receipt_header ?? "");
   const [footer, setFooter] = useState(brand?.receipt_footer ?? "");
   const [isActive, setIsActive] = useState(brand?.is_active ?? true);
+  const [includesTax, setIncludesTax] = useState(brand?.price_includes_tax ?? false);
   const [policy, setPolicy] = useState(toDraft(brand?.discount ?? DEFAULT_POLICY));
   const discount = fromDraft(policy);
   const canSave = /^[A-Z0-9]{2,20}$/.test(code) && name.trim() !== "" && discount !== null;
@@ -32,7 +33,7 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canSave || !discount) return;
-    const body = { code, name: name.trim(), logo_key: logo?.key ?? null, receipt_header: header, receipt_footer: footer, is_active: isActive, discount };
+    const body = { code, name: name.trim(), logo_key: logo?.key ?? null, receipt_header: header, receipt_footer: footer, is_active: isActive, discount, price_includes_tax: includesTax };
     save.mutate(
       { id: brand?.id, body },
       {
@@ -63,6 +64,14 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
       </FormField>
       <p className="text-xs text-muted-foreground">Dipakai semua outlet brand ini, kecuali outlet yang mengisi header/footer sendiri.</p>
       <DiscountPolicyFields draft={policy} onChange={setPolicy} />
+      <div className="space-y-1">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox aria-label="Harga menu sudah termasuk service & PB1" checked={includesTax} onCheckedChange={(on) => setIncludesTax(on === true)} /> Harga menu sudah termasuk service & PB1
+        </label>
+        {includesTax !== (brand?.price_includes_tax ?? false) && (
+          <p className="text-xs text-warning">Berlaku hanya untuk transaksi baru setelah perangkat sinkron; transaksi lama tetap dengan cara hitungnya.</p>
+        )}
+      </div>
       {brand && (
         <label className="flex items-center gap-2 text-sm">
           <Checkbox aria-label="Aktif" checked={isActive} onCheckedChange={(on) => setIsActive(on === true)} /> Aktif

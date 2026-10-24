@@ -29,7 +29,11 @@ def test_matches_the_shared_pricing_fixture(case: dict[str, Any]) -> None:
             for x in case["lines"]
         ],
         discount=Discount(discount["type"], discount["value"]) if discount else None,
-        rates=Rates(case["rates"]["service_bps"], case["rates"]["tax_bps"]),
+        rates=Rates(
+            case["rates"]["service_bps"],
+            case["rates"]["tax_bps"],
+            includes_tax=case["rates"].get("includes_tax", False),
+        ),
     )
 
     e = case["expected"]

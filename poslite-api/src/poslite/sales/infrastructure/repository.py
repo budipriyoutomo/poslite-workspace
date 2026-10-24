@@ -51,6 +51,7 @@ class SqlAlchemyOrderRepository:
                 discount_amount=d.totals.discount_amount,
                 service_rate_bps=d.rates.service_bps,
                 tax_rate_bps=d.rates.tax_bps,
+                price_includes_tax=d.rates.includes_tax,
                 service_charge=d.totals.service_charge,
                 tax=d.totals.tax,
                 total=d.totals.total,

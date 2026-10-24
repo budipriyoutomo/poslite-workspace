@@ -61,7 +61,7 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const shift = await getOpenShift(db);
     if (!shift) throw new AppError("NO_OPEN_SHIFT");
 
-    const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps }; // snapshot (ADR-011)
+    const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps, includesTax: outlet.priceIncludesTax === true }; // snapshot (ADR-011, ADR-030)
     const now = deps.now();
     // Only the promotions the cashier chose, checked again now in outlet time (ADR-016).
     const chosen = (await db.promotions.toArray()).filter((p) => input.promotionIds?.includes(p.id));
@@ -178,7 +178,7 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
       promotion: l.promotion ?? null,
     })),
     discount: order.discount,
-    rates: { service_bps: order.rates.serviceBps, tax_bps: order.rates.taxBps },
+    rates: { service_bps: order.rates.serviceBps, tax_bps: order.rates.taxBps, ...(order.rates.includesTax && { includes_tax: true }) },
     totals: {
       subtotal: order.subtotal,
       discount_amount: order.discountAmount,

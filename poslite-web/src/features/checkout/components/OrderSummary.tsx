@@ -26,8 +26,11 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
   const rows: [string, number][] = [[copy.subtotal, totals.subtotal]];
   if (totals.itemDiscounts > 0) rows.push([copy.itemDiscount, -totals.itemDiscounts]);
   if (totals.orderDiscount > 0) rows.push([discountLabel, -totals.orderDiscount]);
-  if (rates.serviceBps > 0) rows.push([copy.service(rates.serviceBps), totals.serviceCharge]);
-  if (rates.taxBps > 0) rows.push([copy.tax(rates.taxBps), totals.tax]);
+  // Prices that include tax (ADR-030): service and PB1 are inside the total, shown after it.
+  const rateRows: [string, number][] = [];
+  if (rates.serviceBps > 0) rateRows.push([rates.includesTax ? copy.includedService(rates.serviceBps) : copy.service(rates.serviceBps), totals.serviceCharge]);
+  if (rates.taxBps > 0) rateRows.push([rates.includesTax ? copy.includedTax(rates.taxBps) : copy.tax(rates.taxBps), totals.tax]);
+  if (!rates.includesTax) rows.push(...rateRows);
 
   return (
     <div className="space-y-3 border-t pt-3">
@@ -53,6 +56,13 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
           <dt>{copy.total}</dt>
           <dd className="tabular-nums">{formatRupiah(totals.total)}</dd>
         </div>
+        {rates.includesTax &&
+          rateRows.map(([label, value]) => (
+            <div key={label} className="flex justify-between text-xs">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-muted-foreground tabular-nums">{formatRupiah(value)}</dd>
+            </div>
+          ))}
       </dl>
       {children}
       <DiscountPicker open={isPicking} onOpenChange={setIsPicking} />

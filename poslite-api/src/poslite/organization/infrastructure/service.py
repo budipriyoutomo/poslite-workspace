@@ -50,6 +50,7 @@ class BrandInfo:
     receipt_footer: str = ""
     is_active: bool = True
     discount: DiscountPolicy = field(default_factory=DiscountPolicy)
+    price_includes_tax: bool = False
 
 
 def _policy(b: BrandModel) -> DiscountPolicy:
@@ -80,6 +81,7 @@ def _brand(b: BrandModel) -> BrandInfo:
         receipt_footer=b.receipt_footer,
         is_active=b.is_active,
         discount=_policy(b),
+        price_includes_tax=b.price_includes_tax,
     )
 
 
@@ -129,6 +131,7 @@ async def create_brand(
     receipt_footer: str = "",
     is_active: bool = True,
     discount: DiscountPolicy | None = None,
+    price_includes_tax: bool = False,
 ) -> str:
     await _ensure_code_free(uow, code)
     _check_logo(uow, logo_key)
@@ -141,6 +144,7 @@ async def create_brand(
         receipt_header=receipt_header,
         receipt_footer=receipt_footer,
         is_active=is_active,
+        price_includes_tax=price_includes_tax,
     )
     _set_policy(brand, discount or DiscountPolicy())
     uow.session.add(brand)
@@ -159,6 +163,7 @@ async def update_brand(
     receipt_footer: str,
     is_active: bool,
     discount: DiscountPolicy,
+    price_includes_tax: bool = False,
 ) -> BrandInfo:
     """Devices see brand data inside `outlet_setting`, so every outlet of the brand is
     re-versioned in the same transaction (ADR-009, ADR-022)."""
@@ -169,6 +174,7 @@ async def update_brand(
     brand.code, brand.name, brand.logo_key = code, name, logo_key
     brand.receipt_header, brand.receipt_footer = receipt_header, receipt_footer
     brand.is_active, brand.updated_at = is_active, func.now()
+    brand.price_includes_tax = price_includes_tax  # new orders only: old ones keep their mode
     _set_policy(brand, discount)
     await uow.session.execute(
         update(OutletModel).where(OutletModel.brand_id == brand_id).values(updated_at=func.now())
@@ -379,6 +385,7 @@ async def outlet_changes(
                 "logo_key": brand.logo_key,
             },
             "discount_policy": _policy(brand).as_data(),
+            "price_includes_tax": brand.price_includes_tax,
         },
     )
 
@@ -396,6 +403,7 @@ async def outlet_profile(uow: SqlAlchemyUnitOfWork, outlet_id: str) -> OutletPro
         business_day_cutoff=outlet.business_day_cutoff,
         cashier_max_discount_percentage=brand.cashier_max_discount_percentage,
         cashier_max_discount_amount=brand.cashier_max_discount_amount,
+        price_includes_tax=brand.price_includes_tax,
     )
 
 
