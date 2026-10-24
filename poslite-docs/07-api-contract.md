@@ -72,7 +72,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 
 | Entity | `data` |
 |---|---|
-| `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` (sudah di-resolve: teks outlet bila diisi, selain itu teks brand), `brand` `{id, code, name, logo_key}`, `discount_policy` `{percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}` (dari brand; opsional untuk server lama), `price_includes_tax` (dari brand, ADR-030; tidak ada = `false`) — hanya outlet milik device. Katalog (`category`, `product`, `modifier_group`, `modifier_option`) dan `promotion` hanya milik brand outlet (ADR-022) |
+| `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` (sudah di-resolve: teks outlet bila diisi, selain itu teks brand), `brand` `{id, code, name, logo_key}`, `discount_policy` `{percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}` (dari brand; opsional untuk server lama), `price_includes_tax` (dari brand, ADR-030; tidak ada = `false`), `service_mode` (`counter` | `table_service`, ADR-031; tidak ada = `counter`) — hanya outlet milik device. Katalog (`category`, `product`, `modifier_group`, `modifier_option`) dan `promotion` hanya milik brand outlet (ADR-022) |
 | `category` | `name`, `sort_order`, `print_role` |
 | `product` | `category_id`, `sku`, `name`, `price`, `image_key`, `is_available`, `modifier_group_ids` |
 | `modifier_group` | `name`, `min_select`, `max_select` |
@@ -139,6 +139,8 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 - `discount_approved_by` (ULID atau null, opsional) di `order.placed`: manajer yang menyetujui diskon di atas batas kasir brand (06 aturan 5).
 - `rates` wajib di `order.placed`. Server menghitung ulang `totals` memakai `rates` ini, bukan tarif outlet saat ini (ADR-011).
 - Error non-bisnis (5xx) berarti **seluruh batch** di-rollback → device retry batch yang sama; idempotency menjamin tidak ada duplikat.
+
+`order.placed` boleh membawa `closes_bill_id` (ULID, ADR-031): pembayaran yang melunasi bill bersama menutupnya di server (tanpa melihat lease); bill yang tidak dikenal server diabaikan.
 
 Tipe event: `shift.opened`, `shift.closed`, `cash.moved`, `order.placed`, `order.voided`, `order.refunded` (ADR-023), `bill.item_voided` (ADR-028). Tipe lain → `rejected` `UNSUPPORTED_EVENT_TYPE`.
 
@@ -215,6 +217,11 @@ Batas: maks 50 event / request, body maks 1 MB.
 |---|---|---|
 | POST | `/payments/qris` `{id, amount}` | QR dinamis (ADR-019); `id` ULID dari device → idempoten. Respons `{id, amount, status, qr_string, expires_at, paid_at}` |
 | GET | `/payments/qris/{id}` | dipolling device sampai `status` bukan `pending`: `paid`, atau `expired` bila belum dibayar setelah `expires_at` (pembayaran yang dikonfirmasi gateway setelahnya tetap menjadi `paid`) |
+| GET | `/open-bills` | Ability `device:sync`; hanya outlet `table_service` (selain itu 409 `NOT_TABLE_SERVICE`). Bill terbuka outlet: `{id, table_id, table_label, lines, discount, opened_by, opened_at, version, lease: {device_id, device_name, user_id, until} \| null, updated_at}`. `lines` = baris cart device (camelCase), disimpan apa adanya (ADR-031) |
+| POST | `/open-bills` `{id, table_id, table_label, lines, discount, opened_by, opened_at, user_id, release_lease}` | 201; `version` 1, lease ke device kecuali `release_lease`. Id yang sama lagi → bill apa adanya (idempoten). Meja sudah punya bill → 409 `TABLE_OCCUPIED` |
+| POST · DELETE | `/open-bills/{id}/lease` `{user_id}` | Ambil/perpanjang lease 60 detik; device lain memegang lease aktif → 409 `BILL_LEASED`. DELETE melepas lease milik device ini. Bill tertutup/outlet lain → 404 `BILL_NOT_FOUND` |
+| PUT | `/open-bills/{id}` `{version, table_id, table_label, lines, discount, user_id, release_lease}` | Simpan di atas `version`; versi lama → 409 `BILL_VERSION_CONFLICT` (dicek lebih dulu), lease device lain → 409 `BILL_LEASED`. Respons `version + 1`. Pindah meja = simpan dengan meja baru |
+| DELETE | `/open-bills/{id}?version=` | Batalkan bill (tanpa pembayaran); aturan versi & lease sama |
 | GET | `/orders/lookup?receipt_no=` | Ability `device:read`. Order outlet device (dari device mana pun) + `refunded_quantity` per baris, untuk refund lintas device saat online (ADR-023); tidak ada → 404 `ORDER_NOT_FOUND` |
 
 ## Endpoint — Gateway (masuk)

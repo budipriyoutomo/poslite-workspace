@@ -61,7 +61,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 | P0-1 ✅ | ADR-028 | `0023_bill_item_voids` (`bill_voids`, `bill_void_lines`, kolom void di `rpt_daily_sales`) | — (tidak perlu; event masuk `outbox`) |
 | P0-3 ✅ | ADR-030 | `0024_brand_price_includes_tax` (+ `orders.price_includes_tax`) | — (flag ikut data brand di `settings`) |
 | P0-2 ✅ | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
-| P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
+| P0-4 ✅ | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
 | P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v8**: `queueCounters: "businessDate"` |
 | P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v8**: `availabilityOverrides: "productId"` |
 | P1-3 | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `payments.rounding_amount`, `refunds.rounding_amount`) | — (pengaturan outlet di `settings`) |
@@ -117,7 +117,7 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v7) | Draf SOP Pelayan |
+| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v7) ✅ | Draf SOP Pelayan |
 | Uji konkurensi: dua device mengedit bill yang sama, lease kedaluwarsa, device offline memegang lease | Survei alur pesanan di restoran pilot (siapa input, siapa menagih) |
 
 **Gerbang keluar**: P0-4 DoD hijau, termasuk e2e dua device; outlet counter-service tetap berperilaku sama seperti sebelum P0-4.
@@ -308,7 +308,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 
 ---
 
-### P0-4 — Mode Layanan per Outlet & Shared Open Bill (ADR-031)
+### P0-4 — Mode Layanan per Outlet & Shared Open Bill (ADR-031) ✅
 
 **Masalah.** ADR-015 menyimpan open bill hanya di device yang membukanya. Itu cukup untuk counter-service, tetapi di restoran full-service pelayan mencatat pesanan di tablet masing-masing dan kasir menagih di device lain. Tanpa bill bersama, kasir tidak bisa melihat bill pelayan, dan pindah meja atau gabung bill lintas device tidak mungkin.
 
@@ -362,6 +362,8 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - Regresi: seluruh e2e dine-in yang ada tetap hijau di mode `counter`.
 
 **DoD**: owner mengganti mode outlet di back-office; di `table_service`, bill pelayan terlihat dan dibayar di device kasir tanpa input ulang; di `counter`, perilaku sama seperti sebelum P0-4.
+
+**Status (2026-10-24)**: selesai. Penyimpangan dari rencana: baris bill disimpan sebagai JSON di `open_bills.lines` (tanpa tabel `open_bill_lines`, server tidak pernah menghitung bill); `closes_bill_id` di `order.placed` menutup bill; PUT/POST menerima `release_lease`. E2E dua device ada di `tests/fullstack` (bukan `tests/e2e`, karena butuh API asli). Belum: varian e2e offline dua device (tercakup unit test `open-bill-sync`), gabung bill lintas device, void sebelum bayar di tablet pelayan tanpa shift.
 
 ---
 
@@ -582,7 +584,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 - [x] Fixture matriks channel × inklusif × diskon hijau di web & API
 
 **Tahap B2 — Mode Layanan & Shared Open Bill**
-- [ ] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)
+- [x] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)
 - [ ] Uji konkurensi & e2e dua device hijau
 - [ ] Regresi mode `counter` hijau
 

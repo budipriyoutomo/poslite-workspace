@@ -99,7 +99,8 @@ tenants          id, slug (unik global), name, status (active|suspended), plan (
                  default_timezone, created_at, suspended_at                -- global, tanpa RLS
 outlets          id, code (unik per tenant, mis. JKT01), name, address, phone, timezone,
                  business_day_cutoff (time, default 04:00), tax_rate_bps (int, mis. 1000),
-                 service_rate_bps (int, mis. 500), receipt_header, receipt_footer, version, timestamps, deleted_at
+                 service_rate_bps (int, mis. 500), receipt_header, receipt_footer,
+                 service_mode (counter|table_service, ADR-031, migrasi 0027), version, timestamps, deleted_at
 devices          id, outlet_id, code (A, B, …; unik per outlet), name, platform, app_version,
                  last_seen_at, activated_by, revoked_at, timestamps
 users            id, name, email (unik global, nullable untuk kasir), password_hash (argon2, nullable), pin_hash, pin_salt,
@@ -116,7 +117,7 @@ device_imports   id, device_id, imported_by, file_sha256, accepted, duplicate, f
                  rejected (jsonb [{id, code}]), created_at   -- audit import darurat (ADR-024)
 day_closings     id, outlet_id, business_date, closed_by, closed_at, notes, snapshot (jsonb)
                  -- UNIQUE (tenant_id, outlet_id, business_date); tutup hari (ADR-026)
-roles            id, name (owner|manager|cashier)
+roles            id, name (owner|manager|cashier|waiter — waiter tanpa permission, ADR-031)
 permissions      id, name (mis. order.void, discount.override, shift.close, cash.move)
 role_permissions role_id, permission_id                                    -- PK (role_id, permission_id)
 api_tokens       id, owner_type (device|user|platform_admin), owner_id, token_hash (sha256, unik), abilities (text[]),
@@ -148,6 +149,10 @@ sales_channels   id, brand_id, code (unik per brand, huruf besar), name, kind (d
                  default_payment_method_id, applies_service, applies_tax, requires_external_ref,
                  is_active, sort_order, version, deleted_at                     -- ADR-029, migrasi 0025
 channel_prices   channel_id, product_id (PK), price      -- link: ubah → touch sales_channels.version
+open_bills       id, outlet_id, table_id (unik selama terbuka), table_label, lines (jsonb: baris cart device),
+                 discount (jsonb), opened_by, opened_at, version (optimistic lock, bukan sync version),
+                 lease_device_id, lease_user_id, lease_until, closed_at, closed_by_order_id, updated_at
+                 -- ADR-031, migrasi 0027; hanya outlet table_service; RLS tenant
 payment_methods  id, type (cash|debit|qris|credit_card|voucher|other), name, logo_url,
                  requires_reference (bool), sort_order, is_active, version, …
 outlet_payment_method   outlet_id, payment_method_id                      -- ubah → touch payment_methods.version
