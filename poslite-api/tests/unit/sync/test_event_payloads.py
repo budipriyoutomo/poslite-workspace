@@ -4,7 +4,13 @@ from typing import Any
 
 import pytest
 
-from poslite.sales.api import Discount, PlaceOrderData, RefundOrderData, VoidOrderData
+from poslite.sales.api import (
+    Discount,
+    PlaceOrderData,
+    RefundOrderData,
+    VoidBillItemsData,
+    VoidOrderData,
+)
 from poslite.shared.domain.errors import DomainError
 from poslite.shift.api import CloseShift, MoveCash, OpenShift
 from poslite.sync.application.events import IncomingEvent, to_command
@@ -14,6 +20,9 @@ EVENTS: list[dict[str, Any]] = json.loads(
 )
 CORRECTIONS: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "correction-events.json").read_text()
+)
+BILL_VOIDS: list[dict[str, Any]] = json.loads(
+    (Path(__file__).parents[2] / "fixtures" / "bill-void-events.json").read_text()
 )
 VARIANTS: list[dict[str, Any]] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "order-placed-variants.json").read_text()
@@ -25,11 +34,14 @@ COMMAND = {
     "shift.closed": CloseShift,
     "order.voided": VoidOrderData,
     "order.refunded": RefundOrderData,
+    "bill.item_voided": VoidBillItemsData,
 }
 
 
 @pytest.mark.parametrize(
-    "event", EVENTS + CORRECTIONS, ids=[e["type"] for e in EVENTS + CORRECTIONS]
+    "event",
+    EVENTS + CORRECTIONS + BILL_VOIDS,
+    ids=[e["type"] for e in EVENTS + CORRECTIONS + BILL_VOIDS],
 )
 def test_accepts_every_payload_the_device_sends(event: dict[str, Any]) -> None:
     """Same fixture as poslite-web's Zod contract test."""
@@ -108,3 +120,35 @@ def test_maps_table_label_line_discount_and_promotion() -> None:
     assert command.lines[0].discount == Discount("fixed", 18_000)
     assert command.lines[0].promotion == ("01K5ZQ00000000000000000001", "Beli 2 gratis 1")
     assert command.lines[1].promotion is None
+
+
+def test_maps_bill_item_voided_into_the_domain_command() -> None:
+    event = BILL_VOIDS[1]
+
+    command = to_command(IncomingEvent.model_validate(event))
+
+    assert isinstance(command, VoidBillItemsData)
+    assert (command.void_id, command.scope, len(command.lines)) == (
+        event["aggregate_id"],
+        "bill_cancelled",
+        2,
+    )
+    assert command.lines[0].modifiers == ()
+
+
+@pytest.mark.parametrize(
+    "broken",
+    [
+        {"scope": "everything"},
+        {"lines": []},
+        {"reason": ""},
+    ],
+    ids=["unknown scope", "no lines", "empty reason"],
+)
+def test_rejects_a_bill_void_that_breaks_the_contract(broken: dict[str, Any]) -> None:
+    event = {**BILL_VOIDS[0], "payload": {**BILL_VOIDS[0]["payload"], **broken}}
+
+    with pytest.raises(DomainError) as err:
+        to_command(IncomingEvent.model_validate(event))
+
+    assert err.value.code == "SCHEMA_INVALID"

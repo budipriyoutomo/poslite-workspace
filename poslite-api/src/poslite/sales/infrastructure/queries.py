@@ -5,6 +5,8 @@ from datetime import date, datetime
 from sqlalchemy import ColumnElement, and_, func, select
 
 from poslite.sales.infrastructure.models import (
+    BillVoidLineModel,
+    BillVoidModel,
     OrderLineModel,
     OrderLineModifierModel,
     OrderModel,
@@ -28,6 +30,8 @@ class DailyTotals:
     void_count: int
     refund_amount: int = 0
     refund_count: int = 0
+    pre_payment_void_count: int = 0  # bill items cancelled after the kitchen had them (ADR-028)
+    pre_payment_void_amount: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,7 +84,14 @@ async def daily_totals(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date) -> 
             )
         )
     ).one()
-    return DailyTotals(*(int(v) for v in (*row, *refunds)))
+    bill_voids = (
+        await uow.session.execute(
+            select(func.count(), func.coalesce(func.sum(BillVoidModel.amount), 0)).where(
+                BillVoidModel.outlet_id == outlet_id, BillVoidModel.business_date == day
+            )
+        )
+    ).one()
+    return DailyTotals(*(int(v) for v in (*row, *refunds, *bill_voids)))
 
 
 async def daily_product_sales(
@@ -422,3 +433,71 @@ async def refund_detail(uow: SqlAlchemyUnitOfWork, refund_id: str) -> dict[str, 
             for y in payments
         ],
     }
+
+
+async def list_bill_voids(
+    uow: SqlAlchemyUnitOfWork, outlet_ids: list[str], start: date, end: date
+) -> list[dict[str, object]]:
+    """Pre-payment voids (ADR-028) of the given outlets and business days, newest first."""
+    return await _bill_voids(
+        uow,
+        and_(
+            BillVoidModel.outlet_id.in_(outlet_ids),
+            BillVoidModel.business_date.between(start, end),
+        ),
+    )
+
+
+async def bill_void_detail(uow: SqlAlchemyUnitOfWork, void_id: str) -> dict[str, object] | None:
+    """One pre-payment void with its lines (webhooks); None if RLS hides it."""
+    found = await _bill_voids(uow, BillVoidModel.id == void_id)
+    return found[0] if found else None
+
+
+async def _bill_voids(
+    uow: SqlAlchemyUnitOfWork, where: ColumnElement[bool]
+) -> list[dict[str, object]]:
+    voids = list(
+        await uow.session.scalars(
+            select(BillVoidModel)
+            .where(where)
+            .order_by(BillVoidModel.voided_at.desc(), BillVoidModel.id.desc())
+        )
+    )
+    lines: dict[str, list[dict[str, object]]] = defaultdict(list)
+    if voids:
+        rows = await uow.session.scalars(
+            select(BillVoidLineModel)
+            .where(BillVoidLineModel.void_id.in_([v.id for v in voids]))
+            .order_by(BillVoidLineModel.void_id, BillVoidLineModel.sort_order)
+        )
+        for x in rows:
+            lines[x.void_id].append(
+                {
+                    "product_id": x.product_id,
+                    "product_name": x.product_name,
+                    "modifiers": list(x.modifiers),
+                    "unit_price": x.unit_price,
+                    "quantity": x.quantity,
+                    "amount": x.amount,
+                }
+            )
+    return [
+        {
+            "id": v.id,
+            "outlet_id": v.outlet_id,
+            "device_id": v.device_id,
+            "shift_id": v.shift_id,
+            "business_date": v.business_date,
+            "bill_id": v.bill_id,
+            "scope": v.scope,
+            "table_label": v.table_label,
+            "cashier_id": v.cashier_id,
+            "approved_by": v.approved_by,
+            "reason": v.reason,
+            "amount": v.amount,
+            "voided_at": v.voided_at,
+            "lines": lines[v.id],
+        }
+        for v in voids
+    ]

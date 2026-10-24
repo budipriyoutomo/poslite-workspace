@@ -59,3 +59,22 @@ class OrderRefunded(DomainEvent):
             "outlet_id": self.outlet_id,
             "business_date": self.business_date,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class BillItemsVoided(DomainEvent):
+    """Items cancelled from an open bill after the kitchen had them (ADR-028): the void's own day
+    is re-aggregated for the leakage report."""
+
+    void_id: str
+    outlet_id: str
+    business_date: str
+
+    topic = "sales.bill_items_voided"
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "void_id": self.void_id,
+            "outlet_id": self.outlet_id,
+            "business_date": self.business_date,
+        }

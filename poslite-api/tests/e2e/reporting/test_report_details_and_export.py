@@ -70,9 +70,10 @@ async def test_exports_csv_that_excel_opens_correctly(
     )
     assert response.content.startswith(b"\xef\xbb\xbf")  # BOM: Excel reads UTF-8
     assert response.content.decode("utf-8-sig").splitlines() == [
-        "Tanggal;Penjualan kotor;Diskon;Service;PB1;Pendapatan;Transaksi;Void;Refund;Jumlah refund",
-        "2026-09-25;70000;7000;3150;6615;72765;1;0;0;0",
-        "Total;70000;7000;3150;6615;72765;1;0;0;0",
+        "Tanggal;Penjualan kotor;Diskon;Service;PB1;Pendapatan;Transaksi;Void;Refund;Jumlah refund;"
+        "Batal sebelum bayar;Nilai batal sebelum bayar",
+        "2026-09-25;70000;7000;3150;6615;72765;1;0;0;0;0;0",
+        "Total;70000;7000;3150;6615;72765;1;0;0;0;0;0",
     ]
 
 
@@ -100,6 +101,8 @@ async def test_exports_an_xlsx_workbook_with_a_sheet_per_breakdown(
         6_615,
         72_765,
         1,
+        0,
+        0,
         0,
         0,
         0,

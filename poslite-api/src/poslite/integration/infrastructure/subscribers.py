@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from poslite.integration.infrastructure.service import enqueue
 from poslite.organization import api as organization
@@ -74,10 +74,30 @@ async def on_order_refunded(uow: SqlAlchemyUnitOfWork, payload: dict[str, object
     )
 
 
+async def on_bill_items_voided(uow: SqlAlchemyUnitOfWork, payload: dict[str, object]) -> None:
+    """Items cancelled from an open bill after the kitchen had them (ADR-028): waste to book."""
+    void_id = str(payload["void_id"])
+    detail = await sales.bill_void_detail(uow, void_id)
+    if detail is None:
+        return
+    brand_id = await organization.brand_of_outlet(uow, str(detail["outlet_id"]))
+    data = {k: v.isoformat() if isinstance(v, date | datetime) else v for k, v in detail.items()}
+    await enqueue(
+        uow,
+        event_type="bill.item_voided",
+        event_key=void_id,
+        brand_id=brand_id,
+        data=data | {"brand_id": brand_id},
+        new_id=new_ulid,
+        now=datetime.now(UTC),
+    )
+
+
 def subscribers() -> Mapping[str, Subscriber]:
     return {
         "sales.order_placed": on_order_placed,
         "shift.closed": on_shift_closed,
         "sales.order_voided": on_order_voided,
         "sales.order_refunded": on_order_refunded,
+        "sales.bill_items_voided": on_bill_items_voided,
     }

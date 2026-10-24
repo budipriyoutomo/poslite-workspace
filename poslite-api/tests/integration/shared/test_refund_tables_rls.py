@@ -1,4 +1,5 @@
-"""ADR-013 for the ADR-023 tables: every void and refund table is fenced by row-level security."""
+"""ADR-013 for the ADR-023 tables (and later ones, e.g. ADR-028 bill voids): every void and refund
+table is fenced by row-level security."""
 
 import pytest
 from sqlalchemy import text
@@ -12,6 +13,8 @@ TABLES = [
     "outlet_payment_method",
     "device_imports",
     "day_closings",
+    "bill_voids",
+    "bill_void_lines",
 ]
 
 

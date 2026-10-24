@@ -3,7 +3,9 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, HttpUrl
 
-EventType = Literal["order.placed", "shift.closed", "order.voided", "order.refunded"]
+EventType = Literal[
+    "order.placed", "shift.closed", "order.voided", "order.refunded", "bill.item_voided"
+]
 
 
 def _https(url: HttpUrl) -> HttpUrl:

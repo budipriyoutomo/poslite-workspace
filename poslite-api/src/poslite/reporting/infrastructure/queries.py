@@ -11,6 +11,7 @@ from poslite.reporting.infrastructure.models import (
     DailyProductSalesModel,
     DailySalesModel,
 )
+from poslite.sales import api as sales
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 TOTAL_FIELDS = (
@@ -23,6 +24,8 @@ TOTAL_FIELDS = (
     "void_count",
     "refund_amount",  # refunds paid out that day (ADR-023), not subtracted from net
     "refund_count",
+    "pre_payment_void_count",  # bill items cancelled after the kitchen had them (ADR-028)
+    "pre_payment_void_amount",
 )
 
 
@@ -159,3 +162,28 @@ async def sales_summary(
             for c, n, v in cashier_rows
         ],
     )
+
+
+async def bill_void_report(
+    uow: SqlAlchemyUnitOfWork, outlet_ids: list[str], start: date, end: date
+) -> dict[str, object]:
+    """Pre-payment voids (ADR-028) with the names of who cancelled and who approved."""
+    voids = await sales.list_bill_voids(uow, outlet_ids, start, end)
+    people = {str(v["cashier_id"]) for v in voids} | {
+        str(v["approved_by"]) for v in voids if v["approved_by"]
+    }
+    names = await identity.user_names(uow, sorted(people))
+    return {
+        "voids": [
+            v
+            | {
+                "cashier_name": names.get(str(v["cashier_id"]), ""),
+                "approver_name": names.get(str(v["approved_by"])) if v["approved_by"] else None,
+            }
+            for v in voids
+        ],
+        "totals": {
+            "count": len(voids),
+            "amount": sum(int(str(v["amount"])) for v in voids),
+        },
+    }

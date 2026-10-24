@@ -262,6 +262,29 @@
         "title": "ApiResponse[AuthResult]",
         "type": "object"
       },
+      "ApiResponse_BillVoidReportOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BillVoidReportOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[BillVoidReportOut]",
+        "type": "object"
+      },
       "ApiResponse_BrandOut_": {
         "properties": {
           "data": {
@@ -1878,6 +1901,196 @@
         "title": "AuthResult",
         "type": "object"
       },
+      "BillVoidLineOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "product_name",
+          "modifiers",
+          "unit_price",
+          "quantity",
+          "amount"
+        ],
+        "title": "BillVoidLineOut",
+        "type": "object"
+      },
+      "BillVoidOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "approver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Name"
+          },
+          "bill_id": {
+            "title": "Bill Id",
+            "type": "string"
+          },
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "cashier_id": {
+            "title": "Cashier Id",
+            "type": "string"
+          },
+          "cashier_name": {
+            "title": "Cashier Name",
+            "type": "string"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BillVoidLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "outlet_id": {
+            "title": "Outlet Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "line",
+              "bill_cancelled"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "shift_id": {
+            "title": "Shift Id",
+            "type": "string"
+          },
+          "table_label": {
+            "title": "Table Label",
+            "type": "string"
+          },
+          "voided_at": {
+            "format": "date-time",
+            "title": "Voided At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "outlet_id",
+          "device_id",
+          "shift_id",
+          "business_date",
+          "bill_id",
+          "scope",
+          "table_label",
+          "cashier_id",
+          "cashier_name",
+          "approved_by",
+          "approver_name",
+          "reason",
+          "amount",
+          "voided_at",
+          "lines"
+        ],
+        "title": "BillVoidOut",
+        "type": "object"
+      },
+      "BillVoidReportOut": {
+        "properties": {
+          "totals": {
+            "$ref": "#/components/schemas/BillVoidTotalsOut"
+          },
+          "voids": {
+            "items": {
+              "$ref": "#/components/schemas/BillVoidOut"
+            },
+            "title": "Voids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "voids",
+          "totals"
+        ],
+        "title": "BillVoidReportOut",
+        "type": "object"
+      },
+      "BillVoidTotalsOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "amount"
+        ],
+        "title": "BillVoidTotalsOut",
+        "type": "object"
+      },
       "BrandIn": {
         "properties": {
           "code": {
@@ -2455,6 +2668,14 @@
             "title": "Order Count",
             "type": "integer"
           },
+          "pre_payment_void_amount": {
+            "title": "Pre Payment Void Amount",
+            "type": "integer"
+          },
+          "pre_payment_void_count": {
+            "title": "Pre Payment Void Count",
+            "type": "integer"
+          },
           "refund_amount": {
             "title": "Refund Amount",
             "type": "integer"
@@ -2486,6 +2707,8 @@
           "void_count",
           "refund_amount",
           "refund_count",
+          "pre_payment_void_count",
+          "pre_payment_void_amount",
           "business_date"
         ],
         "title": "DaySales",
@@ -2873,7 +3096,8 @@
                 "order.placed",
                 "shift.closed",
                 "order.voided",
-                "order.refunded"
+                "order.refunded",
+                "bill.item_voided"
               ],
               "type": "string"
             },
@@ -6434,6 +6658,14 @@
             "title": "Order Count",
             "type": "integer"
           },
+          "pre_payment_void_amount": {
+            "title": "Pre Payment Void Amount",
+            "type": "integer"
+          },
+          "pre_payment_void_count": {
+            "title": "Pre Payment Void Count",
+            "type": "integer"
+          },
           "refund_amount": {
             "title": "Refund Amount",
             "type": "integer"
@@ -6464,7 +6696,9 @@
           "order_count",
           "void_count",
           "refund_amount",
-          "refund_count"
+          "refund_count",
+          "pre_payment_void_count",
+          "pre_payment_void_amount"
         ],
         "title": "Totals",
         "type": "object"
@@ -10798,6 +11032,115 @@
         "summary": "Get Refund",
         "tags": [
           "sales"
+        ]
+      }
+    },
+    "/api/v1/reports/bill-voids": {
+      "get": {
+        "description": "Items cancelled from open bills after the kitchen had them (ADR-028), newest first.",
+        "operationId": "get_bill_voids_api_v1_reports_bill_voids_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "outlet_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outlet Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Brand Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_BillVoidReportOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Bill Voids",
+        "tags": [
+          "reporting"
         ]
       }
     },

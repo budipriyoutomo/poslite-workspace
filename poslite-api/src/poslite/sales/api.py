@@ -1,7 +1,12 @@
 """Public API of the sales module (other modules import only this)."""
 
-from poslite.sales.application.correct_order import RefundOrderHandler, VoidOrderHandler
+from poslite.sales.application.correct_order import (
+    RefundOrderHandler,
+    VoidBillItemsHandler,
+    VoidOrderHandler,
+)
 from poslite.sales.application.place_order import PlaceOrderHandler, SalesUnitOfWork
+from poslite.sales.domain.bill_voids import VoidBillItemsData, VoidedBillLine
 from poslite.sales.domain.corrections import (
     RefundLineData,
     RefundOrderData,
@@ -18,11 +23,13 @@ from poslite.sales.infrastructure.queries import (
     OrderSummary,
     PaymentSales,
     ProductSales,
+    bill_void_detail,
     daily_cashier_sales,
     daily_category_sales,
     daily_payment_sales,
     daily_product_sales,
     daily_totals,
+    list_bill_voids,
     list_orders,
     list_refunds,
     order_detail,
@@ -53,13 +60,18 @@ __all__ = [
     "RefundPaymentData",
     "SalesUnitOfWork",
     "SqlAlchemyOrderRepository",
+    "VoidBillItemsData",
+    "VoidBillItemsHandler",
     "VoidOrderData",
     "VoidOrderHandler",
+    "VoidedBillLine",
+    "bill_void_detail",
     "daily_cashier_sales",
     "daily_category_sales",
     "daily_payment_sales",
     "daily_product_sales",
     "daily_totals",
+    "list_bill_voids",
     "list_orders",
     "list_refunds",
     "order_detail",

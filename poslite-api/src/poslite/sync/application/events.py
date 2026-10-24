@@ -18,6 +18,8 @@ from poslite.sales.api import (
     RefundLineData,
     RefundOrderData,
     RefundPaymentData,
+    VoidBillItemsData,
+    VoidedBillLine,
     VoidOrderData,
 )
 from poslite.shared.domain.errors import DomainError
@@ -163,7 +165,35 @@ class OrderRefundedPayload(_Strict):
     payments: Annotated[list[_RefundPayment], Field(min_length=1)]
 
 
-Command = OpenShift | CloseShift | MoveCash | PlaceOrderData | VoidOrderData | RefundOrderData
+class _VoidedBillLine(_Strict):
+    product_id: Ulid
+    product_name: Annotated[str, StringConstraints(min_length=1, max_length=150)]
+    modifiers: list[Annotated[str, StringConstraints(min_length=1, max_length=100)]]
+    unit_price: Rupiah
+    quantity: Annotated[StrictInt, Field(gt=0)]
+    amount: Rupiah
+
+
+class BillItemVoidedPayload(_Strict):
+    bill_id: Ulid
+    scope: Literal["line", "bill_cancelled"]
+    table_label: Annotated[str, StringConstraints(min_length=1, max_length=30)]
+    shift_id: Ulid
+    cashier_id: Ulid
+    approved_by: Ulid | None
+    reason: Reason
+    lines: Annotated[list[_VoidedBillLine], Field(min_length=1)]
+
+
+Command = (
+    OpenShift
+    | CloseShift
+    | MoveCash
+    | PlaceOrderData
+    | VoidOrderData
+    | RefundOrderData
+    | VoidBillItemsData
+)
 
 
 def _parse[P: _Strict](model: type[P], event: IncomingEvent) -> P:
@@ -283,6 +313,30 @@ def to_command(event: IncomingEvent) -> Command:
                         y.reference,
                     )
                     for y in r.payments
+                ),
+                occurred_at=event.occurred_at,
+            )
+        case "bill.item_voided":
+            b = _parse(BillItemVoidedPayload, event)
+            return VoidBillItemsData(
+                void_id=event.aggregate_id,
+                bill_id=b.bill_id,
+                scope=b.scope,
+                table_label=b.table_label,
+                shift_id=b.shift_id,
+                cashier_id=b.cashier_id,
+                approved_by=b.approved_by,
+                reason=b.reason,
+                lines=tuple(
+                    VoidedBillLine(
+                        x.product_id,
+                        x.product_name,
+                        tuple(x.modifiers),
+                        x.unit_price,
+                        x.quantity,
+                        x.amount,
+                    )
+                    for x in b.lines
                 ),
                 occurred_at=event.occurred_at,
             )

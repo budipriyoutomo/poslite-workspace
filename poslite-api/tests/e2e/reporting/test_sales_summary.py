@@ -44,6 +44,8 @@ async def test_reports_daily_sales_after_the_worker_projected_them(
             "void_count": 0,
             "refund_amount": 0,
             "refund_count": 0,
+            "pre_payment_void_count": 0,
+            "pre_payment_void_amount": 0,
         }
     ]
     assert data["totals"]["net"] == 72_765

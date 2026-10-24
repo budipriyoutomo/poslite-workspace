@@ -65,6 +65,8 @@ async def test_company_report_adds_up_every_outlet(api: AsyncClient, company: Co
             "void_count": 0,
             "refund_amount": 0,
             "refund_count": 0,
+            "pre_payment_void_count": 0,
+            "pre_payment_void_amount": 0,
         }
     ]
 

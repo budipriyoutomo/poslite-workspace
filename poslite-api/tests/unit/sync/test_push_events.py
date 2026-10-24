@@ -2,7 +2,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from poslite.sales.api import PlaceOrderHandler, RefundOrderHandler, VoidOrderHandler
+from poslite.sales.api import (
+    PlaceOrderHandler,
+    RefundOrderHandler,
+    VoidBillItemsHandler,
+    VoidOrderHandler,
+)
 from poslite.shared.application.sync import DeviceContext
 from poslite.shift.api import CloseShiftHandler, MoveCashHandler, OpenShiftHandler
 from poslite.sync.application.events import IncomingEvent
@@ -24,6 +29,12 @@ CORRECTIONS = [
     IncomingEvent.model_validate(e)
     for e in json.loads(
         (Path(__file__).parents[2] / "fixtures" / "correction-events.json").read_text()
+    )
+]
+BILL_VOIDS = [
+    IncomingEvent.model_validate(e)
+    for e in json.loads(
+        (Path(__file__).parents[2] / "fixtures" / "bill-void-events.json").read_text()
     )
 ]
 CASHIER = RAW[0]["payload"]["opened_by"]
@@ -58,6 +69,7 @@ def push_handler(
             move_cash=MoveCashHandler(allowed),
             void_order=VoidOrderHandler(allowed, approving, shifts),
             refund_order=RefundOrderHandler(FakeOutlets(), allowed, approving, shifts),
+            void_bill_items=VoidBillItemsHandler(FakeOutlets(), allowed, approving, shifts),
         )
     )
 
@@ -205,3 +217,30 @@ async def test_two_refunds_of_the_last_unit_are_both_kept_and_the_second_is_flag
         ("accepted", ()),
         ("flagged", ("REFUND_EXCEEDS_ORDER",)),
     ]
+
+
+async def test_items_cancelled_from_an_open_bill_are_recorded() -> None:
+    uow = new_uow()
+
+    results = await run(uow, [OPENED, *BILL_VOIDS])
+
+    assert [r.status for r in results] == ["accepted"] * 3
+    void = uow.orders.bill_voids[BILL_VOIDS[1].aggregate_id]
+    assert (void.amount, void.business_date.isoformat()) == (58_000, "2026-09-25")
+
+
+async def test_a_bill_void_approved_without_the_permission_is_rejected() -> None:
+    uow = new_uow()
+
+    results = await run(uow, [OPENED, BILL_VOIDS[0]], push_handler(uow, approvers=set()))
+
+    assert (results[-1].status, results[-1].code) == ("rejected", "APPROVER_NOT_ALLOWED")
+    assert uow.orders.bill_voids == {}
+
+
+async def test_a_bill_void_in_an_unknown_shift_is_rejected() -> None:
+    uow = new_uow()
+
+    results = await run(uow, [BILL_VOIDS[0]])
+
+    assert (results[0].status, results[0].code) == ("rejected", "SHIFT_NOT_FOUND")
