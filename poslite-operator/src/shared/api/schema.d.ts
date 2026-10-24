@@ -1123,6 +1123,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Channels */
+        get: operations["list_channels_api_v1_sales_channels_get"];
+        put?: never;
+        /** Create Channel */
+        post: operations["create_channel_api_v1_sales_channels_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-channels/{channel_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Channel */
+        put: operations["update_channel_api_v1_sales_channels__channel_id__put"];
+        post?: never;
+        /** Delete Channel */
+        delete: operations["delete_channel_api_v1_sales_channels__channel_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales-channels/{channel_id}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Channel Prices
+         * @description The whole price list of a `price_list` channel; products left out are not sold there.
+         */
+        put: operations["set_channel_prices_api_v1_sales_channels__channel_id__prices_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/shifts": {
         parameters: {
             query?: never;
@@ -1931,6 +1987,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[SalesChannelOut] */
+        ApiResponse_SalesChannelOut_: {
+            data: components["schemas"]["SalesChannelOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[SalesSummaryOut] */
         ApiResponse_SalesSummaryOut_: {
             data: components["schemas"]["SalesSummaryOut"];
@@ -2368,6 +2440,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[SalesChannelOut]] */
+        ApiResponse_list_SalesChannelOut__: {
+            /** Data */
+            data: components["schemas"]["SalesChannelOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[ShiftOut]] */
         ApiResponse_list_ShiftOut__: {
             /** Data */
@@ -2777,6 +2866,36 @@ export interface components {
             op: "upsert" | "delete";
             /** Version */
             version: number;
+        };
+        /** ChannelPrice */
+        ChannelPrice: {
+            /** Price */
+            price: number;
+            /** Product Id */
+            product_id: string;
+        };
+        /**
+         * ChannelPricesIn
+         * @description The whole price list of a channel: products left out are no longer sold there.
+         */
+        ChannelPricesIn: {
+            /** Prices */
+            prices: components["schemas"]["ChannelPrice"][];
+        };
+        /** ChannelSales */
+        ChannelSales: {
+            /** Channel Id */
+            channel_id: string;
+            /** Channel Name */
+            channel_name: string;
+            /** Gross */
+            gross: number;
+            /** Kind */
+            kind: string;
+            /** Net */
+            net: number;
+            /** Order Count */
+            order_count: number;
         };
         /** CloseDayIn */
         CloseDayIn: {
@@ -3356,6 +3475,8 @@ export interface components {
             cashier_id: string;
             /** Change Amount */
             change_amount: number;
+            /** Channel Id */
+            channel_id: string | null;
             /**
              * Created At
              * Format: date-time
@@ -3365,6 +3486,8 @@ export interface components {
             device_id: string;
             /** Discount Amount */
             discount_amount: number;
+            /** External Ref */
+            external_ref: string | null;
             /** Flags */
             flags: string[];
             /** Id */
@@ -3985,12 +4108,131 @@ export interface components {
             /** Id */
             id: string;
         };
+        /**
+         * SalesChannelIn
+         * @description ADR-029. A markup needs a rounding unit; only `markup_bps` channels carry a markup.
+         */
+        SalesChannelIn: {
+            /**
+             * Applies Service
+             * @default true
+             */
+            applies_service: boolean;
+            /**
+             * Applies Tax
+             * @default true
+             */
+            applies_tax: boolean;
+            /** Code */
+            code: string;
+            /** Default Payment Method Id */
+            default_payment_method_id?: string | null;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "dine_in" | "take_away" | "delivery";
+            /**
+             * Markup Bps
+             * @default 0
+             */
+            markup_bps: number;
+            /**
+             * Markup Rounding Unit
+             * @default 100
+             */
+            markup_rounding_unit: number;
+            /** Name */
+            name: string;
+            /**
+             * Price Mode
+             * @default base
+             * @enum {string}
+             */
+            price_mode: "base" | "markup_bps" | "price_list";
+            /**
+             * Requires External Ref
+             * @default false
+             */
+            requires_external_ref: boolean;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /** SalesChannelOut */
+        SalesChannelOut: {
+            /**
+             * Applies Service
+             * @default true
+             */
+            applies_service: boolean;
+            /**
+             * Applies Tax
+             * @default true
+             */
+            applies_tax: boolean;
+            /** Code */
+            code: string;
+            /** Default Payment Method Id */
+            default_payment_method_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "dine_in" | "take_away" | "delivery";
+            /**
+             * Markup Bps
+             * @default 0
+             */
+            markup_bps: number;
+            /**
+             * Markup Rounding Unit
+             * @default 100
+             */
+            markup_rounding_unit: number;
+            /** Name */
+            name: string;
+            /**
+             * Price Mode
+             * @default base
+             * @enum {string}
+             */
+            price_mode: "base" | "markup_bps" | "price_list";
+            /** Prices */
+            prices: components["schemas"]["ChannelPrice"][];
+            /**
+             * Requires External Ref
+             * @default false
+             */
+            requires_external_ref: boolean;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
         /** SalesSummaryOut */
         SalesSummaryOut: {
             /** Cashiers */
             cashiers: components["schemas"]["CashierSales"][];
             /** Categories */
             categories: components["schemas"]["CategorySales"][];
+            /** Channels */
+            channels: components["schemas"]["ChannelSales"][];
             /** Days */
             days: components["schemas"]["DaySales"][];
             /** Payment Methods */
@@ -6904,6 +7146,179 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_channels_api_v1_sales_channels_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_SalesChannelOut__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_channel_api_v1_sales_channels_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesChannelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SalesChannelOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_channel_api_v1_sales_channels__channel_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesChannelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SalesChannelOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_channel_api_v1_sales_channels__channel_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_channel_prices_api_v1_sales_channels__channel_id__prices_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChannelPricesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SalesChannelOut_"];
                 };
             };
             /** @description Validation Error */
