@@ -4,6 +4,8 @@ import { type OpenBillRow, type PosDb, writeState } from "@/shared/db";
 
 import { IDS, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
+import { placeOrder } from "@/features/checkout";
+
 import { closeShift, getOpenShift, openShift, recordCashMovement } from "./shift";
 
 let db: PosDb;
@@ -80,6 +82,20 @@ describe("closeShift", () => {
 
   it("refuses when no shift is open", async () => {
     await expect(closeShift({ closedBy: IDS.cashier, countedCash: 0 }, testDeps(db))).rejects.toMatchObject({ code: "NO_OPEN_SHIFT" });
+  });
+});
+
+describe("closeShift with cash rounding (P1-3)", () => {
+  it("expects in the drawer the rounded cash, not the total", async () => {
+    const outlet = (await db.settings.get("outlet"))!.value;
+    await db.settings.put({ key: "outlet", value: { ...outlet, cashRounding: { unit: 100, mode: "nearest" } } });
+    await openShift({ cashierId: IDS.cashier, openingCash: 0 }, testDeps(db));
+    // 2 × Es Teh 5.000 + service 5% + PB1 10% = 11.550 → cash 11.600
+    await placeOrder({ cashier: { id: IDS.cashier, name: "Siti" }, lines: [{ productId: IDS.esTeh, name: "Es Teh", categoryName: "Minuman", unitPrice: 5_000, quantity: 2, note: "", modifiers: [] }], discount: null, payments: [{ paymentMethodId: IDS.cashMethod, amount: 20_000 }] }, testDeps(db));
+
+    const closed = await closeShift({ closedBy: IDS.cashier, countedCash: 11_600 }, testDeps(db));
+
+    expect([closed.expectedCash, closed.variance]).toEqual([11_600, 0]);
   });
 });
 

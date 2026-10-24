@@ -15,7 +15,8 @@ import { cn } from "@/shared/ui/utils";
 import type { QrisClient } from "../application/dynamic-qris";
 import { copy } from "../copy";
 import { suggestCashAmounts } from "../domain/cash-suggestions";
-import { remainingDue, settle } from "../domain/payment";
+import { cashRounding, type CashRoundingRule } from "../domain/cash-rounding";
+import { NO_ROUNDING, remainingDue, settle } from "../domain/payment";
 import { DynamicQrisDialog } from "./DynamicQrisDialog";
 
 export interface TenderedInput {
@@ -35,9 +36,11 @@ interface Props {
   qrisPollMs?: number;
   /** The sales channel's payment method (ADR-029), e.g. the delivery app; default cash. */
   initialMethodId?: string | null;
+  /** The outlet's cash rounding (P1-3); absent = off. */
+  rounding?: CashRoundingRule;
 }
 
-export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris = null, newId: makeId = newId, qrisPollMs, initialMethodId = null }: Props) {
+export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris = null, newId: makeId = newId, qrisPollMs, initialMethodId = null, rounding: rule = NO_ROUNDING }: Props) {
   const [isShowingQr, setIsShowingQr] = useState(false);
   const [tendered, setTendered] = useState<TenderedInput[]>([]);
   const [method, setMethod] = useState(() => methods.find((m) => m.id === initialMethodId) ?? methods.find((m) => m.type === "cash") ?? methods[0]!);
@@ -47,9 +50,13 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
   const typeOf = (id: string) => methods.find((m) => m.id === id)!.type;
   const toSettle = (list: TenderedInput[]) => list.map((p) => ({ methodType: typeOf(p.paymentMethodId), amount: p.amount }));
   const remaining = remainingDue(total, toSettle(tendered));
+  const nonCash = (list: TenderedInput[]) => toSettle(list).reduce((s, p) => s + (p.methodType === "cash" ? 0 : p.amount), 0);
+  // Cash is asked for rounded to the outlet's unit (P1-3); the total itself never changes.
+  const cashRemaining = Math.max(0, cashRounding(total, nonCash(tendered), rule).cashCharged - (sumOf(tendered) - nonCash(tendered)));
   const current: TenderedInput = { paymentMethodId: method.id, amount, reference: method.requiresReference ? reference.trim() : null };
   const all = amount > 0 || tendered.length === 0 ? [...tendered, current] : tendered;
-  const settlement = settle(total, toSettle(all));
+  const settlement = settle(total, toSettle(all), rule);
+  const roundingNow = toSettle(all).some((p) => p.methodType === "cash") ? cashRounding(total, nonCash(all), rule).rounding : 0;
   const hasReference = !method.requiresReference || amount === 0 || reference.trim().length > 0;
 
   const choose = (m: PaymentMethodRow) => {
@@ -74,7 +81,7 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
       </div>
       {method.type === "cash" && (
         <div className="grid grid-cols-2 gap-2 @sm:grid-cols-4">
-          {suggestCashAmounts(remaining).map((a) => (
+          {suggestCashAmounts(cashRemaining).map((a) => (
             <Button key={a} variant="secondary" className="h-11" onClick={() => setAmount(a)}>
               {formatRupiah(a)}
             </Button>
@@ -128,7 +135,7 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
       )}
       {/* Change due and the actions stick to the bottom of the screen: both stay in view while keying the amount. */}
       <div className="sticky bottom-0 -mx-3 grid grid-cols-2 gap-2 rounded-b-xl border-t bg-card/95 px-3 py-3 backdrop-blur sm:-mx-4 sm:px-4">
-        <PaymentSummary total={total} paid={all.reduce((s, p) => s + p.amount, 0)} />
+        <PaymentSummary total={total} rounding={roundingNow} paid={sumOf(all)} />
         <Button variant="outline" className="h-12" disabled={amount <= 0 || amount >= remaining || !hasReference} onClick={split}>
           {copy.split}
         </Button>
@@ -140,14 +147,23 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
   );
 }
 
-function PaymentSummary({ total, paid }: { total: number; paid: number }) {
-  const diff = paid - total;
+const sumOf = (list: TenderedInput[]) => list.reduce((s, p) => s + p.amount, 0);
+
+function PaymentSummary({ total, rounding, paid }: { total: number; rounding: number; paid: number }) {
+  const diff = paid - (total + rounding);
   return (
     <output role="status" aria-label={copy.paymentSummary} className="col-span-2 flex items-center justify-between gap-3 rounded-lg bg-slate-900 px-3 py-2 text-white dark:ring-1 dark:ring-white/10">
       <span className="text-xs leading-snug text-slate-400">
         <span className="block">
           {copy.total} <span className="font-semibold text-white">{formatRupiah(total)}</span>
         </span>{" "}
+        {rounding !== 0 && (
+          <>
+            <span className="block">
+              {copy.rounding} <span className="text-white">{`${rounding > 0 ? "+" : "−"}${formatRupiah(Math.abs(rounding))}`}</span>
+            </span>{" "}
+          </>
+        )}
         <span className="block">
           {copy.paid} <span className="text-white">{formatRupiah(paid)}</span>
         </span>

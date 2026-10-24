@@ -30,6 +30,8 @@ export interface ReceiptInput {
     /** Take-away/delivery queue number and the guest's name (P1-1). */
     queueNo?: string | null;
     customerName?: string | null;
+    /** Cash rounding (P1-3), printed under TOTAL; may be negative. */
+    rounding?: number;
     subtotal: number;
     discountAmount: number;
     serviceCharge: number;
@@ -94,6 +96,7 @@ export function buildReceipt({ header, footer, timezone, order, payments }: Rece
   if (order.rates.taxBps > 0) rateRows.push({ kind: "row", left: `${included ? "Termasuk PB1" : "PB1"} ${percent(order.rates.taxBps)}`, right: amount(order.tax) });
   const total: ReceiptDocument[number] = { kind: "row", left: "TOTAL", right: amount(order.total), bold: true };
   doc.push(...(included ? [total, ...rateRows] : [...rateRows, total]));
+  if (order.rounding) doc.push({ kind: "row", left: "Pembulatan", right: amount(order.rounding) });
   for (const p of payments) doc.push({ kind: "row", left: p.methodName, right: amount(p.amount) });
   if (order.changeAmount > 0) doc.push({ kind: "row", left: "Kembali", right: amount(order.changeAmount) });
   doc.push({ kind: "rule" }, { kind: "text", text: footer, align: "center" });

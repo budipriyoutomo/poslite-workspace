@@ -76,6 +76,8 @@ export const orderPlaced = z.strictObject({
   // P1-1: take-away/delivery queue number and the guest's name; optional for older servers.
   queue_no: z.string().min(1).max(20).optional(),
   customer_name: z.string().min(1).max(40).optional(),
+  // P1-3: the outlet's cash rounding as sold with, and what it added to the cash part (may be < 0).
+  cash_rounding: z.strictObject({ unit: z.union([z.literal(100), z.literal(500), z.literal(1000)]), mode: z.enum(["nearest", "down"]), amount: z.number().int() }).optional(),
   // ADR-031: a full payment of a table-service outlet's shared bill closes it on the server.
   closes_bill_id: ulid.optional(),
 });

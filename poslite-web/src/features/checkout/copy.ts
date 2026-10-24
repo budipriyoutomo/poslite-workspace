@@ -25,6 +25,7 @@ export const copy = {
   reference: "No. referensi / approval",
   paid: "Dibayar",
   change: "Kembalian",
+  rounding: "Pembulatan",
   missing: "Kurang",
   split: "Pisah pembayaran",
   confirm: "Selesaikan",

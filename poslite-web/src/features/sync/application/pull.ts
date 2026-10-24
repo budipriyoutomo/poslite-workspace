@@ -85,6 +85,7 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
           },
           priceIncludesTax: d.price_includes_tax ?? false,
           serviceMode: d.service_mode ?? "counter",
+          cashRounding: { unit: d.cash_rounding_unit ?? 0, mode: d.cash_rounding_mode ?? "nearest" },
         },
       }));
     }

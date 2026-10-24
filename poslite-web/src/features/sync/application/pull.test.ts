@@ -101,6 +101,15 @@ describe("pullAll", () => {
     expect(await db.availabilityOverrides.toCollection().primaryKeys()).toEqual([ULID("P", 9)]);
   });
 
+  it("keeps the outlet's cash rounding (P1-3); an older server or unit 0 means off", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, cash_rounding_unit: 500, cash_rounding_mode: "down" } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.cashRounding).toEqual({ unit: 500, mode: "down" });
+
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.cashRounding).toEqual({ unit: 0, mode: "nearest" });
+  });
+
   it("keeps a waiter (ADR-031)", async () => {
     const waiter = {
       entity: "user",

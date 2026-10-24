@@ -9,7 +9,7 @@ import { newId } from "@/shared/id";
 
 import { channelRates, orderTypeOf, pickChannel } from "../domain/channel-pricing";
 import { manualDiscounts, needsApproval } from "../domain/discount-policy";
-import { settle } from "../domain/payment";
+import { NO_ROUNDING, settle } from "../domain/payment";
 import type { Discount } from "../domain/pricing";
 import { priceCart } from "./price-cart";
 
@@ -90,7 +90,8 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       if (!method) throw new AppError("UNKNOWN_PAYMENT_METHOD");
       return { ...p, method };
     });
-    const settlement = settle(totals.total, tendered.map((p) => ({ methodType: p.method.type, amount: p.amount })));
+    const roundingRule = outlet.cashRounding ?? NO_ROUNDING;
+    const settlement = settle(totals.total, tendered.map((p) => ({ methodType: p.method.type, amount: p.amount })), roundingRule);
     if (!settlement.ok) throw new AppError(settlement.reason);
 
     const createdAt = now.toISOString();
@@ -136,6 +137,7 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       ...totals,
       paidAmount: settlement.paidAmount,
       changeAmount: settlement.changeAmount,
+      rounding: settlement.rounding,
       status: "paid",
       syncStatus: "pending",
       flags: [],
@@ -161,6 +163,8 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       occurredAt: createdAt,
       payload: {
         ...toOrderPlacedPayload(order, payments),
+        // P1-3: the outlet's rule as sold with (like the rates snapshot, ADR-011) and its result.
+        ...(roundingRule.unit > 0 && { cash_rounding: { unit: roundingRule.unit, mode: roundingRule.mode, amount: settlement.rounding } }),
         discount_approved_by: approvedBy,
         ...(input.closesBillId && { closes_bill_id: input.closesBillId }),
       },

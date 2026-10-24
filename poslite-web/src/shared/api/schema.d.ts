@@ -3092,6 +3092,8 @@ export interface components {
              * Format: date
              */
             business_date: string;
+            /** Cash Rounding */
+            cash_rounding: number;
             /** Discount */
             discount: number;
             /** Gross */
@@ -3692,6 +3694,8 @@ export interface components {
             receipt_no: string;
             /** Refunds */
             refunds: components["schemas"]["RefundRef"][];
+            /** Rounding Amount */
+            rounding_amount: number;
             /** Service Charge */
             service_charge: number;
             /** Shift Id */
@@ -3828,6 +3832,18 @@ export interface components {
         OutletSettingsIn: {
             /** Business Day Cutoff */
             business_day_cutoff: string;
+            /**
+             * Cash Rounding Mode
+             * @default nearest
+             * @enum {string}
+             */
+            cash_rounding_mode: "nearest" | "down";
+            /**
+             * Cash Rounding Unit
+             * @default 0
+             * @enum {integer}
+             */
+            cash_rounding_unit: 0 | 100 | 500 | 1000;
             /** Name */
             name: string;
             /**
@@ -3857,6 +3873,18 @@ export interface components {
         OutletSettingsOut: {
             /** Business Day Cutoff */
             business_day_cutoff: string;
+            /**
+             * Cash Rounding Mode
+             * @default nearest
+             * @enum {string}
+             */
+            cash_rounding_mode: "nearest" | "down";
+            /**
+             * Cash Rounding Unit
+             * @default 0
+             * @enum {integer}
+             */
+            cash_rounding_unit: 0 | 100 | 500 | 1000;
             /** Code */
             code: string;
             /** Id */
@@ -4808,6 +4836,8 @@ export interface components {
         };
         /** Totals */
         Totals: {
+            /** Cash Rounding */
+            cash_rounding: number;
             /** Discount */
             discount: number;
             /** Gross */

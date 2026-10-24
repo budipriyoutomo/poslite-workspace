@@ -19,6 +19,7 @@ export interface OutletSetting {
   discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
   priceIncludesTax?: boolean; // the brand's prices include service and PB1 (ADR-030); missing = they do not
   serviceMode?: ServiceMode; // ADR-031; missing = counter
+  cashRounding?: { unit: number; mode: "nearest" | "down" }; // P1-3; missing = off
 }
 
 /** ADR-031: open bills kept on each device (counter) or shared through the server (table_service). */
@@ -150,6 +151,8 @@ export interface OrderRow {
   /** Called out at the counter for take-away and delivery (P1-1): `<device code>-<seq>`, e.g. A-012. */
   queueNo?: string | null;
   customerName?: string | null;
+  /** Cash rounding (P1-3): added to the cash part, may be negative; the total never changes. */
+  rounding?: number;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
   rates: { serviceBps: number; taxBps: number; includesTax?: boolean };

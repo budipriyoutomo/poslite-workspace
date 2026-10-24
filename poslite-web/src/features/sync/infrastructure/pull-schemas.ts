@@ -38,6 +38,9 @@ export const changeSchema = z.union([
       price_includes_tax: z.boolean().optional(),
       // ADR-031; optional for older servers (counter).
       service_mode: z.enum(["counter", "table_service"]).optional(),
+      // P1-3; optional for older servers (off).
+      cash_rounding_unit: z.number().int().optional(),
+      cash_rounding_mode: z.enum(["nearest", "down"]).optional(),
     }),
   ),
   upsert("category", z.object({ name: z.string(), sort_order: z.number().int(), print_role: z.enum(["receipt", "kitchen", "bar"]) })),

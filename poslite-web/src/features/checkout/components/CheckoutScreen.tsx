@@ -165,6 +165,7 @@ export function CheckoutScreen() {
             total={totals.total}
             methods={methods}
             initialMethodId={channel?.defaultPaymentMethodId}
+            {...(outlet?.cashRounding && { rounding: outlet.cashRounding })}
             onConfirm={confirm}
             isBusy={isPlacing}
             qris={qris}

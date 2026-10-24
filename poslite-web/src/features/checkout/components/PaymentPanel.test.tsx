@@ -29,6 +29,18 @@ describe("PaymentPanel", () => {
     expect(onConfirm).toHaveBeenCalledWith([{ paymentMethodId: "cash", amount: 100_000, reference: null }]);
   });
 
+  it("asks for the cash rounded to the outlet's unit and gives change from it (P1-3)", async () => {
+    const onConfirm = vi.fn();
+    render(<PaymentPanel total={72_765} methods={methods} rounding={{ unit: 100, mode: "nearest" }} onConfirm={onConfirm} />);
+
+    await click("Rp 72.800"); // the exact amount is the rounded one
+    expect(summary()).toHaveTextContent("Pembulatan +Rp 35");
+    expect(summary()).toHaveTextContent("Kembalian Rp 0");
+    await click(/Selesaikan/);
+
+    expect(onConfirm).toHaveBeenCalledWith([{ paymentMethodId: "cash", amount: 72_800, reference: null }]);
+  });
+
   it("starts on the sales channel's payment method for the whole bill (ADR-029)", async () => {
     const onConfirm = vi.fn();
     render(<PaymentPanel total={69_300} methods={methods} initialMethodId="qris" onConfirm={onConfirm} />);

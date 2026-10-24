@@ -133,6 +133,12 @@ describe("receipt — dine-in and line discounts (Fase 4)", () => {
     expect(text.filter((l) => l.startsWith("Diskon"))).toEqual([]);
   });
 
+  it("prints the cash rounding under the total; the total itself stays (P1-3)", () => {
+    const lines = renderText(buildReceipt({ ...example, order: { ...example.order, rounding: 35 } }), 32);
+
+    expect(lines.find((l) => l.startsWith("Pembulatan"))).toBe("Pembulatan                    35");
+  });
+
   it("prints the queue number and the guest's name at the top (P1-1)", () => {
     const lines = renderText(buildReceipt({ ...example, order: { ...example.order, queueNo: "A-012", customerName: "Andi" } }), 32);
 

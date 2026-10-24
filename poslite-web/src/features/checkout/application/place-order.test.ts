@@ -333,3 +333,25 @@ describe("placeOrder queue number and customer name (P1-1)", () => {
     await expect(placeOrder(order({ customerName: "x".repeat(41) }), testDeps(db))).rejects.toMatchObject({ code: "CUSTOMER_NAME_TOO_LONG" });
   });
 });
+
+describe("placeOrder with cash rounding (P1-3)", () => {
+  beforeEach(async () => {
+    const outlet = (await db.settings.get("outlet"))!.value;
+    await db.settings.put({ key: "outlet", value: { ...outlet, cashRounding: { unit: 100, mode: "nearest" } } });
+  });
+
+  it("keeps the total, records the rounding and sends the rule with it", async () => {
+    // 72.765 → cash 72.800: rounding +35, change from 100.000 = 27.200
+    const placed = await placeOrder(order(), testDeps(db));
+
+    expect([placed.total, placed.rounding, placed.changeAmount]).toEqual([72_765, 35, 27_200]);
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect(payload.cash_rounding).toEqual({ unit: 100, mode: "nearest", amount: 35 });
+  });
+
+  it("does not round a sale paid without cash", async () => {
+    const placed = await placeOrder(order({ payments: [{ paymentMethodId: IDS.qrisMethod, amount: 72_765 }] }), testDeps(db));
+
+    expect(placed.rounding).toBe(0);
+  });
+});
