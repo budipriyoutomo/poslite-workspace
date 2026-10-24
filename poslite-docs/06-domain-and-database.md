@@ -149,6 +149,7 @@ sales_channels   id, brand_id, code (unik per brand, huruf besar), name, kind (d
                  default_payment_method_id, applies_service, applies_tax, requires_external_ref,
                  is_active, sort_order, version, deleted_at                     -- ADR-029, migrasi 0025
 channel_prices   channel_id, product_id (PK), price      -- link: ubah → touch sales_channels.version
+outlet_products  + available_until, availability_changed_at (P1-2, migrasi 0029: tanda habis dari POS; yang terbaru menang)
 open_bills       id, outlet_id, table_id (unik selama terbuka), table_label, lines (jsonb: baris cart device),
                  discount (jsonb), opened_by, opened_at, version (optimistic lock, bukan sync version),
                  lease_device_id, lease_user_id, lease_until, closed_at, closed_by_order_id, updated_at

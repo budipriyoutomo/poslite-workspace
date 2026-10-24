@@ -63,7 +63,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 | P0-2 ✅ | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
 | P0-4 ✅ | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
 | P1-1 ✅ | — | `0028_order_queue_customer` (`orders.customer_name`, `orders.queue_no`) | tidak ada (`syncState.queueCounter`) |
-| P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v8**: `availabilityOverrides: "productId"` |
+| P1-2 ✅ | — | `0029_product_availability_from_pos` (`outlet_products.available_until`, `availability_changed_at`, permission `product.availability`) | **v8**: `availabilityOverrides: "productId"` |
 | P1-3 | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `payments.rounding_amount`, `refunds.rounding_amount`) | — (pengaturan outlet di `settings`) |
 | P1-8 | — | `0031_operator_totp` (secret TOTP terenkripsi, `operator_recovery_codes`) | — |
 
@@ -129,7 +129,7 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 | Kode | Non-kode (paralel) |
 |---|---|
 | P1-1 Nama pelanggan & nomor antrian (migrasi `0028`) ✅ | Draf SOP Gangguan & SOP Manajer |
-| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) | Checklist onboarding tenant |
+| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) ✅ | Checklist onboarding tenant |
 | P1-3 Pembulatan tunai (migrasi `0030`) | |
 | P1-10 Uji beban device | |
 
@@ -377,13 +377,14 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - **DoD**: dua device offline menghasilkan nomor antrian yang tidak bentrok; reload aplikasi di tengah hari tidak me-reset counter.
 - **Status (2026-10-24)**: selesai. Counter disimpan di `syncState.queueCounter` (key-value yang sama dengan nomor struk), bukan tabel `queueCounters` — tidak butuh index, jadi tidak butuh Dexie v8. Nama diisi di layar bayar; dine-in tetap dipanggil per meja. Dicetak tebal di tengah ("ANTRIAN A-012 Andi") karena format struk belum punya ukuran huruf besar.
 
-### P1-2 — Tandai Menu Habis dari POS
+### P1-2 — Tandai Menu Habis dari POS ✅
 
 - Manajer atau kasir dengan izin `pos:availability` menandai produk **habis** dari grid produk (tekan lama → "Tandai habis").
 - Efek lokal langsung, termasuk saat offline (Dexie v8, `availabilityOverrides`). Event `product.availability_changed { product_id, outlet_id, is_available, until }` masuk ke outbox.
 - `until` default = akhir business date (menu otomatis tersedia lagi besok). Opsi "sampai diaktifkan lagi".
 - Server menulis `outlet_products.is_available` (kolom sudah ada sejak migrasi `0007`) dan `available_until` (migrasi `0029`); device lain mendapatkannya lewat delta pull. Konflik: event terbaru menang (berdasarkan `occurred_at` server-adjusted).
 - **DoD**: tandai habis di tablet A → tablet B ikut habis setelah pull berikutnya; besok kembali tersedia otomatis.
+- **Status (2026-10-24)**: selesai. Izin berupa permission `product.availability` (owner, manager, kasir; pelayan tidak). "Terbaru menang" memakai `occurred_at` event (jam device; belum disesuaikan dengan jam server). Pull membawa `unavailable_until` sehingga tablet lain ikut tersedia lagi tanpa pull baru. Tekan lama = `contextmenu` (Chrome Android memicunya dari tekan lama; di desktop klik kanan).
 
 ### P1-3 — Pembulatan Tunai
 
@@ -591,7 +592,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 
 **Tahap C — Operasional Kasir**
 - [x] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
-- [ ] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
+- [x] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
 - [ ] P1-3 Pembulatan tunai (`0030`)
 - [ ] P1-10 Uji beban device memenuhi target
 - [ ] Checklist onboarding tenant
