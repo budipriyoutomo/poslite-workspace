@@ -196,7 +196,7 @@ export interface CashMovementRow {
 
 // ── Infrastructure ──────────────────────────────────────────────────────────────────────────
 
-export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved";
+export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved" | "bill.item_voided";
 
 export interface OutboxRow {
   seq?: number; // local auto-increment → send order

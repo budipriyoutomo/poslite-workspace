@@ -17,6 +17,8 @@ export interface KitchenOrder {
   tableLabel: string | null;
   cashierName: string;
   isAddition: boolean;
+  /** Sent items taken off a bill (ADR-028): printed as a BATAL ticket. */
+  cancel?: { reason: string; approverName: string | null };
   lines: { key: string; productId: string; name: string; quantity: number; modifiers: string[]; note: string }[];
 }
 
@@ -64,6 +66,7 @@ export async function printKitchenTickets(order: KitchenOrder, deps: KitchenPrin
       at: deps.now().toISOString(),
       timezone: outlet?.value.timezone ?? "Asia/Jakarta",
       isAddition: order.isAddition,
+      ...(order.cancel && { cancel: order.cancel }),
       lines,
     });
     const isPrinted = await runPrintJob({ orderId: order.refId, documentType: "kitchen_ticket" }, async () => ({ doc, columns }), { ...deps, printer: deps.printerFor(station) });

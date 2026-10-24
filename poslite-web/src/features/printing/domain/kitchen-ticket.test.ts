@@ -48,4 +48,22 @@ describe("kitchen ticket (58 mm)", () => {
   it("prints item lines bold so the cook reads them at a glance", () => {
     expect(buildKitchenTicket(ticket).filter((b) => b.kind === "text" && b.bold).map((b) => b.kind === "text" && b.text)).toEqual(["** DAPUR **", "2x Nasi Gudeg", "1x Soto Ayam"]);
   });
+
+  it("cancels sent items with a big BATAL header, the reason and who approved (ADR-028)", () => {
+    const cancel = { reason: "Pelanggan batal", approverName: "Bu Rina" };
+    expect(renderText(buildKitchenTicket({ ...ticket, cancel, lines: [ticket.lines[0]!] }), 32)).toEqual([
+      "          ** DAPUR **",
+      "        ***  BATAL  ***",
+      "Meja  : A1",
+      "No    : JKT01A-260925-0042",
+      "Kasir : Siti      25/09/26 11:03",
+      "--------------------------------",
+      "2x Nasi Gudeg",
+      "   + Tambah Ayam",
+      "   * tidak pedas",
+      "--------------------------------",
+      "Alasan  : Pelanggan batal",
+      "Disetujui: Bu Rina",
+    ]);
+  });
 });

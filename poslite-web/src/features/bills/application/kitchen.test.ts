@@ -4,7 +4,7 @@ import type { KitchenOrder } from "@/features/printing";
 import type { OpenBillLine, PosDb } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
-import { sendBillToKitchen } from "./kitchen";
+import { sendBillToKitchen, sendVoidToKitchen } from "./kitchen";
 
 let db: PosDb;
 let tickets: KitchenOrder[];
@@ -62,5 +62,25 @@ describe("sendBillToKitchen", () => {
     expect(await sendBillToKitchen({ billId: "B1", cashierName: "Siti" }, deps())).toEqual({ hasFailed: true });
 
     expect((await db.openBills.get("B1"))?.lines.map((l) => l.sentQuantity)).toEqual([undefined, 1]);
+  });
+});
+
+describe("sendVoidToKitchen (ADR-028)", () => {
+  const voided = [{ key: "g", productId: "P1", name: "Nasi Gudeg", modifiers: ["Pedas"], unitPrice: 25_000, quantity: 1, amount: 25_000 }];
+
+  it("prints a cancel ticket for the voided units, with the reason and approver", async () => {
+    await sendVoidToKitchen({ bill: { id: "B1", tableLabel: "A1" }, voided, cashierName: "Siti", reason: "Pelanggan batal", approverName: "Bu Rina" }, deps());
+
+    expect(tickets).toMatchObject([
+      { refId: "B1", reference: "Bill A1", tableLabel: "A1", cancel: { reason: "Pelanggan batal", approverName: "Bu Rina" }, lines: [{ key: "g", name: "Nasi Gudeg", quantity: 1, modifiers: ["Pedas"] }] },
+    ]);
+  });
+
+  it("reports a failed print so the cashier tells the kitchen in person", async () => {
+    failingKeys = ["g"];
+
+    const result = await sendVoidToKitchen({ bill: { id: "B1", tableLabel: "A1" }, voided, cashierName: "Siti", reason: "Salah input", approverName: null }, deps());
+
+    expect(result).toEqual({ hasFailed: true });
   });
 });

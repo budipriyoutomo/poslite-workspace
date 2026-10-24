@@ -1,4 +1,6 @@
+import { voidedUnits } from "@/features/cart";
 import { getDb, type OpenBillLine, type OrderRow } from "@/shared/db";
+import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
 import type { Discount } from "../domain/pricing";
@@ -28,6 +30,9 @@ const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(),
 export async function payBill(input: PayBillInput, deps: PlaceOrderDeps = defaultDeps()): Promise<OrderRow> {
   const { db } = deps;
   return db.transaction("rw", [...placeOrderTables(db), db.openBills], async () => {
+    // Taking a sent item off is a void a manager approves when the bill is saved (ADR-028).
+    const saved = await db.openBills.get(input.bill.id);
+    if (saved && voidedUnits(saved.lines, [...input.paying, ...input.remaining]).length > 0) throw new AppError("VOID_APPROVAL_REQUIRED");
     const order = await placeOrder(
       {
         cashier: input.cashier,

@@ -54,6 +54,7 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
               </p>
             ))}
             {line.note && <p className="text-xs text-warning italic">“{line.note}”</p>}
+            {(line.sentQuantity ?? 0) > 0 && <p className="text-xs text-muted-foreground">{copy.sent(line.sentQuantity!)}</p>}
             <p className="mt-1 text-sm font-medium">{formatRupiah((priced[i]!.unitPrice + priced[i]!.modifiersTotal) * line.quantity)}</p>
             {applied?.[i] && applied[i]!.amount > 0 && (
               <p className="flex justify-between text-xs text-success">

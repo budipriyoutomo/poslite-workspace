@@ -30,6 +30,8 @@ interface Props {
 
 const gross = (bill: OpenBillRow) => bill.lines.reduce((s, l) => s + (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) * l.quantity, 0);
 const items = (bill: OpenBillRow) => bill.lines.reduce((n, l) => n + l.quantity, 0);
+/** The kitchen already had something: cancelling it is a void with a manager's PIN (ADR-028). */
+const hasSent = (bill: OpenBillRow) => bill.lines.some((l) => (l.sentQuantity ?? 0) > 0);
 
 export function OpenBillList({ bills, timezone, onResume, onCancel, onMove }: Props) {
   if (bills.length === 0) return <EmptyState icon={Armchair} title={copy.empty} />;
@@ -49,23 +51,29 @@ export function OpenBillList({ bills, timezone, onResume, onCancel, onMove }: Pr
             <Button variant="outline" aria-label={copy.move(b.tableLabel)} onClick={() => onMove(b)}>
               Pindah
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" aria-label={copy.cancel(b.tableLabel)}>
-                  Batalkan
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{copy.cancelTitle(b.tableLabel)}</AlertDialogTitle>
-                  <AlertDialogDescription>{copy.cancelHint}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{copy.keep}</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => onCancel(b.id)}>{copy.cancelConfirm}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {hasSent(b) ? (
+              <Button variant="outline" aria-label={copy.cancel(b.tableLabel)} onClick={() => onCancel(b.id)}>
+                Batalkan
+              </Button>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" aria-label={copy.cancel(b.tableLabel)}>
+                    Batalkan
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{copy.cancelTitle(b.tableLabel)}</AlertDialogTitle>
+                    <AlertDialogDescription>{copy.cancelHint}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{copy.keep}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onCancel(b.id)}>{copy.cancelConfirm}</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </li>
       ))}

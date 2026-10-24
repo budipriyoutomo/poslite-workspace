@@ -44,7 +44,7 @@ describe("cancelBill", () => {
   it("drops an open bill (nothing was paid yet)", async () => {
     await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
 
-    await cancelBill("B1", { db, now: () => NOW });
+    await cancelBill({ billId: "B1" }, { db, now: () => NOW });
 
     expect(await db.openBills.count()).toBe(0);
   });
