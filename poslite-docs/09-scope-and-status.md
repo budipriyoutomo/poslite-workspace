@@ -13,7 +13,7 @@ POSLite adalah **SaaS Point of Sales untuk restoran**, multi **perusahaan → br
 | `poslite-operator` | Operator SaaS (tim internal POSLite) | Online, konsol internal (ADR-025) | Next.js · tipe TS dari `openapi.json` |
 | `poslite-api` | Ketiga app di atas + worker | Modular monolith | Python 3.12 · FastAPI · SQLAlchemy 2.0 async · PostgreSQL (RLS) · Alembic · arq + Redis |
 
-**Posisi saat ini (2026-10-12):** Fase 0–6 selesai secara fungsional di sisi software dan dibuktikan dengan test otomatis — termasuk multi brand dan fitur trial non-printer (void/refund, pindah meja, metode bayar per outlet, export/import darurat, batas diskon kasir per brand). `make check`, `make web-e2e`, `make e2e-fullstack`, `make admin-e2e` dan `make operator-e2e` hijau. Konsol operator SaaS sudah dipisah dari back-office menjadi app `poslite-operator` (ADR-025). **Berikutnya: menjalankan staging di VPS + Vercel (file & runbook sudah siap di [`deploy/staging`](../deploy/staging/README.md)) lalu pilot, kemudian Fase 7 (printer & uji perangkat asli).** Adapter payment gateway sungguhan dan deployment production belum ada.
+**Posisi saat ini (2026-10-24):** Fase 0–6 selesai secara fungsional di sisi software dan dibuktikan dengan test otomatis — termasuk multi brand dan fitur trial non-printer (void/refund, pindah meja, metode bayar per outlet, export/import darurat, batas diskon kasir per brand). `make check`, `make web-e2e`, `make e2e-fullstack`, `make admin-e2e` dan `make operator-e2e` hijau. Konsol operator SaaS sudah dipisah dari back-office menjadi app `poslite-operator` (ADR-025). **Berikutnya: rencana menuju pilot di [14](./14-pilot-readiness.md) — Tahap A–F, termasuk staging di VPS + Vercel (file & runbook sudah siap di [`deploy/staging`](../deploy/staging/README.md)) dan uji printer & perangkat asli (Fase 7).** Adapter payment gateway sungguhan dan deployment production belum ada.
 
 ## Lingkup (Scope)
 
@@ -55,7 +55,7 @@ POSLite adalah **SaaS Point of Sales untuk restoran**, multi **perusahaan → br
 | 4 — Restaurant Features | Meja, open bill, split, diskon, promo | ✅ Selesai · pindah meja → Fase 6 · kitchen ticket & LAN → Fase 7 | `tests/e2e/dine-in-offline.spec.ts`, `make e2e-fullstack` |
 | 5 — Scale & Integrasi | Gateway, billing, QRIS dinamis, webhook, gambar | ✅ Selesai · ⏳ adapter vendor gateway | e2e Fase 5 (commit `8cdbdbc`) |
 | 6 — Multi Brand & Fitur Trial | Brand, akses user, void/refund, pindah meja, bayar per outlet, import darurat | ✅ Selesai ([10](./10-multi-company-brand.md), [11](./11-trial-features.md)) · slip void/refund → Fase 7 | DoD di [08](./08-roadmap-and-testing.md#fase-6--multi-brand--fitur-trial-non-printer) |
-| 7 — Printer & Perangkat Asli | Driver printer, slip, kitchen ticket, uji tablet | ⏳ Belum mulai — menunggu printer | DoD di [08](./08-roadmap-and-testing.md#fase-7--printer--uji-perangkat-asli) |
+| 7 — Printer & Perangkat Asli | Driver printer, slip, kitchen ticket, uji tablet | 🟡 Kode selesai · uji perangkat belum ([14](./14-pilot-readiness.md) P1-6) | DoD di [08](./08-roadmap-and-testing.md#fase-7--printer--uji-perangkat-asli) |
 
 ## Yang Sudah Selesai
 
@@ -121,7 +121,7 @@ Bounded context di `src/poslite/`: `tenancy`, `identity`, `organization`, `catal
 | Pembayaran & billing | `payments/qris`, `gateway/webhook`, `billing/subscription` |
 | Integrasi | `webhooks`, `webhooks/{id}/deliveries`, `webhook-deliveries/{id}/retry` |
 
-Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 20 migrasi Alembic.
+Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 22 migrasi Alembic.
 
 ### Kualitas & tooling
 
@@ -144,7 +144,7 @@ Driver Web Serial, Web Bluetooth (BLE), WebUSB, Print Bridge LAN + Epson ePOS, s
 |---|---|
 | Spike / uji semua driver dengan printer asli ([checklist](./04-printing.md#checklist-pengujian-printer)) | Printer fisik |
 | Driver Star WebPRNT | Printer Star untuk diuji |
-| Tiket batal item & cetak ulang tiket dapur/bar | Belum dikerjakan |
+| Tiket batal item & cetak ulang tiket dapur/bar | Belum dikerjakan — tiket batal masuk [14](./14-pilot-readiness.md) P0-1 (ADR-028) |
 | Uji manual di tablet Android & PC Windows (install PWA, mode pesawat, reboot, cetak) | Perangkat uji |
 
 ### Lainnya
@@ -169,7 +169,9 @@ Driver Web Serial, Web Bluetooth (BLE), WebUSB, Print Bridge LAN + Epson ePOS, s
 
 ## Prioritas Berikutnya
 
+Urutan rinci, estimasi, dan kriteria Go/No-Go ada di [14 — Rencana Perbaikan Menuju Pilot](./14-pilot-readiness.md). Ringkasnya:
+
 1. **Jalankan staging** (VPS + Vercel, ikuti runbook [`deploy/staging`](../deploy/staging/README.md)) dan pilot di satu perusahaan (2 brand / beberapa outlet), termasuk uji manual PWA di tablet Android & PC Windows tanpa printer.
 2. **Uji printer asli** (Fase 7) begitu printer tersedia — kodenya sudah ada, termasuk slip void/refund & kitchen ticket.
 3. Pilih vendor gateway → adapter di balik port `PaymentGateway`.
-4. **Konsol operator** — fitur support dasar sudah ada (ADR-025). Sisa yang disengaja belum dibuat: peran operator (semua operator setara), 2FA operator (05 menyebut 2FA, belum diterapkan), impersonate/login sebagai tenant, ubah harga per tenant, dan membuat tenant dari konsol (tetap lewat signup).
+4. **Konsol operator** — fitur support dasar sudah ada (ADR-025). Sisa yang disengaja belum dibuat: peran operator (semua operator setara), 2FA operator (05 menyebut 2FA, belum diterapkan; dijadwalkan di [14](./14-pilot-readiness.md) P1-8), impersonate/login sebagai tenant, ubah harga per tenant, dan membuat tenant dari konsol (tetap lewat signup).

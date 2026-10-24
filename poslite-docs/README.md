@@ -22,6 +22,7 @@ Sumber awal: prototype `budipriyoutomo/maharasa-pos` (Next.js 15 + shadcn/ui, di
 | 11 | [11-trial-features.md](./11-trial-features.md) | **Fase 6**: void & refund (ADR-023), pindah meja, metode bayar per outlet, export/import darurat (ADR-024) |
 | 12 | [12-responsive-ui.md](./12-responsive-ui.md) | UI responsive HP/tablet & modern: breakpoint, aturan warna/token, TODO per fase |
 | 13 | [13-day-closing.md](./13-day-closing.md) | Tutup hari per outlet (ADR-026): snapshot rekap harian, peringatan shift terbuka/device belum sync, endpoint |
+| 14 | [14-pilot-readiness.md](./14-pilot-readiness.md) | Rencana menuju pilot: prioritas P0/P1/P2, Tahap A–F, ADR-028–030, dry run, metrik & Go/No-Go |
 
 ## Keputusan Utama (TL;DR)
 
