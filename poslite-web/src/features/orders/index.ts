@@ -1,5 +1,5 @@
 // Public API of the orders feature.
-export { formatReceiptNo, formatRefundNo, nextReceiptCounter, type ReceiptCounter } from "./domain/receipt-number";
+export { formatQueueNo, formatReceiptNo, formatRefundNo, nextReceiptCounter, type ReceiptCounter } from "./domain/receipt-number";
 export { checkApproval } from "./application/correct-order";
 export { useApprovers, verifyApprover } from "./application/use-corrections";
 export { ReasonField } from "./components/ReasonField";

@@ -48,7 +48,7 @@ export function CheckoutScreen() {
   const outlet = useOutletSetting();
   const methods = usePaymentMethods();
   const qris = useQrisClient();
-  const { lines, discount, promotionIds, togglePromotion, bill, clear, loadBill, externalRef, setExternalRef } = useCart();
+  const { lines, discount, promotionIds, togglePromotion, bill, clear, loadBill, externalRef, setExternalRef, customerName, setCustomerName } = useCart();
   // The sale channel's rates (ADR-029) in the brand's price mode (ADR-030), as placeOrder snapshots them.
   const { channel, rates } = useSaleChannel();
   const needsRef = channel?.requiresExternalRef === true && externalRef.trim() === "";
@@ -84,7 +84,7 @@ export function CheckoutScreen() {
             discountApprovedBy,
             shared: serviceMode === "table_service",
           })
-        : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy, channelId: channel?.id ?? null, externalRef });
+        : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy, channelId: channel?.id ?? null, externalRef, customerName });
       if (bill && remaining.length > 0) loadBill(bill, remaining, discount, promotionIds);
       else clear();
       setTake(null);
@@ -147,6 +147,12 @@ export function CheckoutScreen() {
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
         <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
         {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}
+        {!bill && (
+          <label className="mb-3 block space-y-1 text-sm font-medium">
+            <span>{copy.customerName}</span>
+            <Input aria-label={copy.customerName} maxLength={40} value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+          </label>
+        )}
         {channel?.requiresExternalRef && (
           <label className="mb-3 block space-y-1 text-sm font-medium">
             <span>{copy.externalRef(channel.name)}</span>

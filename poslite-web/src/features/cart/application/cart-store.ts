@@ -31,6 +31,8 @@ interface CartState {
   channelId: string | null;
   /** The delivery app's order number, for channels that need it. */
   externalRef: string;
+  /** The guest's name, called out with the queue number for take-away and delivery (P1-1). */
+  customerName: string;
   /** Opens a bill; the chosen promotions start empty unless handed over (e.g. after a split payment). */
   loadBill: (bill: CartBill, lines: CartLine[], discount: CartDiscount | null, promotionIds?: string[]) => void;
   /** Turn the current lines into a dine-in bill, or back into take-away (null). */
@@ -45,6 +47,7 @@ interface CartState {
   /** Moves the sale to a channel at its prices; false (nothing changes) if a line is not sold there. */
   setChannel: (channelId: string | null, priceOf: (productId: string) => number | null) => boolean;
   setExternalRef: (ref: string) => void;
+  setCustomerName: (name: string) => void;
   clear: () => void;
 }
 
@@ -61,6 +64,7 @@ export function createCartStore(storage: StateStorage) {
         bill: null,
         channelId: null,
         externalRef: "",
+        customerName: "",
         loadBill: (bill, lines, discount, promotionIds = []) => set({ bill, lines, discount, promotionIds }),
         setBill: (bill) => set({ bill }),
         add: (line) => set((s) => ({ lines: addLine(s.lines, line) })),
@@ -77,12 +81,13 @@ export function createCartStore(storage: StateStorage) {
           return true;
         },
         setExternalRef: (externalRef) => set({ externalRef }),
-        clear: () => set({ lines: [], discount: null, promotionIds: [], bill: null, channelId: null, externalRef: "" }),
+        setCustomerName: (customerName) => set({ customerName }),
+        clear: () => set({ lines: [], discount: null, promotionIds: [], bill: null, channelId: null, externalRef: "", customerName: "" }),
       }),
       {
         name: "cart",
         storage: createJSONStorage(() => storage),
-        partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill, channelId: s.channelId, externalRef: s.externalRef }),
+        partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill, channelId: s.channelId, externalRef: s.externalRef, customerName: s.customerName }),
       },
     ),
   );

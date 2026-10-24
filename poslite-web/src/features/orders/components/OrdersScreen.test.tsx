@@ -56,6 +56,13 @@ describe("OrdersScreen", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("shows a take-away order's queue number and guest in the list (P1-1)", async () => {
+    await getDb().orders.put({ ...order, id: "O-Q", receiptNo: "A1-260101-0002", queueNo: "A-012", customerName: "Andi" });
+    onWideScreen(true);
+    render(<OrdersScreen />);
+    expect(await screen.findByRole("button", { name: /A1-260101-0002.*A-012 · Andi/ })).toBeInTheDocument();
+  });
+
   it("puts the receipt search above the list", async () => {
     onWideScreen(false);
     render(<OrdersScreen />);

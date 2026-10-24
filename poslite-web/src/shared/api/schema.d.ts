@@ -3662,6 +3662,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Customer Name */
+            customer_name: string | null;
             /** Device Id */
             device_id: string;
             /** Discount Amount */
@@ -3684,6 +3686,8 @@ export interface components {
             payments: components["schemas"]["OrderPaymentOut"][];
             /** Price Includes Tax */
             price_includes_tax: boolean;
+            /** Queue No */
+            queue_no: string | null;
             /** Receipt No */
             receipt_no: string;
             /** Refunds */

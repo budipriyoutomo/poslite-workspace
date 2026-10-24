@@ -8,6 +8,7 @@ export const copy = {
   channel: "Channel penjualan",
   notOnChannel: (name: string) => `Ada menu di keranjang yang tidak dijual di ${name}`,
   externalRef: (name: string) => `Nomor order ${name}`,
+  customerName: "Nama pelanggan (opsional)",
   includedService: (bps: number) => `Termasuk service ${bps / 100}%`,
   includedTax: (bps: number) => `Termasuk PB1 ${bps / 100}%`,
   total: "Total",

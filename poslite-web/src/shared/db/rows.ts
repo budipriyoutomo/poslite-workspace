@@ -145,6 +145,9 @@ export interface OrderRow {
   channelId?: string | null;
   channelName?: string | null;
   externalRef?: string | null;
+  /** Called out at the counter for take-away and delivery (P1-1): `<device code>-<seq>`, e.g. A-012. */
+  queueNo?: string | null;
+  customerName?: string | null;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
   rates: { serviceBps: number; taxBps: number; includesTax?: boolean };
@@ -230,6 +233,7 @@ export interface OutboxRow {
 export type SyncStateRow =
   | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
   | { key: "refundCounter"; value: { businessDate: string; seq: number } } // ADR-023
+  | { key: "queueCounter"; value: { businessDate: string; seq: number } } // P1-1, per device per business day
   | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } }
   | { key: "cart"; value: string } // serialized by the cart store (survives reload / tablet restart)
   | { key: "session"; value: string } // serialized by the session store (logged-in cashier)

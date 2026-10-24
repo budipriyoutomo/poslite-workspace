@@ -27,6 +27,9 @@ export interface ReceiptInput {
     /** Delivery app sale (ADR-029): printed big so the driver finds the order. */
     channelName?: string | null;
     externalRef?: string | null;
+    /** Take-away/delivery queue number and the guest's name (P1-1). */
+    queueNo?: string | null;
+    customerName?: string | null;
     subtotal: number;
     discountAmount: number;
     serviceCharge: number;
@@ -38,6 +41,11 @@ export interface ReceiptInput {
 }
 
 /** "GOFOOD #GF-881234": the delivery app and its order number, as the driver says them (ADR-029). */
+/** "ANTRIAN A-012 Andi": what the counter calls out (P1-1). */
+export function queueLabel(queueNo: string, customerName?: string | null): string {
+  return `ANTRIAN ${queueNo}${customerName ? ` ${customerName}` : ""}`;
+}
+
 export function channelLabel(channelName: string | null | undefined, externalRef: string): string {
   return `${(channelName ?? "").toUpperCase()} #${externalRef}`.trim();
 }
@@ -53,6 +61,7 @@ function percent(bps: number): string {
 export function buildReceipt({ header, footer, timezone, order, payments }: ReceiptInput): ReceiptDocument {
   const doc: ReceiptDocument = [{ kind: "text", text: header, align: "center", bold: true }, { kind: "rule" }];
   if (order.status === "voided") doc.push({ kind: "text", text: "** VOID **", align: "center", bold: true });
+  if (order.queueNo) doc.push({ kind: "text", text: queueLabel(order.queueNo, order.customerName), align: "center", bold: true });
   if (order.externalRef) doc.push({ kind: "text", text: channelLabel(order.channelName, order.externalRef), align: "center", bold: true });
   doc.push(
     { kind: "text", text: `No   : ${order.receiptNo}` },

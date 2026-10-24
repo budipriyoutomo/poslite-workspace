@@ -1,4 +1,4 @@
-import { formatReceiptNo, nextReceiptCounter } from "@/features/orders";
+import { formatQueueNo, formatReceiptNo, nextReceiptCounter } from "@/features/orders";
 import { localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
@@ -39,6 +39,8 @@ export interface PlaceOrderInput {
   channelId?: string | null;
   /** The delivery app's order number, required by channels that ask for it. */
   externalRef?: string | null;
+  /** The guest's name for a take-away or delivery order (P1-1, ≤ 40 characters). */
+  customerName?: string | null;
   /** ADR-031: the shared open bill this payment closes on the server. */
   closesBillId?: string | null;
 }
@@ -95,6 +97,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const date = businessDate(now, outlet.timezone, outlet.businessDayCutoff);
     const counter = nextReceiptCounter(await readState(db, "receiptCounter"), date);
     await writeState(db, "receiptCounter", counter);
+    // P1-1: take-away and delivery are called by number; a table is called by its table.
+    const orderType = input.orderType ?? (channel ? orderTypeOf(channel.kind) : "take_away");
+    const isCalled = orderType !== "dine_in";
+    const customerName = isCalled ? input.customerName?.trim() || null : null;
+    if (customerName && customerName.length > 40) throw new AppError("CUSTOMER_NAME_TOO_LONG");
+    const queue = isCalled ? nextReceiptCounter(await readState(db, "queueCounter"), date) : null;
+    if (queue) await writeState(db, "queueCounter", queue);
 
     const order: OrderRow = {
       id: deps.newId(),
@@ -103,11 +112,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       cashierId: input.cashier.id,
       cashierName: input.cashier.name,
       businessDate: date,
-      orderType: input.orderType ?? (channel ? orderTypeOf(channel.kind) : "take_away"),
+      orderType,
       tableLabel: input.tableLabel ?? null,
       channelId: channel?.id ?? null,
       channelName: channel?.name ?? null,
       externalRef,
+      queueNo: queue ? formatQueueNo({ deviceCode: outlet.deviceCode, seq: queue.seq }) : null,
+      customerName,
       lines: input.lines.map((l, i) => ({
         id: deps.newId(),
         productId: l.productId,
@@ -197,6 +208,8 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
     table_label: order.tableLabel ?? null,
     ...(order.channelId && { channel_id: order.channelId }),
     ...(order.externalRef && { external_ref: order.externalRef }),
+    ...(order.queueNo && { queue_no: order.queueNo }),
+    ...(order.customerName && { customer_name: order.customerName }),
     lines: order.lines.map((l) => ({
       id: l.id,
       product_id: l.productId,

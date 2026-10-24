@@ -1,4 +1,5 @@
 import { dateTime } from "./format";
+import { queueLabel } from "./receipt-builder";
 import type { ReceiptBlock, ReceiptDocument } from "./receipt-document";
 
 export type KitchenStation = "kitchen" | "bar";
@@ -13,6 +14,8 @@ export interface KitchenTicketInput {
   timezone: string;
   /** Delivery app and its order number (ADR-029), e.g. "GOFOOD #GF-881234". */
   channel?: string;
+  /** Take-away/delivery queue number and the guest's name (P1-1). */
+  queue?: { no: string; customerName?: string | null };
   /** Items added to a bill whose earlier items were already sent. */
   isAddition: boolean;
   /** Items taken off a bill after they were sent (ADR-028): the cook stops making them. */
@@ -25,6 +28,7 @@ const TITLES: Record<KitchenStation, string> = { kitchen: "DAPUR", bar: "BAR" };
 /** Kitchen/bar ticket (04-printing.md `kitchen-ticket`): what to make, for which table — no prices. */
 export function buildKitchenTicket(input: KitchenTicketInput): ReceiptDocument {
   const doc: ReceiptDocument = [{ kind: "text", text: `** ${TITLES[input.station]} **`, align: "center", bold: true }];
+  if (input.queue) doc.push({ kind: "text", text: queueLabel(input.queue.no, input.queue.customerName), align: "center", bold: true });
   if (input.channel) doc.push({ kind: "text", text: input.channel, align: "center", bold: true });
   if (input.cancel) doc.push({ kind: "text", text: "***  BATAL  ***", align: "center", bold: true });
   else if (input.isAddition) doc.push({ kind: "text", text: "+ TAMBAHAN +", align: "center" });

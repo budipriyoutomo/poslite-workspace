@@ -19,6 +19,8 @@ export interface KitchenOrder {
   isAddition: boolean;
   /** Delivery app and its order number (ADR-029). */
   channel?: string;
+  /** Take-away/delivery queue number and the guest's name (P1-1). */
+  queue?: { no: string; customerName?: string | null };
   /** Sent items taken off a bill (ADR-028): printed as a BATAL ticket. */
   cancel?: { reason: string; approverName: string | null };
   lines: { key: string; productId: string; name: string; quantity: number; modifiers: string[]; note: string }[];
@@ -70,6 +72,7 @@ export async function printKitchenTickets(order: KitchenOrder, deps: KitchenPrin
       isAddition: order.isAddition,
       ...(order.cancel && { cancel: order.cancel }),
       ...(order.channel && { channel: order.channel }),
+      ...(order.queue && { queue: order.queue }),
       lines,
     });
     const isPrinted = await runPrintJob({ orderId: order.refId, documentType: "kitchen_ticket" }, async () => ({ doc, columns }), { ...deps, printer: deps.printerFor(station) });

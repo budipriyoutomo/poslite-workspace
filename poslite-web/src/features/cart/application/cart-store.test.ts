@@ -98,6 +98,15 @@ describe("cart store", () => {
     expect(useCart.getState()).toMatchObject({ channelId: null, externalRef: "" });
   });
 
+  it("keeps the guest's name for the sale and forgets it with the sale (P1-1)", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().setCustomerName("Andi");
+    expect(useCart.getState().customerName).toBe("Andi");
+
+    useCart.getState().clear();
+    expect(useCart.getState().customerName).toBe("");
+  });
+
   it("stays on its channel when a line is not sold on the other one", () => {
     const useCart = createCartStore(cartStorage(() => createTestDb()));
     useCart.getState().add(gudeg);

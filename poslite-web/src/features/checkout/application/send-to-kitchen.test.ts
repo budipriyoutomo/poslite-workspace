@@ -60,4 +60,12 @@ describe("sendPaidToKitchen", () => {
 
     expect(tickets[0]?.channel).toBe("GOFOOD #GF-881234");
   });
+
+  it("calls the order by its queue number on the ticket (P1-1)", async () => {
+    const { tickets, print } = fakePrint();
+
+    await sendPaidToKitchen({ order: { ...ORDER, queueNo: "A-012", customerName: "Andi" }, lines: [line("a", 1)], tableLabel: null, cashierName: "Siti" }, print);
+
+    expect(tickets[0]?.queue).toEqual({ no: "A-012", customerName: "Andi" });
+  });
 });

@@ -73,6 +73,9 @@ export const orderPlaced = z.strictObject({
   // ADR-029: the sales channel and the delivery app's order number; optional for older servers.
   channel_id: ulid.optional(),
   external_ref: z.string().min(1).max(50).optional(),
+  // P1-1: take-away/delivery queue number and the guest's name; optional for older servers.
+  queue_no: z.string().min(1).max(20).optional(),
+  customer_name: z.string().min(1).max(40).optional(),
   // ADR-031: a full payment of a table-service outlet's shared bill closes it on the server.
   closes_bill_id: ulid.optional(),
 });

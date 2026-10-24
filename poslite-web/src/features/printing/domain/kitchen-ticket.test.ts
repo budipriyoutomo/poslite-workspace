@@ -67,6 +67,14 @@ describe("kitchen ticket (58 mm)", () => {
     ]);
   });
 
+  it("calls a take-away order by its queue number and the guest's name (P1-1)", () => {
+    expect(renderText(buildKitchenTicket({ ...ticket, tableLabel: null, queue: { no: "A-012", customerName: "Andi" } }), 32).slice(0, 3)).toEqual([
+      "          ** DAPUR **",
+      "       ANTRIAN A-012 Andi",
+      "Meja  : BAWA PULANG",
+    ]);
+  });
+
   it("names the delivery app and its order number under the station (ADR-029)", () => {
     expect(renderText(buildKitchenTicket({ ...ticket, tableLabel: null, channel: "GOFOOD #GF-881234" }), 32).slice(0, 3)).toEqual([
       "          ** DAPUR **",

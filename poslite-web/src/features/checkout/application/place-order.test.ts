@@ -304,3 +304,32 @@ describe("placeOrder without sales channels on the device (before ADR-029)", () 
     expect((await nonShiftEvents())[0]!.payload).not.toHaveProperty("channel_id");
   });
 });
+
+describe("placeOrder queue number and customer name (P1-1)", () => {
+  it("gives a take-away sale the device's next queue number and keeps the guest's name", async () => {
+    const first = await placeOrder(order({ customerName: "  Andi  " }), testDeps(db));
+    const second = await placeOrder(order(), testDeps(db));
+
+    expect([first.queueNo, first.customerName, second.queueNo, second.customerName]).toEqual(["A-001", "Andi", "A-002", null]);
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect([payload.queue_no, payload.customer_name]).toEqual(["A-001", "Andi"]);
+  });
+
+  it("starts again at 1 on a new business day, and survives a reload (the counter is stored)", async () => {
+    await placeOrder(order(), testDeps(db, "2026-09-25T03:00:00.000Z"));
+
+    const nextDay = await placeOrder(order(), testDeps(db, "2026-09-26T03:00:00.000Z"));
+
+    expect(nextDay.queueNo).toBe("A-001");
+  });
+
+  it("calls a dine-in table by its table, not a queue number", async () => {
+    const dineIn = await placeOrder(order({ orderType: "dine_in", tableLabel: "A1", customerName: "Andi" }), testDeps(db));
+
+    expect([dineIn.queueNo, dineIn.customerName]).toEqual([null, null]);
+  });
+
+  it("refuses a name longer than 40 characters", async () => {
+    await expect(placeOrder(order({ customerName: "x".repeat(41) }), testDeps(db))).rejects.toMatchObject({ code: "CUSTOMER_NAME_TOO_LONG" });
+  });
+});
