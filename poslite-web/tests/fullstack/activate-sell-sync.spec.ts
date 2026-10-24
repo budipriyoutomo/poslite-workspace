@@ -21,16 +21,24 @@ async function call(api: APIRequestContext, method: "get" | "post" | "put", path
   return (await response.json()).data;
 }
 
+let signups = 0;
+
 async function tenantWithMenu(api: APIRequestContext) {
   const owner = { email: `owner-${Date.now()}@e2e.test`, password: "rahasia-123" };
-  const signup = await call(api, "post", "/tenants/signup", undefined, {
-    business_name: "Warung E2E",
-    slug: `e2e-${Date.now()}`,
-    owner_name: "Budi",
-    ...owner,
-    outlet: { code: "JKT01", name: "Outlet E2E", timezone: "Asia/Jakarta" },
+  // Each scenario signs up from its own client address (uvicorn trusts X-Forwarded-For from
+  // 127.0.0.1), so the per-IP signup limit (ADR-027) does not cap the number of scenarios.
+  const response = await api.post(`${API_URL}/tenants/signup`, {
+    headers: { "X-Forwarded-For": `198.51.100.${++signups}` },
+    data: {
+      business_name: "Warung E2E",
+      slug: `e2e-${Date.now()}`,
+      owner_name: "Budi",
+      ...owner,
+      outlet: { code: "JKT01", name: "Outlet E2E", timezone: "Asia/Jakarta" },
+    },
   });
-  const token: string = signup.token;
+  expect(response.ok(), `post /tenants/signup: ${await response.text()}`).toBe(true);
+  const token: string = (await response.json()).data.token;
   activeBrand.set(token, (await call(api, "get", "/me/access", token)).brands[0].id);
   const [outlet] = await call(api, "get", "/outlets", token);
   await call(api, "put", `/outlets/${outlet.id}`, token, {
@@ -296,4 +304,57 @@ test("prices that include tax: the guest pays the menu price and the server stor
       { timeout: 30_000 },
     )
     .toEqual([[18_000, []]]);
+});
+
+// P0-2 (ADR-029): a delivery channel set up in the back-office reaches the device; the cashier sells
+// on it offline at its marked-up price with the app's order number, and the server agrees.
+test("a GoFood sale offline is priced on its channel and reaches the server on that channel", async ({ page, context, request }) => {
+  const tenant = await tenantWithMenu(request);
+  const gofood = await call(request, "post", "/sales-channels", tenant.token, {
+    code: "GOFOOD",
+    name: "GoFood",
+    kind: "delivery",
+    price_mode: "markup_bps",
+    markup_bps: 2000,
+    markup_rounding_unit: 500,
+    applies_service: false,
+    requires_external_ref: true,
+  });
+
+  await page.goto("/");
+  await page.getByLabel("Email").fill(tenant.owner.email);
+  await page.getByLabel("Password").fill(tenant.owner.password);
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await page.getByRole("button", { name: "Aktifkan" }).click();
+  await page.getByRole("button", { name: /Rina/ }).click();
+  for (const digit of "2468") await page.getByRole("button", { name: digit, exact: true }).click();
+  await page.getByRole("button", { name: "Buka Shift" }).click();
+  await expect(page).toHaveURL(/\/sell$/);
+
+  await context.setOffline(true);
+  await page.getByRole("group", { name: "Channel penjualan" }).getByRole("button", { name: "GoFood" }).click();
+  await page.getByRole("button", { name: /Kopi Susu E2E/ }).click();
+  // 18.000 + 20% = 21.600 → up to 22.000; no service on GoFood; PB1 2.200 → 24.200
+  await page.getByRole("link", { name: /Bayar · Rp 24\.200/ }).click();
+  await page.getByLabel("Nomor order GoFood").fill("GF-881234");
+  await page.getByRole("button", { name: "Rp 24.200" }).click();
+  await page.getByRole("button", { name: "Selesaikan" }).click();
+  const done = page.getByRole("dialog", { name: "Transaksi berhasil" });
+  await expect(done.getByLabel("Pratinjau struk")).toContainText("GOFOOD #GF-881234");
+  const receiptNo = (await done.getByText(/^JKT01A-\d{6}-0001$/).textContent())!;
+
+  await context.setOffline(false);
+  const businessDate = `20${receiptNo.slice(7, 9)}-${receiptNo.slice(9, 11)}-${receiptNo.slice(11, 13)}`;
+  await expect
+    .poll(
+      async () => {
+        const orders = await call(request, "get", `/orders?outlet_id=${tenant.outletId}&business_date=${businessDate}`, tenant.token);
+        return orders.map((o: { total: number; flags: string[] }) => [o.total, o.flags]);
+      },
+      { timeout: 30_000 },
+    )
+    .toEqual([[24_200, []]]);
+  const [order] = await call(request, "get", `/orders?outlet_id=${tenant.outletId}&business_date=${businessDate}`, tenant.token);
+  const detail = await call(request, "get", `/orders/${order.id}`, tenant.token);
+  expect([detail.channel_id, detail.external_ref]).toEqual([gofood.id, "GF-881234"]);
 });
