@@ -7,3 +7,5 @@ export { type ChannelPricing, channelRates, channelUnitPrice } from "./domain/ch
 export { useCartTotals } from "./application/use-cart-totals";
 export { CheckoutScreen } from "./components/CheckoutScreen";
 export { OrderSummary } from "./components/OrderSummary";
+export { useSaleChannel } from "./application/use-sale-channel";
+export { ChannelPicker } from "./components/ChannelPicker";

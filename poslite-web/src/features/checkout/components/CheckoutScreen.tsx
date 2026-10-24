@@ -12,12 +12,14 @@ import { AppError } from "@/shared/errors";
 import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 
 import { payBill } from "../application/pay-bill";
 import { placeOrder } from "../application/place-order";
 import { sendPaidToKitchen } from "../application/send-to-kitchen";
 import { useAvailablePromotions, usePricing } from "../application/use-cart-totals";
 import { usePaymentMethods } from "../application/use-payment-methods";
+import { useSaleChannel } from "../application/use-sale-channel";
 import { useQrisClient } from "../application/use-qris-client";
 import { copy } from "../copy";
 import { manualDiscounts, needsApproval } from "../domain/discount-policy";
@@ -45,12 +47,10 @@ export function CheckoutScreen() {
   const outlet = useOutletSetting();
   const methods = usePaymentMethods();
   const qris = useQrisClient();
-  const { lines, discount, promotionIds, togglePromotion, bill, clear, loadBill } = useCart();
-  const rates = {
-    serviceBps: outlet?.serviceBps ?? 0,
-    taxBps: outlet?.taxBps ?? 0,
-    includesTax: outlet?.priceIncludesTax === true, // ADR-030
-  };
+  const { lines, discount, promotionIds, togglePromotion, bill, clear, loadBill, externalRef, setExternalRef } = useCart();
+  // The sale channel's rates (ADR-029) in the brand's price mode (ADR-030), as placeOrder snapshots them.
+  const { channel, rates } = useSaleChannel();
+  const needsRef = channel?.requiresExternalRef === true && externalRef.trim() === "";
   const [take, setTake] = useState<Record<string, number> | null>(null);
   const { paying, remaining } = toPay(lines, take);
   const totals = usePricing(paying, discount, rates, promotionIds);
@@ -79,7 +79,7 @@ export function CheckoutScreen() {
             payments,
             discountApprovedBy,
           })
-        : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy });
+        : await placeOrder({ cashier: user, lines, discount, promotionIds, payments, discountApprovedBy, channelId: channel?.id ?? null, externalRef });
       if (bill && remaining.length > 0) loadBill(bill, remaining, discount, promotionIds);
       else clear();
       setTake(null);
@@ -142,8 +142,22 @@ export function CheckoutScreen() {
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
         <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
         {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}
-        {paying.length > 0 && (!needsManager || discountApprovedBy) && (
-          <PaymentPanel key={totals.total} total={totals.total} methods={methods} onConfirm={confirm} isBusy={isPlacing} qris={qris} />
+        {channel?.requiresExternalRef && (
+          <label className="mb-3 block space-y-1 text-sm font-medium">
+            <span>{copy.externalRef(channel.name)}</span>
+            <Input aria-label={copy.externalRef(channel.name)} maxLength={50} value={externalRef} onChange={(e) => setExternalRef(e.target.value)} />
+          </label>
+        )}
+        {paying.length > 0 && (!needsManager || discountApprovedBy) && !needsRef && (
+          <PaymentPanel
+            key={`${totals.total}-${channel?.id ?? ""}`}
+            total={totals.total}
+            methods={methods}
+            initialMethodId={channel?.defaultPaymentMethodId}
+            onConfirm={confirm}
+            isBusy={isPlacing}
+            qris={qris}
+          />
         )}
       </section>
       <OrderPlacedDialog order={placed} />

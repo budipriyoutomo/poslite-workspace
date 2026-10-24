@@ -66,4 +66,12 @@ describe("kitchen ticket (58 mm)", () => {
       "Disetujui: Bu Rina",
     ]);
   });
+
+  it("names the delivery app and its order number under the station (ADR-029)", () => {
+    expect(renderText(buildKitchenTicket({ ...ticket, tableLabel: null, channel: "GOFOOD #GF-881234" }), 32).slice(0, 3)).toEqual([
+      "          ** DAPUR **",
+      "       GOFOOD #GF-881234",
+      "Meja  : BAWA PULANG",
+    ]);
+  });
 });

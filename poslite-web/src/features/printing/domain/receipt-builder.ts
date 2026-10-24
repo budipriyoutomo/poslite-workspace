@@ -24,6 +24,9 @@ export interface ReceiptInput {
     }[];
     discount: { type: "percentage" | "fixed"; value: number } | null;
     rates: { serviceBps: number; taxBps: number; includesTax?: boolean };
+    /** Delivery app sale (ADR-029): printed big so the driver finds the order. */
+    channelName?: string | null;
+    externalRef?: string | null;
     subtotal: number;
     discountAmount: number;
     serviceCharge: number;
@@ -32,6 +35,11 @@ export interface ReceiptInput {
     changeAmount: number;
   };
   payments: { methodName: string; amount: number }[];
+}
+
+/** "GOFOOD #GF-881234": the delivery app and its order number, as the driver says them (ADR-029). */
+export function channelLabel(channelName: string | null | undefined, externalRef: string): string {
+  return `${(channelName ?? "").toUpperCase()} #${externalRef}`.trim();
 }
 
 function percent(bps: number): string {
@@ -45,6 +53,7 @@ function percent(bps: number): string {
 export function buildReceipt({ header, footer, timezone, order, payments }: ReceiptInput): ReceiptDocument {
   const doc: ReceiptDocument = [{ kind: "text", text: header, align: "center", bold: true }, { kind: "rule" }];
   if (order.status === "voided") doc.push({ kind: "text", text: "** VOID **", align: "center", bold: true });
+  if (order.externalRef) doc.push({ kind: "text", text: channelLabel(order.channelName, order.externalRef), align: "center", bold: true });
   doc.push(
     { kind: "text", text: `No   : ${order.receiptNo}` },
     { kind: "row", left: `Kasir: ${order.cashierName}`, right: dateTime(order.createdAt, timezone) },

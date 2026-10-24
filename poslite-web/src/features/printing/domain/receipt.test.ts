@@ -132,4 +132,10 @@ describe("receipt — dine-in and line discounts (Fase 4)", () => {
 
     expect(text.filter((l) => l.startsWith("Diskon"))).toEqual([]);
   });
+
+  it("prints the delivery app and its order number big, so the driver finds the order (ADR-029)", () => {
+    const lines = renderText(buildReceipt({ ...example, order: { ...example.order, channelName: "GoFood", externalRef: "GF-881234" } }), 32);
+
+    expect(lines.slice(3, 5)).toEqual(["       GOFOOD #GF-881234", "No   : JKT01A-260925-0042"]);
+  });
 });

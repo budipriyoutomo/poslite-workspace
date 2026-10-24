@@ -133,6 +133,10 @@ export interface OrderRow {
   businessDate: string;
   orderType: "take_away" | "dine_in";
   tableLabel?: string | null;
+  /** The sales channel and the delivery app's order number (ADR-029); absent on older rows. */
+  channelId?: string | null;
+  channelName?: string | null;
+  externalRef?: string | null;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
   rates: { serviceBps: number; taxBps: number; includesTax?: boolean };

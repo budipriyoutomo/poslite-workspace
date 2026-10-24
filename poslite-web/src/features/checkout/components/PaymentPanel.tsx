@@ -33,13 +33,15 @@ interface Props {
   qris?: QrisClient | null;
   newId?: () => string;
   qrisPollMs?: number;
+  /** The sales channel's payment method (ADR-029), e.g. the delivery app; default cash. */
+  initialMethodId?: string | null;
 }
 
-export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris = null, newId: makeId = newId, qrisPollMs }: Props) {
+export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris = null, newId: makeId = newId, qrisPollMs, initialMethodId = null }: Props) {
   const [isShowingQr, setIsShowingQr] = useState(false);
   const [tendered, setTendered] = useState<TenderedInput[]>([]);
-  const [method, setMethod] = useState(() => methods.find((m) => m.type === "cash") ?? methods[0]!);
-  const [amount, setAmount] = useState(0);
+  const [method, setMethod] = useState(() => methods.find((m) => m.id === initialMethodId) ?? methods.find((m) => m.type === "cash") ?? methods[0]!);
+  const [amount, setAmount] = useState(() => (method.type === "cash" ? 0 : total));
   const [reference, setReference] = useState("");
 
   const typeOf = (id: string) => methods.find((m) => m.id === id)!.type;

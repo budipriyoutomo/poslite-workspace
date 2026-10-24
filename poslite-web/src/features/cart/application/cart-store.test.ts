@@ -85,4 +85,24 @@ describe("cart store", () => {
     useCart.getState().loadBill(bill, [{ ...gudeg, key: "g", quantity: 1 }], null, ["PR2"]);
     expect(useCart.getState().promotionIds).toEqual(["PR2"]);
   });
+
+  it("moves the cart to another channel at that channel's prices, and a new sale starts on the default (ADR-029)", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+    useCart.getState().setExternalRef("GF-1");
+
+    expect(useCart.getState().setChannel("GOFOOD", () => 30_000)).toBe(true);
+    expect(useCart.getState()).toMatchObject({ channelId: "GOFOOD", lines: [{ unitPrice: 30_000 }], externalRef: "" });
+
+    useCart.getState().clear();
+    expect(useCart.getState()).toMatchObject({ channelId: null, externalRef: "" });
+  });
+
+  it("stays on its channel when a line is not sold on the other one", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+
+    expect(useCart.getState().setChannel("SHOPEE", () => null)).toBe(false);
+    expect(useCart.getState()).toMatchObject({ channelId: null, lines: [{ unitPrice: 25_000 }] });
+  });
 });

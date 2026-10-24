@@ -7,6 +7,7 @@ import { DEFAULT_DISCOUNT_POLICY, getDb, readState, writeState } from "@/shared/
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
+import { channelRates, orderTypeOf, pickChannel } from "../domain/channel-pricing";
 import { manualDiscounts, needsApproval } from "../domain/discount-policy";
 import { settle } from "../domain/payment";
 import type { Discount } from "../domain/pricing";
@@ -34,6 +35,10 @@ export interface PlaceOrderInput {
   payments: { paymentMethodId: string; amount: number; reference?: string | null }[];
   /** Manager who approved a discount over the brand's cashier limit (06 Order rule 5). */
   discountApprovedBy?: string | null;
+  /** The channel the cashier chose (ADR-029); none = the brand's channel of the order's kind. */
+  channelId?: string | null;
+  /** The delivery app's order number, required by channels that ask for it. */
+  externalRef?: string | null;
 }
 
 export interface PlaceOrderDeps {
@@ -43,7 +48,7 @@ export interface PlaceOrderDeps {
 }
 
 /** Everything placeOrder writes or reads; an outer transaction must cover all of them. */
-export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.users, db.orders, db.payments, db.syncState, db.outbox];
+export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.salesChannels, db.users, db.orders, db.payments, db.syncState, db.outbox];
 
 const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(), newId });
 
@@ -61,7 +66,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const shift = await getOpenShift(db);
     if (!shift) throw new AppError("NO_OPEN_SHIFT");
 
-    const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps, includesTax: outlet.priceIncludesTax === true }; // snapshot (ADR-011, ADR-030)
+    const kind = input.orderType ?? "take_away";
+    const channel = pickChannel(await db.salesChannels.toArray(), input.channelId, kind);
+    const externalRef = input.externalRef?.trim() || null;
+    if (channel?.requiresExternalRef && !externalRef) throw new AppError("EXTERNAL_REF_REQUIRED");
+    // Snapshot (ADR-011): outlet rates in the brand's price mode (ADR-030), only those the channel charges (ADR-029).
+    const outletRates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps, includesTax: outlet.priceIncludesTax === true };
+    const rates = channel ? channelRates(outletRates, outletRates.includesTax, channel) : outletRates;
     const now = deps.now();
     // Only the promotions the cashier chose, checked again now in outlet time (ADR-016).
     const chosen = (await db.promotions.toArray()).filter((p) => input.promotionIds?.includes(p.id));
@@ -90,8 +101,11 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       cashierId: input.cashier.id,
       cashierName: input.cashier.name,
       businessDate: date,
-      orderType: input.orderType ?? "take_away",
+      orderType: input.orderType ?? (channel ? orderTypeOf(channel.kind) : "take_away"),
       tableLabel: input.tableLabel ?? null,
+      channelId: channel?.id ?? null,
+      channelName: channel?.name ?? null,
+      externalRef,
       lines: input.lines.map((l, i) => ({
         id: deps.newId(),
         productId: l.productId,
@@ -165,6 +179,8 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
     cashier_id: order.cashierId,
     order_type: order.orderType,
     table_label: order.tableLabel ?? null,
+    ...(order.channelId && { channel_id: order.channelId }),
+    ...(order.externalRef && { external_ref: order.externalRef }),
     lines: order.lines.map((l) => ({
       id: l.id,
       product_id: l.productId,

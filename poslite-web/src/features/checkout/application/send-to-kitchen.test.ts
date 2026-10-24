@@ -52,4 +52,12 @@ describe("sendPaidToKitchen", () => {
     expect(await sendPaidToKitchen({ order: ORDER, lines: [line("a", 2, 2)], tableLabel: "A1", cashierName: "Siti" }, print)).toEqual({ hasFailed: false });
     expect(tickets).toEqual([]);
   });
+
+  it("names the delivery app and its order number on the ticket (ADR-029)", async () => {
+    const { tickets, print } = fakePrint();
+
+    await sendPaidToKitchen({ order: { ...ORDER, channelName: "GoFood", externalRef: "GF-881234" }, lines: [line("a", 1)], tableLabel: null, cashierName: "Siti" }, print);
+
+    expect(tickets[0]?.channel).toBe("GOFOOD #GF-881234");
+  });
 });

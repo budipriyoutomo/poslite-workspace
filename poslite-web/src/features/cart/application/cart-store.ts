@@ -3,7 +3,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 
 import { getDb } from "@/shared/db";
 
-import { addLine, type CartLine, changeQuantity, type LineDiscount, type NewLine, removeLine, setLineDiscount, updateLine } from "../domain/cart";
+import { addLine, type CartLine, changeQuantity, type LineDiscount, type NewLine, removeLine, repriceLines, setLineDiscount, updateLine } from "../domain/cart";
 import { cartStorage } from "../infrastructure/cart-storage";
 
 /** Same shape as checkout's Discount (features share data shapes, not imports). */
@@ -27,6 +27,10 @@ interface CartState {
   /** Promotions the cashier chose at payment (ADR-016); none applies unless chosen. */
   promotionIds: string[];
   bill: CartBill | null;
+  /** The sales channel chosen for this sale (ADR-029); null = the brand's default for its kind. */
+  channelId: string | null;
+  /** The delivery app's order number, for channels that need it. */
+  externalRef: string;
   /** Opens a bill; the chosen promotions start empty unless handed over (e.g. after a split payment). */
   loadBill: (bill: CartBill, lines: CartLine[], discount: CartDiscount | null, promotionIds?: string[]) => void;
   /** Turn the current lines into a dine-in bill, or back into take-away (null). */
@@ -38,6 +42,9 @@ interface CartState {
   setLineDiscount: (key: string, discount: LineDiscount | null) => void;
   setDiscount: (discount: CartDiscount | null) => void;
   togglePromotion: (id: string) => void;
+  /** Moves the sale to a channel at its prices; false (nothing changes) if a line is not sold there. */
+  setChannel: (channelId: string | null, priceOf: (productId: string) => number | null) => boolean;
+  setExternalRef: (ref: string) => void;
   clear: () => void;
 }
 
@@ -47,11 +54,13 @@ const withLines = (s: CartState, lines: CartLine[]) => ({ lines, promotionIds: l
 export function createCartStore(storage: StateStorage) {
   return create<CartState>()(
     persist(
-      (set) => ({
+      (set, get) => ({
         lines: [],
         discount: null,
         promotionIds: [],
         bill: null,
+        channelId: null,
+        externalRef: "",
         loadBill: (bill, lines, discount, promotionIds = []) => set({ bill, lines, discount, promotionIds }),
         setBill: (bill) => set({ bill }),
         add: (line) => set((s) => ({ lines: addLine(s.lines, line) })),
@@ -61,12 +70,19 @@ export function createCartStore(storage: StateStorage) {
         setLineDiscount: (key, discount) => set((s) => ({ lines: setLineDiscount(s.lines, key, discount) })),
         setDiscount: (discount) => set({ discount }),
         togglePromotion: (id) => set((s) => ({ promotionIds: s.promotionIds.includes(id) ? s.promotionIds.filter((p) => p !== id) : [...s.promotionIds, id] })),
-        clear: () => set({ lines: [], discount: null, promotionIds: [], bill: null }),
+        setChannel: (channelId, priceOf) => {
+          const lines = repriceLines(get().lines, priceOf);
+          if (lines === null) return false;
+          set({ channelId, lines, externalRef: "" });
+          return true;
+        },
+        setExternalRef: (externalRef) => set({ externalRef }),
+        clear: () => set({ lines: [], discount: null, promotionIds: [], bill: null, channelId: null, externalRef: "" }),
       }),
       {
         name: "cart",
         storage: createJSONStorage(() => storage),
-        partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill }),
+        partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill, channelId: s.channelId, externalRef: s.externalRef }),
       },
     ),
   );

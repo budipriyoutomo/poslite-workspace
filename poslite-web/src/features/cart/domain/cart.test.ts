@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addLine, cartLines, changeQuantity, type CartLine, type NewLine, removeLine, setLineDiscount, updateLine } from "./cart";
+import { addLine, cartLines, changeQuantity, type CartLine, type NewLine, removeLine, repriceLines, setLineDiscount, updateLine } from "./cart";
 
 const gudeg: NewLine = { productId: "P1", name: "Nasi Gudeg", categoryName: "Makanan", unitPrice: 25_000, modifiers: [], note: "" };
 const ayam = { optionId: "M1", groupId: "G1", name: "Tambah Ayam", price: 10_000 };
@@ -90,5 +90,18 @@ describe("setLineDiscount", () => {
 
   it("keeps the category for promotions", () => {
     expect(addLine([], kopi)[0]!.categoryId).toBe("C1");
+  });
+});
+
+describe("repriceLines (ADR-029)", () => {
+  const line = { productId: "P1", name: "Nasi Gudeg", categoryName: "Makanan", unitPrice: 25_000, modifiers: [], note: "" };
+
+  it("puts every line at its price on the new channel, keeping quantities", () => {
+    const lines = addLine(addLine([], line), line);
+    expect(repriceLines(lines, () => 30_000)?.map((l) => [l.unitPrice, l.quantity])).toEqual([[30_000, 2]]);
+  });
+
+  it("is null when a line is not sold on the new channel", () => {
+    expect(repriceLines(addLine([], line), () => null)).toBeNull();
   });
 });

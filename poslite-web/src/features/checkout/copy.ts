@@ -5,6 +5,9 @@ export const copy = {
   itemDiscount: "Diskon item",
   service: (bps: number) => `Service ${bps / 100}%`,
   tax: (bps: number) => `PB1 ${bps / 100}%`,
+  channel: "Channel penjualan",
+  notOnChannel: (name: string) => `Ada menu di keranjang yang tidak dijual di ${name}`,
+  externalRef: (name: string) => `Nomor order ${name}`,
   includedService: (bps: number) => `Termasuk service ${bps / 100}%`,
   includedTax: (bps: number) => `Termasuk PB1 ${bps / 100}%`,
   total: "Total",
@@ -57,6 +60,7 @@ export const copy = {
     NON_CASH_EXCEEDS_TOTAL: "Pembayaran non-tunai melebihi tagihan",
     NO_PAYMENT: "Belum ada pembayaran",
     UNKNOWN_PAYMENT_METHOD: "Metode pembayaran tidak dikenal",
+    EXTERNAL_REF_REQUIRED: "Isi nomor order dari aplikasi (GoFood/GrabFood/ShopeeFood)",
     VOID_APPROVAL_REQUIRED: "Ada item yang sudah ke dapur dikurangi — simpan bill dulu dan minta persetujuan manajer",
   } as Record<string, string>,
 } as const;

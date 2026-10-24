@@ -29,6 +29,15 @@ describe("PaymentPanel", () => {
     expect(onConfirm).toHaveBeenCalledWith([{ paymentMethodId: "cash", amount: 100_000, reference: null }]);
   });
 
+  it("starts on the sales channel's payment method for the whole bill (ADR-029)", async () => {
+    const onConfirm = vi.fn();
+    render(<PaymentPanel total={69_300} methods={methods} initialMethodId="qris" onConfirm={onConfirm} />);
+
+    await click(/Selesaikan/);
+
+    expect(onConfirm).toHaveBeenCalledWith([{ paymentMethodId: "qris", amount: 69_300, reference: null }]);
+  });
+
   it("blocks an underpaid order and shows what is missing", async () => {
     setup(72_765);
     await click("Rp 72.765"); // exact

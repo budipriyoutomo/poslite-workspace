@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { openShift } from "@/features/shift";
-import type { PosDb } from "@/shared/db";
+import type { PosDb, SalesChannelRow } from "@/shared/db";
 
 import { IDS, OUTLET, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
@@ -243,5 +243,57 @@ describe("placeOrder discount approval (06 Order rule 5)", () => {
 
   it("keeps the old 20% limit on an outlet synced before brands had a policy", async () => {
     await expect(placeOrder(order({ discount: { type: "percentage", value: 25 } }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
+  });
+});
+
+describe("placeOrder on a sales channel (ADR-029)", () => {
+  const channel = (over: Partial<SalesChannelRow>): SalesChannelRow => ({
+    id: "01J8Z000000000000000000CH1",
+    code: "TAKE_AWAY",
+    name: "Take Away",
+    kind: "take_away",
+    priceMode: "base",
+    markupBps: 0,
+    markupRoundingUnit: 100,
+    defaultPaymentMethodId: null,
+    appliesService: true,
+    appliesTax: true,
+    requiresExternalRef: false,
+    sortOrder: 2,
+    prices: {},
+    ...over,
+  });
+  const GOFOOD = channel({ id: "01J8Z000000000000000000CH3", code: "GOFOOD", name: "GoFood", kind: "delivery", appliesService: false, requiresExternalRef: true, sortOrder: 3 });
+
+  beforeEach(async () => {
+    await db.salesChannels.bulkPut([channel({}), GOFOOD]);
+  });
+
+  it("charges only what the channel charges and sends its channel and the app's order number", async () => {
+    // 63.000 after 10% off; no service on GoFood; PB1 6.300 → 69.300
+    const placed = await placeOrder(order({ channelId: GOFOOD.id, externalRef: "GF-881234" }), testDeps(db));
+
+    expect(placed).toMatchObject({ orderType: "take_away", rates: { serviceBps: 0, taxBps: 1_000 }, serviceCharge: 0, total: 69_300, channelId: GOFOOD.id, channelName: "GoFood", externalRef: "GF-881234" });
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect([payload.channel_id, payload.external_ref]).toEqual([GOFOOD.id, "GF-881234"]);
+  });
+
+  it("puts a sale without a chosen channel on the brand's channel of its kind", async () => {
+    const placed = await placeOrder(order(), testDeps(db));
+
+    expect([placed.channelId, placed.total]).toEqual(["01J8Z000000000000000000CH1", 72_765]);
+  });
+
+  it("needs the delivery app's order number when the channel asks for it, and writes nothing", async () => {
+    await expect(placeOrder(order({ channelId: GOFOOD.id }), testDeps(db))).rejects.toMatchObject({ code: "EXTERNAL_REF_REQUIRED" });
+    expect(await db.orders.count()).toBe(0);
+  });
+});
+
+describe("placeOrder without sales channels on the device (before ADR-029)", () => {
+  it("sends no channel, as before", async () => {
+    await placeOrder(order(), testDeps(db));
+
+    expect((await nonShiftEvents())[0]!.payload).not.toHaveProperty("channel_id");
   });
 });
