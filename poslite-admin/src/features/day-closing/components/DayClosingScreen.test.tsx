@@ -7,7 +7,7 @@ import { envelope, renderWithApi } from "../../../../tests/support/render";
 import { DayClosingScreen } from "./DayClosingScreen";
 
 const OUTLET = { id: "01K5ZT00000000000000000001", code: "JKT01", name: "Kemang", timezone: "Asia/Jakarta" };
-const TOTALS = { gross: 70_000, discount: 7_000, service: 3_150, tax: 6_615, net: 72_765, order_count: 1, void_count: 0, refund_amount: 0, refund_count: 0, pre_payment_void_count: 2, pre_payment_void_amount: 93_000 };
+const TOTALS = { gross: 70_000, discount: 7_000, service: 3_150, tax: 6_615, net: 72_765, order_count: 1, void_count: 0, refund_amount: 0, refund_count: 0, pre_payment_void_count: 2, pre_payment_void_amount: 93_000, cash_rounding: 0 };
 const CASH = { shift_count: 1, open_shift_count: 0, opening_cash: 200_000, expected_cash: 252_765, counted_cash: 250_000, variance: -2_765 };
 const SNAPSHOT = {
   totals: TOTALS,
@@ -84,6 +84,13 @@ describe("DayClosingScreen", () => {
 
     expect(await screen.findByText("Batal sebelum bayar")).toBeInTheDocument();
     expect(screen.getByText("Rp 93.000 (2)")).toBeInTheDocument();
+  });
+
+  it("shows what cash rounding added to the drawer (P1-3)", async () => {
+    server({ day_ended: true, current: { ...SNAPSHOT, totals: { ...TOTALS, cash_rounding: 35 } }, closing: null, changed_since_close: false });
+
+    expect(await screen.findByText("Pembulatan tunai")).toBeInTheDocument();
+    expect(screen.getByText("+Rp 35")).toBeInTheDocument();
   });
 
   it("closes the day with a note once the warnings are acknowledged", async () => {

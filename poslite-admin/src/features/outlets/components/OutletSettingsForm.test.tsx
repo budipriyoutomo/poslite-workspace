@@ -17,6 +17,8 @@ const SETTINGS = {
   receipt_header: "Kopi Maharasa",
   receipt_footer: "",
   service_mode: "counter",
+  cash_rounding_unit: 0,
+  cash_rounding_mode: "nearest",
 };
 
 function server() {
@@ -53,7 +55,19 @@ describe("OutletSettingsForm", () => {
       receipt_header: "Kopi Maharasa",
       receipt_footer: "",
       service_mode: "counter",
+      cash_rounding_unit: 0,
+      cash_rounding_mode: "nearest",
     });
+  });
+
+  it("rounds the cash part to the chosen unit (P1-3)", async () => {
+    const { calls } = server();
+    await userEvent.selectOptions(await screen.findByLabelText("Pembulatan tunai"), "500");
+    await userEvent.selectOptions(screen.getByLabelText("Arah pembulatan"), "down");
+    await userEvent.click(screen.getByRole("button", { name: "Simpan pengaturan" }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(calls.find((c) => c.method === "PUT")!.body).toMatchObject({ cash_rounding_unit: 500, cash_rounding_mode: "down" });
   });
 
   it("switches the outlet to table service (ADR-031)", async () => {
