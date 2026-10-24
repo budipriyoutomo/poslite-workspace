@@ -59,7 +59,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 | Item | ADR | Migrasi | Dexie |
 |---|---|---|---|
 | P0-1 ✅ | ADR-028 | `0023_bill_item_voids` (`bill_voids`, `bill_void_lines`, kolom void di `rpt_daily_sales`) | — (tidak perlu; event masuk `outbox`) |
-| P0-3 | ADR-030 | `0024_brand_price_includes_tax` | — (flag ikut data brand di `settings`) |
+| P0-3 ✅ | ADR-030 | `0024_brand_price_includes_tax` (+ `orders.price_includes_tax`) | — (flag ikut data brand di `settings`) |
 | P0-2 | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
 | P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
 | P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v8**: `queueCounters: "businessDate"` |
@@ -103,7 +103,7 @@ Urutan wajib: **P0-3 dulu, baru P0-2**, karena aturan pajak per channel (ADR-029
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P0-3 Harga inklusif (ADR-030, migrasi `0024`) | Kumpulkan struktur komisi & harga ojol restoran pilot |
+| P0-3 Harga inklusif (ADR-030, migrasi `0024`) ✅ | Kumpulkan struktur komisi & harga ojol restoran pilot |
 | P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) | Draf SOP Kasir |
 | Fixture matriks channel × inklusif × diskon (§5, P0-2) | |
 
@@ -263,7 +263,9 @@ Setiap baris matriks diuji tanpa diskon, dengan diskon item, dengan diskon order
 
 ---
 
-### P0-3 — Harga Sudah Termasuk Pajak (ADR-030)
+### P0-3 — Harga Sudah Termasuk Pajak (ADR-030) ✅
+
+**Status 2026-10-24: selesai.** Keputusan lengkap di [01 ADR-030](./01-system-architecture.md). Bedanya dengan rancangan di bawah: flag ikut snapshot `rates.includes_tax` (bukan field terpisah di `order.placed`), 19 kasus inklusif (termasuk dua kasus tepat .5), dan e2e full-stack ditambahkan.
 
 **Masalah.** `PriceCalculator.calculate()` (API) dan kalkulasi web selalu menambahkan service dan PB1 **di atas** harga. Tidak ada opsi harga nett.
 
@@ -565,7 +567,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 - [ ] Staging VPS + Vercel ter-provision
 
 **Tahap B — Harga & Channel**
-- [ ] P0-3 Harga inklusif pajak (ADR-030, `0024`)
+- [x] P0-3 Harga inklusif pajak (ADR-030, `0024`)
 - [ ] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
 - [ ] Fixture matriks channel × inklusif × diskon hijau di web & API
 

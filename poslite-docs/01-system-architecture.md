@@ -232,6 +232,13 @@ flowchart LR
 - **Alternatif ditolak**: menyimpan open bill di server demi audit — bertentangan dengan ADR-015 dan tidak menolong saat offline.
 - **Konsekuensi**: tiket BATAL dicetak best effort; gagal cetak hanya toast, kasir memberi tahu dapur langsung. Nilai void = harga baris × unit sebelum diskon order, hanya untuk laporan (tidak memengaruhi kas atau pajak).
 
+### ADR-030 — Harga sudah termasuk pajak: flag per brand, ikut snapshot tarif, dihitung mundur dengan integer
+
+- **Keputusan**: `brands.price_includes_tax` (default `false`). Bila `true`, harga menu sudah termasuk service dan PB1: tamu membayar harga setelah diskon, lalu PB1 dan service dihitung mundur — `pre_tax = divRoundHalfUp(net × 10000, 10000 + tax_bps)`, `tax = net − pre_tax`, `before_service = divRoundHalfUp(pre_tax × 10000, 10000 + service_bps)`, `service = pre_tax − before_service`, `total = net`. Selisih pembulatan diserap PB1 dan service, jadi `before_service + service + tax = total` selalu benar.
+- **Snapshot**: flag ikut `rates` di `order.placed` sebagai `includes_tax` (ADR-011; dikirim hanya bila `true` sehingga server lama tetap menerima payload lain). Server menghitung ulang dengan flag itu, menyimpan `orders.price_includes_tax`, dan menandai `RATES_OUTDATED` bila flag berbeda dengan brand saat ini. Device mendapat flag lewat `outlet_setting.price_includes_tax`.
+- **Kenapa**: banyak restoran memajang harga nett; laporan pajak tetap butuh PB1 dan service terpisah.
+- **Konsekuensi**: mengubah flag hanya berlaku untuk transaksi baru setelah device sinkron. Struk dan ringkasan kasir menulis "Termasuk service x%" dan "Termasuk PB1 y%" setelah TOTAL. Refund tidak berubah (berbasis total; fixture inklusif di `refund-cases.json`). Rumus dikunci kasus inklusif di `pricing-cases.json` (device = server).
+
 ## Non-Functional Requirements
 
 | NFR | Target |

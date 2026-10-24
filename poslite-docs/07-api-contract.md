@@ -72,7 +72,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 
 | Entity | `data` |
 |---|---|
-| `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` (sudah di-resolve: teks outlet bila diisi, selain itu teks brand), `brand` `{id, code, name, logo_key}`, `discount_policy` `{percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}` (dari brand; opsional untuk server lama) — hanya outlet milik device. Katalog (`category`, `product`, `modifier_group`, `modifier_option`) dan `promotion` hanya milik brand outlet (ADR-022) |
+| `outlet_setting` | `code`, `name`, `timezone`, `business_day_cutoff` (`"HH:MM"`), `tax_rate_bps`, `service_rate_bps`, `receipt_header`, `receipt_footer` (sudah di-resolve: teks outlet bila diisi, selain itu teks brand), `brand` `{id, code, name, logo_key}`, `discount_policy` `{percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}` (dari brand; opsional untuk server lama), `price_includes_tax` (dari brand, ADR-030; tidak ada = `false`) — hanya outlet milik device. Katalog (`category`, `product`, `modifier_group`, `modifier_option`) dan `promotion` hanya milik brand outlet (ADR-022) |
 | `category` | `name`, `sort_order`, `print_role` |
 | `product` | `category_id`, `sku`, `name`, `price`, `image_key`, `is_available`, `modifier_group_ids` |
 | `modifier_group` | `name`, `min_select`, `max_select` |
@@ -104,7 +104,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
           "discount": null, "promotion": null }
       ],
       "discount": { "type": "percentage", "value": 10 },
-      "rates": { "service_bps": 500, "tax_bps": 1000 },
+      "rates": { "service_bps": 500, "tax_bps": 1000 }, // + "includes_tax": true bila harga brand termasuk pajak (ADR-030)
       "totals": { "subtotal": 70000, "discount_amount": 7000, "service_charge": 3150, "tax": 6615, "total": 72765 },
       "payments": [
         { "id": "01J…Y1", "payment_method_id": "01J…CASH", "method_type": "cash", "amount": 100000, "reference": null }
@@ -129,7 +129,7 @@ Isi `data` per entity (`op: "delete"` tidak membawa `data`):
 |---|---|---|
 | `accepted` | Tersimpan | Hapus dari outbox |
 | `duplicate` | Sudah pernah `accepted`/`flagged` sebelumnya | Hapus dari outbox (anggap sukses) |
-| `flagged` | **Tersimpan**, tapi ditandai untuk audit. `flags`: `TOTAL_MISMATCH` (hitungan server dengan tarif snapshot berbeda), `RATES_OUTDATED` (tarif snapshot ≠ tarif outlet saat ini), `QRIS_UNPAID` (referensi pembayaran QRIS adalah charge dinamis yang belum dikonfirmasi gateway, ADR-019), `PAYMENT_METHOD_INACTIVE` (metode bayar tidak aktif di outlet, doc 11 §3), `REFUND_EXCEEDS_ORDER` (qty refund melebihi sisa, mis. dua device), `REFUND_ON_VOIDED` (refund atas order yang sudah di-void), `DISCOUNT_UNAPPROVED` (diskon manual di atas batas kasir brand tanpa `discount_approved_by` yang punya `discount.override`) | Hapus dari outbox |
+| `flagged` | **Tersimpan**, tapi ditandai untuk audit. `flags`: `TOTAL_MISMATCH` (hitungan server dengan tarif snapshot berbeda), `RATES_OUTDATED` (tarif snapshot — termasuk `includes_tax`, ADR-030 — ≠ tarif outlet/brand saat ini), `QRIS_UNPAID` (referensi pembayaran QRIS adalah charge dinamis yang belum dikonfirmasi gateway, ADR-019), `PAYMENT_METHOD_INACTIVE` (metode bayar tidak aktif di outlet, doc 11 §3), `REFUND_EXCEEDS_ORDER` (qty refund melebihi sisa, mis. dua device), `REFUND_ON_VOIDED` (refund atas order yang sudah di-void), `DISCOUNT_UNAPPROVED` (diskon manual di atas batas kasir brand tanpa `discount_approved_by` yang punya `discount.override`) | Hapus dari outbox |
 | `rejected` | Tidak tersimpan (+ `code`, mis. `CASHIER_NOT_IN_OUTLET`, `SHIFT_NOT_FOUND`, `SCHEMA_INVALID`) | Tandai `dead`; manager bisa kirim ulang setelah diperbaiki — server memproses ulang event yang sebelumnya `rejected` |
 
 - Device diidentifikasi dari token (dicocokkan dengan header `X-Device-Id`); body **tidak** membawa `device_id`.
@@ -186,7 +186,7 @@ Batas: maks 50 event / request, body maks 1 MB.
 | GET | `/me/access` | Pohon akses: `{tenant, company_scope, brands: [{id, code, name, role, outlets: [{id, code, name, role}]}]}`. `role` brand `null` = hanya akses ke sebagian outletnya |
 | GET | `/outlets?brand_id=` | Outlet dalam scope (opsional satu brand); item memuat `brand_id` |
 | POST · GET/PUT | `/outlets` · `/outlets/{id}` | Tambah outlet: body wajib `brand_id`, butuh scope perusahaan/brand itu (`BRAND_FORBIDDEN`). Outlet tidak bisa pindah brand |
-| GET/POST · PUT/DELETE | `/brands` · `/brands/{id}` | Perusahaan. `{code, name, logo_key, receipt_header, receipt_footer, is_active, discount: {percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}}`; respons + `logo_url`. Kode unik per perusahaan → 409 `BRAND_CODE_TAKEN`; logo = key dari `/media/images` milik perusahaan (`INVALID_IMAGE_KEY`); ubah brand men-*touch* `outlets.version` brand itu; hapus brand dengan outlet aktif → 409 `BRAND_HAS_OUTLETS` |
+| GET/POST · PUT/DELETE | `/brands` · `/brands/{id}` | Perusahaan. `{code, name, logo_key, receipt_header, receipt_footer, is_active, discount: {percentages, amounts, allow_custom, cashier_max_percentage, cashier_max_amount}, price_includes_tax}` (ADR-030, default `false`, hanya transaksi baru); respons + `logo_url`. Kode unik per perusahaan → 409 `BRAND_CODE_TAKEN`; logo = key dari `/media/images` milik perusahaan (`INVALID_IMAGE_KEY`); ubah brand men-*touch* `outlets.version` brand itu; hapus brand dengan outlet aktif → 409 `BRAND_HAS_OUTLETS` |
 | GET/DELETE | `/outlets/{id}/devices`, `/devices/{id}` (revoke) | |
 | GET/POST/PUT/DELETE | `/categories`, `/products`, `/modifier-groups` | Tingkat brand (`X-Brand-Id`) |
 | PUT | `/outlets/{id}/products/{productId}` | harga & ketersediaan per outlet; produk harus brand outlet |
