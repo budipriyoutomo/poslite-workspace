@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePercent, BarChart3, Building2, CalendarCheck, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
+import { BadgePercent, Ban, BarChart3, Building2, CalendarCheck, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
@@ -15,6 +15,7 @@ import { cn } from "@/shared/ui/utils";
 const NAV = [
   { href: "/", label: "Dashboard", icon: BarChart3, needs: null, group: "Operasional" },
   { href: "/day-closing", label: "Tutup Hari", icon: CalendarCheck, needs: null, group: "Operasional" },
+  { href: "/bill-voids", label: "Batal Sebelum Bayar", icon: Ban, needs: null, group: "Operasional" },
   { href: "/menu", label: "Menu", icon: UtensilsCrossed, needs: "manageBrand", group: "Operasional" },
   { href: "/prices", label: "Harga Outlet", icon: Tags, needs: null, group: "Operasional" },
   { href: "/promotions", label: "Promo", icon: BadgePercent, needs: "manageBrand", group: "Operasional" },
