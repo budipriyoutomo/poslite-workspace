@@ -156,6 +156,8 @@ Kembali                22.037
    [QR: link struk digital]      <- opsional
 ```
 
+Penjualan aplikasi delivery (ADR-029): `GOFOOD #<nomor order>` dicetak tebal di tengah, di bawah header struk dan di bawah judul stasiun pada tiket dapur.
+
 Brand dengan harga termasuk pajak (ADR-030): TOTAL = subtotal − diskon, lalu baris `Termasuk service 5%` dan `Termasuk PB1 10%` di bawah TOTAL (nilainya di dalam total, tidak ditambahkan).
 
 ## Checklist Pengujian Printer

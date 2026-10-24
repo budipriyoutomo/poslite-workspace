@@ -54,7 +54,7 @@ export class PosDb extends Dexie {
 
 Perubahan skema = `this.version(n).stores(...).upgrade(tx => ...)` — jangan edit versi lama.
 
-Versi yang sudah ada: v2 `modifierOptions`; v3 `diningTables`, `promotions`, `openBills`; v4 `products.imageKey` (ADR-021); **v5** `refunds: 'id, orderId, shiftId, businessDate, createdAt, syncStatus'` (ADR-023 — baris & pembayaran refund disimpan di dalam dokumennya). `orders.voidedAt`/`voidReason` dan `syncState.refundCounter` tidak butuh index. Event outbox baru: `order.voided`, `order.refunded`; lalu `bill.item_voided` (ADR-028) — ditulis dalam transaksi yang sama dengan `openBills`, tanpa versi Dexie baru. Export darurat (ADR-024) membaca seluruh `outbox` tanpa menghapusnya.
+Versi yang sudah ada: v2 `modifierOptions`; v3 `diningTables`, `promotions`, `openBills`; v4 `products.imageKey` (ADR-021); **v5** `refunds: 'id, orderId, shiftId, businessDate, createdAt, syncStatus'` (ADR-023 — baris & pembayaran refund disimpan di dalam dokumennya). `orders.voidedAt`/`voidReason` dan `syncState.refundCounter` tidak butuh index. Event outbox baru: `order.voided`, `order.refunded`; lalu `bill.item_voided` (ADR-028) — ditulis dalam transaksi yang sama dengan `openBills`, tanpa versi Dexie baru. Export darurat (ADR-024) membaca seluruh `outbox` tanpa menghapusnya. **v6** `salesChannels: 'id, sortOrder'` (ADR-029 — harga price list tertanam per channel sebagai `prices: {productId: price}`).
 
 ## Outbox Pattern (Push)
 

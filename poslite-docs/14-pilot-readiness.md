@@ -60,7 +60,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 |---|---|---|---|
 | P0-1 ✅ | ADR-028 | `0023_bill_item_voids` (`bill_voids`, `bill_void_lines`, kolom void di `rpt_daily_sales`) | — (tidak perlu; event masuk `outbox`) |
 | P0-3 ✅ | ADR-030 | `0024_brand_price_includes_tax` (+ `orders.price_includes_tax`) | — (flag ikut data brand di `settings`) |
-| P0-2 | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
+| P0-2 ✅ | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
 | P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
 | P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v8**: `queueCounters: "businessDate"` |
 | P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v8**: `availabilityOverrides: "productId"` |
@@ -104,7 +104,7 @@ Urutan wajib: **P0-3 dulu, baru P0-2**, karena aturan pajak per channel (ADR-029
 | Kode | Non-kode (paralel) |
 |---|---|
 | P0-3 Harga inklusif (ADR-030, migrasi `0024`) ✅ | Kumpulkan struktur komisi & harga ojol restoran pilot |
-| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) | Draf SOP Kasir |
+| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) ✅ | Draf SOP Kasir |
 | Fixture matriks channel × inklusif × diskon (§5, P0-2) | |
 
 **Gerbang keluar**: fixture `pricing-cases.json` (termasuk matriks) hijau di web & API; e2e jual GoFood offline → sync → laporan channel benar.
@@ -209,7 +209,17 @@ Minggu 1 pendampingan intensif, minggu 2 lepas tangan. **Freeze fitur**: hanya p
 
 ---
 
-### P0-2 — Channel Penjualan (ADR-029)
+### P0-2 — Channel Penjualan (ADR-029) ✅
+
+**Status 2026-10-24: selesai.** Keputusan lengkap di [01 ADR-029](./01-system-architecture.md). Bedanya dengan rancangan di bawah:
+
+- Harga price list ikut di dalam data channel saat pull dan di Dexie v6 (`salesChannels.prices`), bukan tabel `channelPrices` terpisah.
+- Server **tidak** memvalidasi harga baris terhadap katalog (sama seperti sebelumnya); yang dicek tarif efektif channel (`RATES_OUTDATED`), channel tak dikenal (`CHANNEL_UNKNOWN`), dan nomor order aplikasi (`EXTERNAL_REF_MISSING`).
+- Pemilih channel di POS hanya untuk penjualan tanpa meja; bill meja selalu di channel Dine In (tidak di-reprice saat membuka meja).
+- Matriks fixture lengkap ada di `channel-pricing-cases.json` (64 kasus), bukan di `pricing-cases.json`.
+- Belum: sheet channel di export CSV/XLSX.
+- Setelah deploy, jalankan `make report-rebuild` agar laporan channel hari-hari lama terisi.
+
 
 **Masalah.** `order_type` hanya `take_away | dine_in` (`sales/domain/entities.py`, `sync/application/events.py`). Pesanan GoFood/GrabFood/ShopeeFood biasanya memakai harga yang lebih tinggi untuk menutup komisi, dibayar oleh aggregator (bukan tunai ke kasir), dan harus direkonsiliasi terpisah.
 
@@ -568,8 +578,8 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 
 **Tahap B — Harga & Channel**
 - [x] P0-3 Harga inklusif pajak (ADR-030, `0024`)
-- [ ] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
-- [ ] Fixture matriks channel × inklusif × diskon hijau di web & API
+- [x] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
+- [x] Fixture matriks channel × inklusif × diskon hijau di web & API
 
 **Tahap B2 — Mode Layanan & Shared Open Bill**
 - [ ] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)

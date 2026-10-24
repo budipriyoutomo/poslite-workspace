@@ -143,6 +143,11 @@ dining_tables    id, outlet_id, label (unik per outlet), area, seats, sort_order
 promotions       id, name, type (percent_off|buy_x_get_y), percentage, buy_qty, get_qty,
                  product_ids[], category_ids[], outlet_ids[], days_of_week[], start_time, end_time,
                  starts_on, ends_on, is_active, version, deleted_at
+sales_channels   id, brand_id, code (unik per brand, huruf besar), name, kind (dine_in|take_away|delivery),
+                 price_mode (base|markup_bps|price_list), markup_bps, markup_rounding_unit (≥ 1),
+                 default_payment_method_id, applies_service, applies_tax, requires_external_ref,
+                 is_active, sort_order, version, deleted_at                     -- ADR-029, migrasi 0025
+channel_prices   channel_id, product_id (PK), price      -- link: ubah → touch sales_channels.version
 payment_methods  id, type (cash|debit|qris|credit_card|voucher|other), name, logo_url,
                  requires_reference (bool), sort_order, is_active, version, …
 outlet_payment_method   outlet_id, payment_method_id                      -- ubah → touch payment_methods.version
@@ -161,6 +166,7 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  subtotal, discount_type, discount_value, discount_amount,
                  service_rate_bps, tax_rate_bps (snapshot tarif dari device),
                  price_includes_tax (snapshot mode harga, ADR-030),
+                 channel_id (ADR-029, nullable untuk data lama; diisi migrasi 0026), external_ref (no. order aplikasi),
                  service_charge, tax, total, paid_amount, change_amount,
                  status (paid|voided), flags (text[], kosong = bersih), notes,
                  created_at (waktu device), synced_at (waktu server)
