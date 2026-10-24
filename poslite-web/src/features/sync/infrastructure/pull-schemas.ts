@@ -50,6 +50,8 @@ export const changeSchema = z.union([
       price: rupiah,
       image_key: z.string().nullable(),
       is_available: z.boolean(),
+      // P1-2: the outlet's sold-out mark lifts by itself then; optional for older servers.
+      unavailable_until: z.string().nullable().optional(),
       modifier_group_ids: z.array(ulid),
     }),
   ),

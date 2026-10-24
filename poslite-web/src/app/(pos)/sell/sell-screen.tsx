@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useSession } from "@/features/auth";
 import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
-import { LineEditorDialog, type LineChoice, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
+import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
 import { ChannelPicker, OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
 import type { ProductRow } from "@/shared/db";
 import { useMediaQuery } from "@/shared/hooks";
@@ -29,7 +29,20 @@ function appliedLabel(line: { discount: { type: string; value: number } | null; 
 /** Sell screen: catalog plus the order — a side panel from tablet width, a bottom bar and drawer on phones. */
 export function SellScreen() {
   const menu = useCatalog();
-  const isWaiter = useSession((s) => s.user?.role) === "waiter";
+  const user = useSession((s) => s.user);
+  const isWaiter = user?.role === "waiter";
+  // P1-2: a cashier or manager marks an item sold out with a long press; a waiter may not.
+  const [managing, setManaging] = useState<ProductRow | null>(null);
+  const chooseAvailability = async (choice: { isAvailable: boolean; untilEndOfDay: boolean }) => {
+    if (!managing || !user) return;
+    try {
+      await markAvailability({ productId: managing.id, ...choice, userId: user.id });
+      toast.success(choice.isAvailable ? `${managing.name} tersedia lagi` : `${managing.name} ditandai habis`);
+    } catch {
+      toast.error("Gagal mengubah ketersediaan");
+    }
+    setManaging(null);
+  };
   const cart = useCart();
   const sale = useSaleChannel();
   const { rates } = sale; // the sale channel's rates (ADR-029), as placeOrder snapshots them
@@ -94,7 +107,10 @@ export function SellScreen() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} />
+      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} {...(user && !isWaiter && { onManage: setManaging })} />
+      {managing && (
+        <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
+      )}
       {isWide ? (
         <aside className="flex w-80 shrink-0 flex-col border-l bg-card p-4 lg:w-96">
           <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>

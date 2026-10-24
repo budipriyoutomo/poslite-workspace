@@ -66,6 +66,7 @@
         "price": 5000,
         "image_key": "01K5ZT00000000000000000001/products/01K5ZP00000000000000000001.jpg",
         "is_available": true,
+        "unavailable_until": null,
         "modifier_group_ids": [
           "01K5ZG00000000000000000001"
         ]

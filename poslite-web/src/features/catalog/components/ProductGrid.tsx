@@ -23,9 +23,11 @@ interface Props {
   /** Units of each product already in the order, by product id. */
   quantities?: Record<string, number>;
   onSelect: (product: ProductRow) => void;
+  /** Long press: mark the item sold out or available again (P1-2); absent = not allowed. */
+  onManage?: (product: ProductRow) => void;
 }
 
-export function ProductGrid({ catalog, quantities = {}, onSelect }: Props) {
+export function ProductGrid({ catalog, quantities = {}, onSelect, onManage }: Props) {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
@@ -68,7 +70,15 @@ export function ProductGrid({ catalog, quantities = {}, onSelect }: Props) {
       ) : (
         <ul className={cn(gridClass, "overflow-y-auto")}>
           {products.map((p) => (
-            <li key={p.id}>
+            // A long press opens the context menu on touch screens; the card itself may be disabled.
+            <li
+              key={p.id}
+              onContextMenu={(e) => {
+                if (!onManage) return;
+                e.preventDefault();
+                onManage(p);
+              }}
+            >
               <ProductCard catalog={catalog} product={p} quantity={quantities[p.id] ?? 0} onSelect={onSelect} />
             </li>
           ))}

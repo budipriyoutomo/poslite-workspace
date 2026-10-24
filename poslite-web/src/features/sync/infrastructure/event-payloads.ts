@@ -80,6 +80,13 @@ export const orderPlaced = z.strictObject({
   closes_bill_id: ulid.optional(),
 });
 
+export const productAvailabilityChanged = z.strictObject({
+  product_id: ulid,
+  is_available: z.boolean(),
+  until: z.string().datetime().nullable(),
+  changed_by: ulid,
+});
+
 export const orderVoided = z.strictObject({
   reason: z.string().min(1).max(200),
   voided_by: ulid,
@@ -145,6 +152,7 @@ export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "order.voided": orderVoided,
   "order.refunded": orderRefunded,
   "bill.item_voided": billItemVoided,
+  "product.availability_changed": productAvailabilityChanged,
 };
 
 export type OrderPlacedPayload = z.infer<typeof orderPlaced>;

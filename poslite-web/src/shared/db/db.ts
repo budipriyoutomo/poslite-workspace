@@ -1,6 +1,7 @@
 import Dexie, { type DexieOptions, type Table } from "dexie";
 
 import type {
+  AvailabilityOverrideRow,
   CashMovementRow,
   CategoryRow,
   DiningTableRow,
@@ -43,6 +44,8 @@ export class PosDb extends Dexie {
   payments!: Table<PaymentRow, string>;
   refunds!: Table<RefundRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
+  /** Sold-out marks made here, until the server has them (P1-2). */
+  availabilityOverrides!: Table<AvailabilityOverrideRow, string>;
   /** Unpaid dine-in bills: this device's own (ADR-015), or copies of the outlet's shared bills (ADR-031). */
   openBills!: Table<OpenBillRow, string>;
 
@@ -101,6 +104,8 @@ export class PosDb extends Dexie {
             b.origin = "local";
           }),
       );
+    // v8 (P1-2): sold-out marks made on this device, shown at once even offline.
+    this.version(8).stores({ availabilityOverrides: "productId" });
   }
 }
 

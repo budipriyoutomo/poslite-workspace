@@ -66,6 +66,8 @@ export interface ProductRow {
   price: number;
   imageKey: string | null; // object key; URL = mediaBaseUrl + key (ADR-021)
   isAvailable: boolean;
+  /** The outlet's sold-out mark lifts by itself then (P1-2); absent = no end time or not sold out. */
+  unavailableUntil?: string | null;
   modifierGroupIds: string[];
 }
 
@@ -212,7 +214,15 @@ export interface CashMovementRow {
 
 // ── Infrastructure ──────────────────────────────────────────────────────────────────────────
 
-export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved" | "bill.item_voided";
+export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved" | "bill.item_voided" | "product.availability_changed";
+
+/** A sold-out mark made on this device (P1-2): shown at once, offline too, until the server has it. */
+export interface AvailabilityOverrideRow {
+  productId: string;
+  isAvailable: boolean;
+  until: string | null; // lifts by itself then; null = until switched back on
+  changedAt: string;
+}
 
 export interface OutboxRow {
   seq?: number; // local auto-increment → send order

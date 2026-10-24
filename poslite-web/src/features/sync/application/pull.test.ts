@@ -85,6 +85,22 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.serviceMode).toBe("counter");
   });
 
+  it("keeps when an outlet's sold-out mark ends, and drops this device's mark once the server has it (P1-2)", async () => {
+    const product = MENU.find((c) => c.entity === "product")!;
+    await db.availabilityOverrides.bulkPut([
+      { productId: product.id, isAvailable: false, until: null, changedAt: "2026-09-25T05:00:00.000Z" },
+      { productId: ULID("P", 9), isAvailable: false, until: null, changedAt: "2026-09-25T05:00:00.000Z" },
+    ]);
+    await db.outbox.add({ id: "E1", type: "product.availability_changed", aggregateId: ULID("P", 9), occurredAt: "2026-09-25T05:00:00.000Z", payload: {}, status: "pending", attempts: 0, createdAt: "2026-09-25T05:00:00.000Z" });
+    const pendingProduct = { ...product, id: ULID("P", 9) };
+    const soldOut = { ...product, data: { ...product.data, is_available: false, unavailable_until: "2026-09-25T21:00:00Z" } };
+
+    await pullAll(deps(vi.fn(async () => page([...MENU.filter((c) => c !== product), soldOut, pendingProduct], 9))));
+
+    expect((await db.products.get(product.id))?.unavailableUntil).toBe("2026-09-25T21:00:00Z");
+    expect(await db.availabilityOverrides.toCollection().primaryKeys()).toEqual([ULID("P", 9)]);
+  });
+
   it("keeps a waiter (ADR-031)", async () => {
     const waiter = {
       entity: "user",
