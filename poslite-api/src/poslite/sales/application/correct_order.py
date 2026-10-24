@@ -1,6 +1,8 @@
-"""order.voided / order.refunded from a device (ADR-023). Never commit (ADR-010)."""
+"""order.voided / order.refunded (ADR-023) and bill.item_voided (ADR-028) from a device.
+Never commit (ADR-010)."""
 
 from poslite.sales.application.place_order import SalesUnitOfWork
+from poslite.sales.domain.bill_voids import BillVoid, VoidBillItemsData
 from poslite.sales.domain.corrections import (
     OrderForCorrection,
     OrderVoid,
@@ -112,3 +114,45 @@ class RefundOrderHandler:
         for event in refund.events:
             uow.record(event)
         return EventOutcome.of(refund.flags)
+
+
+class VoidBillItemsHandler:
+    """Same approval as a void of a paid order (`order.void`); the bill was never paid, so the
+    record is only checked for who did it, never for amounts (ADR-028)."""
+
+    def __init__(
+        self,
+        outlets: OutletPort,
+        cashiers: CashierPort,
+        approvers: ApproverPort,
+        shifts: ShiftStatusPort,
+    ) -> None:
+        self._outlets, self._cashiers = outlets, cashiers
+        self._approvers, self._shifts = approvers, shifts
+
+    async def __call__(
+        self, cmd: VoidBillItemsData, ctx: DeviceContext, uow: SalesUnitOfWork
+    ) -> EventOutcome:
+        await _check_people(
+            self._cashiers,
+            self._approvers,
+            ctx,
+            actor=cmd.cashier_id,
+            approved_by=cmd.approved_by,
+            permission="order.void",
+        )
+        if await self._shifts.status(cmd.shift_id) is None:
+            raise DomainError("SHIFT_NOT_FOUND", "Void shift not found", kind="not_found")
+        outlet = await self._outlets.profile(ctx.outlet_id)
+        void = BillVoid.record(
+            cmd,
+            outlet_id=ctx.outlet_id,
+            device_id=ctx.device_id,
+            business_date=business_date(
+                cmd.occurred_at, outlet.timezone, outlet.business_day_cutoff
+            ),
+        )
+        await uow.orders.add_bill_void(void)
+        for event in void.events:
+            uow.record(event)
+        return EventOutcome.of(())

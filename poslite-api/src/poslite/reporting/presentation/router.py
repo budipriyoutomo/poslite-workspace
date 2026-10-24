@@ -8,7 +8,7 @@ from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.reporting.infrastructure.day_closings import close_day, day_status, list_day_closings
 from poslite.reporting.infrastructure.export import to_csv, to_xlsx
-from poslite.reporting.infrastructure.queries import sales_summary
+from poslite.reporting.infrastructure.queries import bill_void_report, sales_summary
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
@@ -30,6 +30,9 @@ class Totals(BaseModel):
     void_count: int
     refund_amount: int  # paid out that day (ADR-023); `net` is sales, not reduced by refunds
     refund_count: int
+    # Bill items cancelled after the kitchen had them (ADR-028); never part of `net`.
+    pre_payment_void_count: int
+    pre_payment_void_amount: int
 
 
 class DaySales(Totals):
@@ -126,6 +129,66 @@ async def get_sales_summary(
         )
         result = await sales_summary(uow, outlets, start, end)
     return ok(SalesSummaryOut.model_validate(result, from_attributes=True))
+
+
+class BillVoidLineOut(BaseModel):
+    product_id: str
+    product_name: str
+    modifiers: list[str]
+    unit_price: int
+    quantity: int
+    amount: int
+
+
+class BillVoidOut(BaseModel):
+    id: str
+    outlet_id: str
+    device_id: str
+    shift_id: str
+    business_date: date
+    bill_id: str
+    scope: Literal["line", "bill_cancelled"]
+    table_label: str
+    cashier_id: str
+    cashier_name: str
+    approved_by: str | None
+    approver_name: str | None
+    reason: str
+    amount: int
+    voided_at: datetime
+    lines: list[BillVoidLineOut]
+
+
+class BillVoidTotalsOut(BaseModel):
+    count: int
+    amount: int
+
+
+class BillVoidReportOut(BaseModel):
+    voids: list[BillVoidOut]
+    totals: BillVoidTotalsOut
+
+
+@router.get("/reports/bill-voids")
+async def get_bill_voids(
+    request: Request,
+    principal: Annotated[Principal, Depends(require_ability("backoffice:read"))],
+    start: Annotated[date, Query(alias="from")],
+    end: Annotated[date, Query(alias="to")],
+    scope: identity.Access,
+    outlet_id: Annotated[Ulid | None, Query()] = None,
+    brand_id: Annotated[Ulid | None, Query()] = None,
+    brand: identity.BrandHeader = None,
+) -> ApiResponse[BillVoidReportOut]:
+    """Items cancelled from open bills after the kitchen had them (ADR-028), newest first."""
+    if end < start:
+        raise DomainError("INVALID_DATE_RANGE", "`to` must not be before `from`")
+    async with open_uow(request, principal.tenant_id) as uow:
+        outlets, _ = await _report_scope(
+            uow, scope, outlet_id=outlet_id, brand_id=brand_id, active_brand=brand
+        )
+        result = await bill_void_report(uow, outlets, start, end)
+    return ok(BillVoidReportOut.model_validate(result))
 
 
 EXPORTS = {

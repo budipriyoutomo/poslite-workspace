@@ -1,0 +1,60 @@
+[
+  {
+    "id": "01K5ZE00000000000000000020",
+    "type": "bill.item_voided",
+    "aggregate_id": "01K5ZV00000000000000000001",
+    "occurred_at": "2026-09-25T05:10:00.000Z",
+    "payload": {
+      "bill_id": "01K5ZB00000000000000000001",
+      "scope": "line",
+      "table_label": "A3",
+      "shift_id": "01K5ZS00000000000000000001",
+      "cashier_id": "01K5ZA00000000000000000001",
+      "approved_by": "01K5ZA00000000000000000002",
+      "reason": "Pelanggan batal",
+      "lines": [
+        {
+          "product_id": "01K5ZP00000000000000000001",
+          "product_name": "Nasi Gudeg",
+          "modifiers": ["Tambah Ayam"],
+          "unit_price": 35000,
+          "quantity": 1,
+          "amount": 35000
+        }
+      ]
+    }
+  },
+  {
+    "id": "01K5ZE00000000000000000021",
+    "type": "bill.item_voided",
+    "aggregate_id": "01K5ZV00000000000000000002",
+    "occurred_at": "2026-09-25T05:20:00.000Z",
+    "payload": {
+      "bill_id": "01K5ZB00000000000000000002",
+      "scope": "bill_cancelled",
+      "table_label": "B1",
+      "shift_id": "01K5ZS00000000000000000001",
+      "cashier_id": "01K5ZA00000000000000000001",
+      "approved_by": "01K5ZA00000000000000000002",
+      "reason": "Salah input",
+      "lines": [
+        {
+          "product_id": "01K5ZP00000000000000000001",
+          "product_name": "Nasi Gudeg",
+          "modifiers": [],
+          "unit_price": 25000,
+          "quantity": 2,
+          "amount": 50000
+        },
+        {
+          "product_id": "01K5ZP00000000000000000002",
+          "product_name": "Es Teh",
+          "modifiers": [],
+          "unit_price": 8000,
+          "quantity": 1,
+          "amount": 8000
+        }
+      ]
+    }
+  }
+]

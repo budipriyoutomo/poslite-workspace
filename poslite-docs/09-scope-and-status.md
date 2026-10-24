@@ -29,7 +29,7 @@ POSLite adalah **SaaS Point of Sales untuk restoran**, multi **perusahaan → br
 8. **Back-office**: brand, menu (produk, kategori, pilihan/modifier, foto), harga & ketersediaan per outlet, user & penugasan & PIN, metode bayar per outlet, outlet & tarif, meja, perangkat, promo, laporan + export, integrasi webhook, langganan, import data darurat.
 9. **Operasional SaaS**: signup perusahaan mandiri, konsol operator (list / suspend / aktifkan tenant), billing langganan per outlet dengan trial, grace, dan suspend otomatis (ADR-018).
 10. **Pembayaran**: tunai, metode manual (debit/QRIS statis), dan QRIS dinamis lewat port `PaymentGateway` saat online (ADR-017, ADR-019).
-11. **Integrasi keluar**: webhook bertanda tangan HMAC dari outbox (`order.placed`, `shift.closed`, dan di Fase 6 `order.voided`, `order.refunded`) untuk inventory/ERP (ADR-020).
+11. **Integrasi keluar**: webhook bertanda tangan HMAC dari outbox (`order.placed`, `shift.closed`, dan di Fase 6 `order.voided`, `order.refunded`, lalu `bill.item_voided` — ADR-028) untuk inventory/ERP (ADR-020).
 12. **Keandalan data**: export darurat dari device dan import di back-office lewat jalur push yang sama (ADR-024).
 13. **Cetak struk**: abstraksi `PrinterDriver` dan ESC/POS di browser (ADR-007). Saat ini baru driver **System print**; driver lain di Fase 7.
 
@@ -121,7 +121,7 @@ Bounded context di `src/poslite/`: `tenancy`, `identity`, `organization`, `catal
 | Pembayaran & billing | `payments/qris`, `gateway/webhook`, `billing/subscription` |
 | Integrasi | `webhooks`, `webhooks/{id}/deliveries`, `webhook-deliveries/{id}/retry` |
 
-Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 22 migrasi Alembic.
+Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 23 migrasi Alembic.
 
 ### Kualitas & tooling
 
@@ -144,7 +144,7 @@ Driver Web Serial, Web Bluetooth (BLE), WebUSB, Print Bridge LAN + Epson ePOS, s
 |---|---|
 | Spike / uji semua driver dengan printer asli ([checklist](./04-printing.md#checklist-pengujian-printer)) | Printer fisik |
 | Driver Star WebPRNT | Printer Star untuk diuji |
-| Tiket batal item & cetak ulang tiket dapur/bar | Belum dikerjakan — tiket batal masuk [14](./14-pilot-readiness.md) P0-1 (ADR-028) |
+| Cetak ulang tiket dapur/bar | Belum dikerjakan (tiket BATAL sudah ada — ADR-028, [14](./14-pilot-readiness.md) P0-1) |
 | Uji manual di tablet Android & PC Windows (install PWA, mode pesawat, reboot, cetak) | Perangkat uji |
 
 ### Lainnya

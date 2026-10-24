@@ -1066,6 +1066,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/bill-voids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bill Voids
+         * @description Items cancelled from open bills after the kitchen had them (ADR-028), newest first.
+         */
+        get: operations["get_bill_voids_api_v1_reports_bill_voids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/sales-summary": {
         parameters: {
             query?: never;
@@ -1481,6 +1501,22 @@ export interface components {
         /** ApiResponse[AuthResult] */
         ApiResponse_AuthResult_: {
             data: components["schemas"]["AuthResult"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[BillVoidReportOut] */
+        ApiResponse_BillVoidReportOut_: {
+            data: components["schemas"]["BillVoidReportOut"];
             /**
              * Message
              * @default OK
@@ -2497,6 +2533,78 @@ export interface components {
             token: string;
             user: components["schemas"]["poslite__identity__presentation__schemas__UserOut"];
         };
+        /** BillVoidLineOut */
+        BillVoidLineOut: {
+            /** Amount */
+            amount: number;
+            /** Modifiers */
+            modifiers: string[];
+            /** Product Id */
+            product_id: string;
+            /** Product Name */
+            product_name: string;
+            /** Quantity */
+            quantity: number;
+            /** Unit Price */
+            unit_price: number;
+        };
+        /** BillVoidOut */
+        BillVoidOut: {
+            /** Amount */
+            amount: number;
+            /** Approved By */
+            approved_by: string | null;
+            /** Approver Name */
+            approver_name: string | null;
+            /** Bill Id */
+            bill_id: string;
+            /**
+             * Business Date
+             * Format: date
+             */
+            business_date: string;
+            /** Cashier Id */
+            cashier_id: string;
+            /** Cashier Name */
+            cashier_name: string;
+            /** Device Id */
+            device_id: string;
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["BillVoidLineOut"][];
+            /** Outlet Id */
+            outlet_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "line" | "bill_cancelled";
+            /** Shift Id */
+            shift_id: string;
+            /** Table Label */
+            table_label: string;
+            /**
+             * Voided At
+             * Format: date-time
+             */
+            voided_at: string;
+        };
+        /** BillVoidReportOut */
+        BillVoidReportOut: {
+            totals: components["schemas"]["BillVoidTotalsOut"];
+            /** Voids */
+            voids: components["schemas"]["BillVoidOut"][];
+        };
+        /** BillVoidTotalsOut */
+        BillVoidTotalsOut: {
+            /** Amount */
+            amount: number;
+            /** Count */
+            count: number;
+        };
         /** BrandIn */
         BrandIn: {
             /** Code */
@@ -2770,6 +2878,10 @@ export interface components {
             net: number;
             /** Order Count */
             order_count: number;
+            /** Pre Payment Void Amount */
+            pre_payment_void_amount: number;
+            /** Pre Payment Void Count */
+            pre_payment_void_count: number;
             /** Refund Amount */
             refund_amount: number;
             /** Refund Count */
@@ -2931,7 +3043,7 @@ export interface components {
              */
             brand_ids: string[];
             /** Event Types */
-            event_types: ("order.placed" | "shift.closed" | "order.voided" | "order.refunded")[];
+            event_types: ("order.placed" | "shift.closed" | "order.voided" | "order.refunded" | "bill.item_voided")[];
             /**
              * Url
              * Format: uri
@@ -4233,6 +4345,10 @@ export interface components {
             net: number;
             /** Order Count */
             order_count: number;
+            /** Pre Payment Void Amount */
+            pre_payment_void_amount: number;
+            /** Pre Payment Void Count */
+            pre_payment_void_count: number;
             /** Refund Amount */
             refund_amount: number;
             /** Refund Count */
@@ -6670,6 +6786,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_RefundDetailOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bill_voids_api_v1_reports_bill_voids_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                outlet_id?: string | null;
+                brand_id?: string | null;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_BillVoidReportOut_"];
                 };
             };
             /** @description Validation Error */

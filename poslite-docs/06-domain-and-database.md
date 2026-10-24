@@ -176,9 +176,16 @@ refunds          id (ulid dari device), outlet_id, brand_id (trigger dari outlet
                  refunded_by, approved_by, total, flags[], created_at, synced_at
 refund_lines     id, refund_id, order_line_id, product_id, product_name (snapshot), quantity, amount
 refund_payments  id, refund_id, payment_method_id, method_type, method_name, amount, reference
+bill_voids       id (ulid dari device), outlet_id, brand_id (trigger dari outlet), device_id, shift_id,
+                 business_date (hari batal), bill_id (id bill di device, tanpa FK — ADR-015),
+                 scope (line|bill_cancelled), table_label, cashier_id, approved_by, reason, amount,
+                 voided_at, synced_at                                                  -- ADR-028
+                 INDEX (tenant_id, outlet_id, business_date)
+bill_void_lines  id, void_id, product_id, product_name (snapshot), modifiers[] (nama), unit_price
+                 (dengan pilihan), quantity, amount, sort_order
 ```
 
-Semua tabel transaksi (`shifts`, `orders`, `refunds`, `rpt_*`) punya `brand_id` yang diisi trigger
+Semua tabel transaksi (`shifts`, `orders`, `refunds`, `bill_voids`, `rpt_*`) punya `brand_id` yang diisi trigger
 `fill_brand_from_outlet()` dari outlet — server, bukan payload, yang menentukan brand (ADR-022).
 Kategori, produk, grup pilihan, dan promo punya `brand_id` dari back-office (`X-Brand-Id`); outlet
 punya `brand_id` tetap (tidak bisa pindah brand). Metode bayar tetap tingkat perusahaan; outlet yang

@@ -13,6 +13,8 @@ export interface KitchenTicketInput {
   timezone: string;
   /** Items added to a bill whose earlier items were already sent. */
   isAddition: boolean;
+  /** Items taken off a bill after they were sent (ADR-028): the cook stops making them. */
+  cancel?: { reason: string; approverName: string | null };
   lines: { name: string; quantity: number; modifiers: string[]; note: string }[];
 }
 
@@ -21,7 +23,8 @@ const TITLES: Record<KitchenStation, string> = { kitchen: "DAPUR", bar: "BAR" };
 /** Kitchen/bar ticket (04-printing.md `kitchen-ticket`): what to make, for which table — no prices. */
 export function buildKitchenTicket(input: KitchenTicketInput): ReceiptDocument {
   const doc: ReceiptDocument = [{ kind: "text", text: `** ${TITLES[input.station]} **`, align: "center", bold: true }];
-  if (input.isAddition) doc.push({ kind: "text", text: "+ TAMBAHAN +", align: "center" });
+  if (input.cancel) doc.push({ kind: "text", text: "***  BATAL  ***", align: "center", bold: true });
+  else if (input.isAddition) doc.push({ kind: "text", text: "+ TAMBAHAN +", align: "center" });
   doc.push(
     { kind: "text", text: `Meja  : ${input.tableLabel ?? "BAWA PULANG"}` },
     { kind: "text", text: `No    : ${input.reference}` },
@@ -34,5 +37,9 @@ export function buildKitchenTicket(input: KitchenTicketInput): ReceiptDocument {
     if (line.note) doc.push({ kind: "text", text: `   * ${line.note}` });
   }
   doc.push({ kind: "rule" });
+  if (input.cancel) {
+    doc.push({ kind: "text", text: `Alasan  : ${input.cancel.reason}` });
+    if (input.cancel.approverName) doc.push({ kind: "text", text: `Disetujui: ${input.cancel.approverName}` });
+  }
   return doc;
 }

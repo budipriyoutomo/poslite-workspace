@@ -19,10 +19,10 @@ export interface CorrectionDeps {
 const defaultDeps = (): CorrectionDeps => ({ db: getDb(), now: () => new Date(), newId });
 
 /**
- * A cashier needs a manager's PIN for a void or refund; a manager or owner acts alone
+ * A cashier needs a manager's PIN for a void, refund or bill void (ADR-028); a manager or owner acts alone
  * (approvedBy null). The approver must be a manager or owner known to this device.
  */
-async function checkApproval(db: PosDb, actorId: string, approvedBy: string | null): Promise<void> {
+export async function checkApproval(db: PosDb, actorId: string, approvedBy: string | null): Promise<void> {
   const actor = await db.users.get(actorId);
   if (approvedBy === null) {
     if (actor && actor.role !== "cashier") return;

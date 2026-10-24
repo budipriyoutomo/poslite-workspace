@@ -35,6 +35,17 @@ describe("OpenBillList", () => {
     expect(onCancel).toHaveBeenCalledWith("B1");
   });
 
+  it("hands a bill the kitchen already had straight to the void approval (ADR-028)", async () => {
+    const onCancel = vi.fn();
+    const sent = [{ ...bills[0]!, lines: [{ ...line, sentQuantity: 1 }] }];
+    render(<OpenBillList bills={sent} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={onCancel} onMove={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Batalkan A1" }));
+
+    expect(onCancel).toHaveBeenCalledWith("B1");
+    expect(screen.queryByRole("button", { name: "Batalkan bill" })).not.toBeInTheDocument();
+  });
+
   it("asks to move a bill to another table", async () => {
     const onMove = vi.fn();
     render(<OpenBillList bills={bills} timezone="Asia/Jakarta" onResume={vi.fn()} onCancel={vi.fn()} onMove={onMove} />);

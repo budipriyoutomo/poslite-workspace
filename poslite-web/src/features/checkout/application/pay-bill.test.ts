@@ -85,3 +85,22 @@ describe("payBill", () => {
     expect(await db.openBills.get(BILL.id)).toMatchObject({ tableLabel: "A1", openedAt: BILL.openedAt, lines: [gudeg] });
   });
 });
+
+describe("payBill with items the kitchen already had (ADR-028)", () => {
+  beforeEach(async () => {
+    await db.openBills.put({ ...BILL, lines: [{ ...gudeg, sentQuantity: 2 }, esTeh], discount: null, updatedAt: BILL.openedAt });
+  });
+
+  it("refuses to pay a bill that silently drops a sent unit, leaving no order", async () => {
+    const attempt = payBill(input({ paying: [{ ...gudeg, quantity: 1, sentQuantity: 1 }, esTeh] }), testDeps(db));
+
+    await expect(attempt).rejects.toMatchObject({ code: "VOID_APPROVAL_REQUIRED" });
+    expect(await db.orders.count()).toBe(0);
+  });
+
+  it("pays a split bill whose sent units are all on the paid or remaining part", async () => {
+    await payBill(input({ paying: [{ ...gudeg, quantity: 1, sentQuantity: 1 }], remaining: [{ ...gudeg, quantity: 1, sentQuantity: 1 }, esTeh] }), testDeps(db));
+
+    expect(await db.orders.count()).toBe(1);
+  });
+});

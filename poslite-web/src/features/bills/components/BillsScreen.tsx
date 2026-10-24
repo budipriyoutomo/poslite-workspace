@@ -4,17 +4,18 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { useCart } from "@/features/cart";
+import { useCart, voidedUnits } from "@/features/cart";
 import type { OpenBillRow } from "@/shared/db";
 import { useOutletSetting } from "@/shared/hooks";
 
 import { AppError } from "@/shared/errors";
 
-import { cancelBill, moveBill } from "../application/bills";
+import { cancelBill, moveBill, type VoidApproval } from "../application/bills";
 import { useDiningTables, useOpenBills } from "../application/use-bills";
 import { copy } from "../copy";
 import { OpenBillList } from "./OpenBillList";
 import { TablePicker } from "./TablePicker";
+import { useBillVoid } from "./use-bill-void";
 
 export function BillsScreen() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export function BillsScreen() {
   const cart = useCart();
   const tables = useDiningTables();
   const [moving, setMoving] = useState<OpenBillRow | null>(null);
+  const billVoid = useBillVoid();
 
   const resume = (bill: OpenBillRow) => {
     // The cart holds another sale or bill: never overwrite it silently.
@@ -32,8 +34,17 @@ export function BillsScreen() {
     router.push("/sell");
   };
   const cancel = async (id: string) => {
-    await cancelBill(id);
-    if (cart.bill?.id === id) cart.clear();
+    const bill = bills?.find((b) => b.id === id);
+    if (!bill) return;
+    const drop = async (approval?: VoidApproval) => {
+      const result = await cancelBill({ billId: id, ...(approval && { void: approval }) });
+      if (cart.bill?.id === id) cart.clear();
+      return result;
+    };
+    // What the kitchen already had is cancelled only with a manager's approval (ADR-028).
+    const voided = voidedUnits(bill.lines, []);
+    if (voided.length > 0) return billVoid.ask({ billId: id, tableLabel: bill.tableLabel, voided, run: drop });
+    await drop();
   };
 
   const move = async (bill: OpenBillRow, table: { tableId: string | null; tableLabel: string }) => {
@@ -66,6 +77,7 @@ export function BillsScreen() {
           onClose={() => setMoving(null)}
         />
       )}
+      {billVoid.dialog}
     </div>
   );
 }

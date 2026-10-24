@@ -1,4 +1,4 @@
-import { kitchenPending, markSent } from "@/features/cart";
+import { kitchenPending, markSent, type VoidedLine } from "@/features/cart";
 import { type KitchenOrder, printKitchenTickets } from "@/features/printing";
 import { getDb, type PosDb } from "@/shared/db";
 
@@ -32,6 +32,27 @@ export async function sendBillToKitchen(input: { billId: string; cashierName: st
   await db.transaction("rw", db.openBills, async () => {
     const current = await db.openBills.get(bill.id); // may have been paid or cancelled meanwhile
     if (current) await db.openBills.update(bill.id, { lines: markSent(current.lines, sent) });
+  });
+  return { hasFailed };
+}
+
+/**
+ * Tells the kitchen/bar to stop making items taken off a bill after they were sent (ADR-028).
+ * Never throws: the void is already recorded; a failed ticket means telling the cook in person.
+ */
+export async function sendVoidToKitchen(
+  input: { bill: { id: string; tableLabel: string }; voided: VoidedLine[]; cashierName: string; reason: string; approverName: string | null },
+  deps: KitchenDeps = defaultDeps(),
+): Promise<{ hasFailed: boolean }> {
+  if (input.voided.length === 0) return { hasFailed: false };
+  const { hasFailed } = await deps.printKitchen({
+    refId: input.bill.id,
+    reference: `Bill ${input.bill.tableLabel}`,
+    tableLabel: input.bill.tableLabel,
+    cashierName: input.cashierName,
+    isAddition: false,
+    cancel: { reason: input.reason, approverName: input.approverName },
+    lines: input.voided.map((v) => ({ key: v.key, productId: v.productId, name: v.name, quantity: v.quantity, modifiers: v.modifiers, note: "" })),
   });
   return { hasFailed };
 }

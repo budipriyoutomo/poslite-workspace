@@ -1,10 +1,13 @@
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from poslite.sales.domain.bill_voids import BillVoid
 from poslite.sales.domain.corrections import OrderForCorrection, OrderVoid, Refund, SoldLine
 from poslite.sales.domain.entities import Order
 from poslite.sales.domain.services import PriceCalculator
 from poslite.sales.infrastructure.models import (
+    BillVoidLineModel,
+    BillVoidModel,
     OrderLineModel,
     OrderLineModifierModel,
     OrderModel,
@@ -215,5 +218,42 @@ class SqlAlchemyOrderRepository:
                 reference=p.reference,
             )
             for p in refund.payments
+        )
+        await flush_or_conflict(self._session)
+
+    async def add_bill_void(self, void: BillVoid) -> None:
+        tid = self._tenant_id
+        self._session.add(
+            BillVoidModel(
+                id=void.id,
+                tenant_id=tid,
+                outlet_id=void.outlet_id,
+                device_id=void.device_id,
+                shift_id=void.shift_id,
+                business_date=void.business_date,
+                bill_id=void.bill_id,
+                scope=void.scope,
+                table_label=void.table_label,
+                cashier_id=void.cashier_id,
+                approved_by=void.approved_by,
+                reason=void.reason,
+                amount=void.amount,
+                voided_at=void.voided_at,
+            )
+        )
+        await flush_or_conflict(self._session)  # parent first: lines reference it
+        self._session.add_all(
+            BillVoidLineModel(
+                tenant_id=tid,
+                void_id=void.id,
+                product_id=line.product_id,
+                product_name=line.product_name,
+                modifiers=list(line.modifiers),
+                unit_price=line.unit_price,
+                quantity=line.quantity,
+                amount=line.amount,
+                sort_order=i,
+            )
+            for i, line in enumerate(void.lines)
         )
         await flush_or_conflict(self._session)

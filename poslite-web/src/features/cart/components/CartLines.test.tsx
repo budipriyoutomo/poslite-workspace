@@ -26,6 +26,12 @@ describe("CartLines", () => {
     expect(within(line).getByText("Rp 70.000")).toBeInTheDocument();
   });
 
+  it("marks how many units of a bill line the kitchen already has (ADR-028)", () => {
+    useCart.getState().loadBill({ id: "B1", tableId: null, tableLabel: "A1", openedBy: "U1", openedAt: "2026-09-25T02:00:00.000Z" }, [{ ...gudeg, key: "g", quantity: 3, sentQuantity: 2 }], null);
+    render(<CartLines onEdit={() => undefined} />);
+    expect(screen.getByRole("listitem")).toHaveTextContent("2 sudah ke dapur");
+  });
+
   it("changes the quantity and removes the line at zero", async () => {
     useCart.getState().add(gudeg);
     render(<CartLines onEdit={() => undefined} />);

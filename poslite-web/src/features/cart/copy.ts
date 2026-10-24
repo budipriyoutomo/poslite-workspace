@@ -7,6 +7,7 @@ export const copy = {
   decrease: (name: string) => `Kurangi jumlah ${name}`,
   quantity: (name: string) => `Jumlah ${name}`,
   edit: (name: string) => `Ubah ${name}`,
+  sent: (n: number) => `${n} sudah ke dapur`,
   clear: "Kosongkan",
   lineDiscount: (name: string) => `Diskon item ${name}`,
   removeLineDiscount: (name: string) => `Hapus diskon ${name}`,

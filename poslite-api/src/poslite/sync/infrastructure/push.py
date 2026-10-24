@@ -3,6 +3,7 @@ from poslite.sales.api import (
     PlaceOrderHandler,
     RefundOrderHandler,
     SqlAlchemyOrderRepository,
+    VoidBillItemsHandler,
     VoidOrderHandler,
 )
 from poslite.shared.application.sync import DeviceContext
@@ -60,6 +61,7 @@ async def push_events(
             move_cash=MoveCashHandler(cashiers),
             void_order=VoidOrderHandler(cashiers, approvers, shifts),
             refund_order=RefundOrderHandler(outlets, cashiers, approvers, shifts),
+            void_bill_items=VoidBillItemsHandler(outlets, cashiers, approvers, shifts),
         )
     )
     return await handler(

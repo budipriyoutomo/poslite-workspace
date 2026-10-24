@@ -30,6 +30,7 @@ const TYPE_LABEL: Record<string, string> = {
   "cash.moved": "Kas masuk/keluar",
   "order.voided": "Void",
   "order.refunded": "Refund",
+  "bill.item_voided": "Batal item bill",
 };
 
 export function SyncScreen() {

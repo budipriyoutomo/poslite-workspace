@@ -178,7 +178,7 @@ flowchart LR
 
 ### ADR-020 — Integrasi lewat webhook keluar dari outbox
 
-- **Keputusan**: Tenant mendaftarkan endpoint webhook (URL + tipe event). Subscriber outbox membuat baris `webhook_deliveries` (idempoten per endpoint × event); job worker mengirim `POST` JSON bertanda tangan `X-Poslite-Signature: t=<unix>,v1=<hmac-sha256>` dengan retry backoff sampai 8 kali lalu `dead`, bisa dikirim ulang dari back-office. Event awal: `order.placed` (detail order lengkap), `shift.closed`.
+- **Keputusan**: Tenant mendaftarkan endpoint webhook (URL + tipe event). Subscriber outbox membuat baris `webhook_deliveries` (idempoten per endpoint × event); job worker mengirim `POST` JSON bertanda tangan `X-Poslite-Signature: t=<unix>,v1=<hmac-sha256>` dengan retry backoff sampai 8 kali lalu `dead`, bisa dikirim ulang dari back-office. Event awal: `order.placed` (detail order lengkap), `shift.closed`; kemudian `order.voided`, `order.refunded` (ADR-023) dan `bill.item_voided` (ADR-028).
 - **Kenapa**: inventory/ERP/RestaurantOps tetap di sistem lain (Fase 5 roadmap); webhook bertanda tangan adalah kontrak paling sederhana dan tidak butuh sistem lain memanggil kita.
 - **Konsekuensi**: pengiriman at-least-once → penerima wajib idempoten memakai `id` event. Secret endpoint hanya ditampilkan sekali saat dibuat.
 
@@ -223,6 +223,14 @@ flowchart LR
 - **Implementasi**: port `RateLimiter` (`shared/application`); `RedisRateLimiter` (INCR + EXPIRE dalam satu pipeline) bila `RATE_LIMIT_BACKEND=redis` — wajib di staging/production karena gunicorn menjalankan beberapa worker; `InMemoryRateLimiter` untuk dev & test. Alamat klien dari `request.client` yang sudah ditulis ulang gunicorn dari `X-Forwarded-For` (`--forwarded-allow-ips`, API hanya terjangkau lewat Caddy).
 - **Kenapa**: kontrak sudah menjanjikan 429, tapi belum ada; login dan aktivasi menerima password owner/manajer sehingga terbuka untuk brute force. Redis sudah dipakai worker (tanpa dependency baru). Batas di aplikasi bisa memakai email, yang tidak terlihat oleh proxy.
 - **Konsekuensi**: Redis mati → **fail open** (dicatat di log), karena mengunci semua owner keluar lebih buruk daripada kehilangan rate limit sementara. Kasir di belakang satu NAT berbagi kuota per IP — batas per IP sengaja longgar, yang ketat per email. PIN kasir diverifikasi offline di device, jadi tidak tercakup di sini.
+
+### ADR-028 — Batal item bill setelah masuk dapur = event immutable yang disetujui manajer
+
+- **Keputusan**: Unit open bill yang **belum** terkirim ke dapur boleh dihapus bebas. Mengurangi unit yang **sudah** terkirim (`sentQuantity`), menghapus barisnya, mengubah pilihan/catatannya (key baru = item baru bagi dapur), atau membatalkan bill yang punya unit terkirim wajib alasan + PIN manajer (komponen sama dengan ADR-023; manajer yang bertindak sendiri → `approved_by` null). Setiap aksi menulis **satu** event `bill.item_voided` (`scope: line | bill_cancelled`, baris yang dibatalkan dengan harga + pilihan, alasan, kasir, penyetuju) di transaksi Dexie yang sama dengan perubahan bill; `sentQuantity` diturunkan ke sisa unit. Dapur menerima tiket **BATAL**. Membayar bill yang diam-diam mengurangi unit terkirim ditolak (`VOID_APPROVAL_REQUIRED`).
+- **Server**: `bill_voids` + `bill_void_lines` (RLS); izin penyetuju `order.void`; `business_date` dari `occurred_at` + aturan outlet. Tidak pernah ditolak karena alasan bisnis (ADR-003) — hanya kontrak, orang, dan shift yang dicek. Dihitung terpisah dari penjualan: `pre_payment_void_count` / `pre_payment_void_amount` di `rpt_daily_sales`, ringkasan penjualan, export, dan snapshot tutup hari; daftar di `GET /reports/bill-voids`; webhook `bill.item_voided` untuk mencatat waste di ERP/inventory.
+- **Kenapa**: sebelum ini bill bisa dihapus tanpa jejak setelah makanan keluar — celah fraud terbesar di restoran ([14](./14-pilot-readiness.md) P0-1).
+- **Alternatif ditolak**: menyimpan open bill di server demi audit — bertentangan dengan ADR-015 dan tidak menolong saat offline.
+- **Konsekuensi**: tiket BATAL dicetak best effort; gagal cetak hanya toast, kasir memberi tahu dapur langsung. Nilai void = harga baris × unit sebelum diskon order, hanya untuk laporan (tidak memengaruhi kas atau pajak).
 
 ## Non-Functional Requirements
 

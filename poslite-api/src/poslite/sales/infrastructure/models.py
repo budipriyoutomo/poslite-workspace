@@ -139,3 +139,39 @@ class RefundPaymentModel(Base):
     method_name: Mapped[str] = mapped_column(String(100))
     amount: Mapped[int] = mapped_column(BigInteger)
     reference: Mapped[str | None] = mapped_column(String(64))
+
+
+class BillVoidModel(Base):
+    """Items cancelled from an open bill after the kitchen had them (ADR-028)."""
+
+    __tablename__ = "bill_voids"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26))
+    device_id: Mapped[str] = mapped_column(CHAR(26))
+    shift_id: Mapped[str] = mapped_column(CHAR(26))
+    business_date: Mapped[date] = mapped_column(Date)
+    bill_id: Mapped[str] = mapped_column(CHAR(26))
+    scope: Mapped[str] = mapped_column(String(20))
+    table_label: Mapped[str] = mapped_column(String(30))
+    cashier_id: Mapped[str] = mapped_column(CHAR(26))
+    approved_by: Mapped[str | None] = mapped_column(CHAR(26))
+    reason: Mapped[str] = mapped_column(String(200))
+    amount: Mapped[int] = mapped_column(BigInteger)
+    voided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class BillVoidLineModel(Base):
+    __tablename__ = "bill_void_lines"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    void_id: Mapped[str] = mapped_column(CHAR(26))
+    product_id: Mapped[str] = mapped_column(CHAR(26))
+    product_name: Mapped[str] = mapped_column(String(150))
+    modifiers: Mapped[list[str]] = mapped_column(ARRAY(String(100)))
+    unit_price: Mapped[int] = mapped_column(BigInteger)
+    quantity: Mapped[int] = mapped_column(Integer)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    sort_order: Mapped[int] = mapped_column(Integer)

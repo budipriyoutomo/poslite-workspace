@@ -55,5 +55,6 @@ export const copy = {
     NON_CASH_EXCEEDS_TOTAL: "Pembayaran non-tunai melebihi tagihan",
     NO_PAYMENT: "Belum ada pembayaran",
     UNKNOWN_PAYMENT_METHOD: "Metode pembayaran tidak dikenal",
+    VOID_APPROVAL_REQUIRED: "Ada item yang sudah ke dapur dikurangi — simpan bill dulu dan minta persetujuan manajer",
   } as Record<string, string>,
 } as const;

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from e2e.identity.helpers import bearer
 from e2e.sync.helpers import Setup, outlet_with_menu_and_device
+from e2e.sync.test_bill_voids import bill_voids
 from e2e.sync.test_corrections import corrections
 from e2e.sync.test_push import batch, push
 from poslite.integration.api import deliver_webhooks
@@ -251,3 +252,24 @@ async def test_voids_and_refunds_are_sent_to_subscribed_endpoints(
         s.brand_id,
     )
     assert events["order.refunded"]["lines"][0]["quantity"] == 1
+
+
+async def test_cancelled_bill_items_are_sent_so_an_erp_can_book_the_waste(
+    api: AsyncClient, app_engine: AsyncEngine, system_engine: AsyncEngine
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    await endpoint(api, s, event_types=["bill.item_voided"])
+    await push(api, s.device_token, [batch(s)[0], *bill_voids(s)])
+    await relay(app_engine, system_engine)
+    receiver = FakeReceiver(200)
+
+    await deliver(app_engine, system_engine, receiver)
+
+    sent = [json.loads(body) for _, body, _ in receiver.calls]
+    assert [e["type"] for e in sent] == ["bill.item_voided", "bill.item_voided"]
+    cancelled = next(e["data"] for e in sent if e["data"]["scope"] == "bill_cancelled")
+    assert (cancelled["amount"], cancelled["brand_id"], len(cancelled["lines"])) == (
+        58_000,
+        s.brand_id,
+        2,
+    )

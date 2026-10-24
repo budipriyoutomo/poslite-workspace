@@ -169,6 +169,7 @@ function Summary({ snapshot: { totals, payment_methods, cash } }: { snapshot: Da
           <Row label="Penjualan bersih" value={totals.net} strong status />
           <Row label="Transaksi" value={`${totals.order_count} order · ${totals.void_count} void`} />
           <Row label="Refund" value={`${formatRupiah(totals.refund_amount)} (${totals.refund_count})`} />
+          <Row label="Batal sebelum bayar" value={`${formatRupiah(totals.pre_payment_void_amount)} (${totals.pre_payment_void_count})`} />
         </CardContent>
       </Card>
       <Card className="gap-2 shadow-xs">

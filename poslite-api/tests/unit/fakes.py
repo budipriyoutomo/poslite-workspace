@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import time
 
+from poslite.sales.domain.bill_voids import BillVoid
 from poslite.sales.domain.corrections import OrderForCorrection, OrderVoid, Refund, SoldLine
 from poslite.sales.domain.entities import Order
 from poslite.sales.domain.services import PriceCalculator
@@ -17,6 +18,7 @@ class InMemoryOrders:
         self.rows: dict[str, Order] = {}
         self.voids: dict[str, OrderVoid] = {}
         self.refunds: dict[str, Refund] = {}
+        self.bill_voids: dict[str, BillVoid] = {}
 
     async def exists(self, order_id: str) -> bool:
         return order_id in self.rows
@@ -67,6 +69,9 @@ class InMemoryOrders:
 
     async def add_refund(self, refund: Refund) -> None:
         self.refunds[refund.id] = refund
+
+    async def add_bill_void(self, void: BillVoid) -> None:
+        self.bill_voids[void.id] = void
 
 
 class InMemoryShifts:
@@ -155,6 +160,7 @@ class FakePushUnitOfWork(FakeUnitOfWork):
             dict(self.orders.rows),
             dict(self.orders.voids),
             dict(self.orders.refunds),
+            dict(self.orders.bill_voids),
             dict(self.shifts.rows),
             list(self.shifts.movements),
             list(self.events),
@@ -166,6 +172,7 @@ class FakePushUnitOfWork(FakeUnitOfWork):
                 self.orders.rows,
                 self.orders.voids,
                 self.orders.refunds,
+                self.orders.bill_voids,
                 self.shifts.rows,
                 self.shifts.movements,
                 self.events,

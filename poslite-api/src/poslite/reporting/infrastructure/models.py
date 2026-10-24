@@ -23,6 +23,8 @@ class DailySalesModel(Base):
     void_count: Mapped[int] = mapped_column(Integer)
     refund_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
     refund_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    pre_payment_void_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    pre_payment_void_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

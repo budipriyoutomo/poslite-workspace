@@ -8,6 +8,8 @@ from poslite.sales.api import (
     PlaceOrderHandler,
     RefundOrderData,
     RefundOrderHandler,
+    VoidBillItemsData,
+    VoidBillItemsHandler,
     VoidOrderData,
     VoidOrderHandler,
 )
@@ -65,10 +67,12 @@ class EventRegistry:
         move_cash: MoveCashHandler,
         void_order: VoidOrderHandler,
         refund_order: RefundOrderHandler,
+        void_bill_items: VoidBillItemsHandler,
     ) -> None:
         self._place_order, self._open_shift = place_order, open_shift
         self._close_shift, self._move_cash = close_shift, move_cash
         self._void_order, self._refund_order = void_order, refund_order
+        self._void_bill_items = void_bill_items
 
     async def dispatch(
         self, event: IncomingEvent, ctx: DeviceContext, uow: PushUnitOfWork
@@ -86,6 +90,8 @@ class EventRegistry:
                 return await self._void_order(cmd, ctx, uow)
             case RefundOrderData() as cmd:
                 return await self._refund_order(cmd, ctx, uow)
+            case VoidBillItemsData() as cmd:
+                return await self._void_bill_items(cmd, ctx, uow)
 
 
 class PushEventsHandler:

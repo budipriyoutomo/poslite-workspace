@@ -5,17 +5,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth";
-import { useCart } from "@/features/cart";
+import { useCart, voidedUnits } from "@/features/cart";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 
-import { saveBill } from "../application/bills";
+import { saveBill, type VoidApproval } from "../application/bills";
 import { sendBillToKitchen } from "../application/kitchen";
 import { useDiningTables, useOpenBills } from "../application/use-bills";
 import { copy } from "../copy";
 import { TablePicker } from "./TablePicker";
+import { useBillVoid } from "./use-bill-void";
 
 /** Take-away or dine-in for the cart; a dine-in cart can be kept as an open bill (ADR-015). */
 export function DineInBar() {
@@ -24,6 +25,7 @@ export function DineInBar() {
   const tables = useDiningTables() ?? [];
   const bills = useOpenBills() ?? [];
   const [isPicking, setIsPicking] = useState(false);
+  const billVoid = useBillVoid();
   const isSaved = bills.some((b) => b.id === cart.bill?.id);
   const occupied = bills.filter((b) => b.id !== cart.bill?.id && b.tableId).map((b) => b.tableId!);
 
@@ -34,12 +36,20 @@ export function DineInBar() {
   };
   const save = async () => {
     if (!cart.bill || !user) return;
-    const billId = cart.bill.id;
-    try {
-      await saveBill({ bill: cart.bill, lines: cart.lines, discount: cart.discount });
-      toast.success(`Bill meja ${cart.bill.tableLabel} disimpan`);
+    const { bill, lines, discount } = cart;
+    const persist = async (approval?: VoidApproval) => {
+      const result = await saveBill({ bill, lines, discount, ...(approval && { void: approval }) });
+      toast.success(`Bill meja ${bill.tableLabel} disimpan`);
       cart.clear();
-      void sendBillToKitchen({ billId, cashierName: user.name }).then(({ hasFailed }) => hasFailed && toast.error(copy.kitchenFailed));
+      void sendBillToKitchen({ billId: bill.id, cashierName: user.name }).then(({ hasFailed }) => hasFailed && toast.error(copy.kitchenFailed));
+      return result;
+    };
+    // Sent items taken off need a manager's approval first (ADR-028).
+    const saved = bills.find((b) => b.id === bill.id);
+    const voided = saved ? voidedUnits(saved.lines, lines) : [];
+    if (voided.length > 0) return billVoid.ask({ billId: bill.id, tableLabel: bill.tableLabel, voided, run: persist });
+    try {
+      await persist();
     } catch (e) {
       toast.error(e instanceof AppError ? (copy.errors[e.code] ?? e.code) : String(e));
     }
@@ -71,6 +81,7 @@ export function DineInBar() {
       <Button size="sm" variant="outline" className="ml-auto" disabled={cart.lines.length === 0} onClick={() => void save()}>
         <Save /> Simpan bill
       </Button>
+      {billVoid.dialog}
     </div>
   );
 }

@@ -68,6 +68,12 @@ describe("printKitchenTickets", () => {
     expect(printed[1]!.lines).toContain("1x Es Teh");
   });
 
+  it("prints a cancel ticket when the order cancels sent items (ADR-028)", async () => {
+    await printKitchenTickets({ ...order, cancel: { reason: "Pelanggan batal", approverName: "Bu Rina" } }, deps());
+
+    expect(printed[0]!.lines.join("\n")).toContain("BATAL");
+  });
+
   it("prints each station at its own paper width", async () => {
     await printKitchenTickets(order, deps());
 

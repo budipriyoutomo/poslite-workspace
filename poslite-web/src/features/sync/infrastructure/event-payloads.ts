@@ -103,6 +103,31 @@ export const orderRefunded = z
   })
   .refine((r) => r.payments.reduce((s, p) => s + p.amount, 0) === r.total, { message: "payments must add up to the refund total", path: ["payments"] });
 
+// Items cancelled from an open bill after the kitchen had them (ADR-028); the bill stays local.
+export const billItemVoided = z.strictObject({
+  bill_id: ulid,
+  scope: z.enum(["line", "bill_cancelled"]),
+  table_label: z.string().min(1).max(30),
+  shift_id: ulid,
+  cashier_id: ulid,
+  approved_by: ulid.nullable(),
+  reason: z.string().min(1).max(200),
+  lines: z
+    .array(
+      z
+        .strictObject({
+          product_id: ulid,
+          product_name: z.string().min(1).max(150),
+          modifiers: z.array(z.string().min(1).max(100)),
+          unit_price: rupiah,
+          quantity: z.number().int().positive(),
+          amount: rupiah,
+        })
+        .refine((l) => l.amount === l.unit_price * l.quantity, { message: "amount must be unit_price × quantity", path: ["amount"] }),
+    )
+    .min(1),
+});
+
 export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "shift.opened": shiftOpened,
   "shift.closed": shiftClosed,
@@ -110,8 +135,10 @@ export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "order.placed": orderPlaced,
   "order.voided": orderVoided,
   "order.refunded": orderRefunded,
+  "bill.item_voided": billItemVoided,
 };
 
 export type OrderPlacedPayload = z.infer<typeof orderPlaced>;
 export type OrderVoidedPayload = z.infer<typeof orderVoided>;
 export type OrderRefundedPayload = z.infer<typeof orderRefunded>;
+export type BillItemVoidedPayload = z.infer<typeof billItemVoided>;
