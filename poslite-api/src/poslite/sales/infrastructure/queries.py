@@ -329,6 +329,8 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
         "price_includes_tax": order.price_includes_tax,
         "channel_id": order.channel_id,
         "external_ref": order.external_ref,
+        "queue_no": order.queue_no,
+        "customer_name": order.customer_name,
         "service_charge": order.service_charge,
         "tax": order.tax,
         "total": order.total,

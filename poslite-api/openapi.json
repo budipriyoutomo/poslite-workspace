@@ -4306,6 +4306,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
           "device_id": {
             "title": "Device Id",
             "type": "string"
@@ -4365,6 +4376,17 @@
           "price_includes_tax": {
             "title": "Price Includes Tax",
             "type": "boolean"
+          },
+          "queue_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue No"
           },
           "receipt_no": {
             "title": "Receipt No",
@@ -4439,6 +4461,8 @@
           "price_includes_tax",
           "channel_id",
           "external_ref",
+          "queue_no",
+          "customer_name",
           "service_charge",
           "tax",
           "total",

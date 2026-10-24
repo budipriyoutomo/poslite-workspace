@@ -107,3 +107,19 @@ async def test_the_daily_report_breaks_sales_down_per_channel(
         ("Take Away", "take_away", 1, 72_765),
         ("GoFood", "delivery", 1, 69_300),
     ]
+
+
+async def test_a_take_away_sale_keeps_its_queue_number_and_guest(api: AsyncClient) -> None:
+    """P1-1: the number called out at the counter and the guest's name reach the server."""
+    s = await outlet_with_menu_and_device(api)
+    opened, _, placed, _ = batch(s)
+    order = copy.deepcopy(placed)
+    order["payload"] |= {"queue_no": "A-012", "customer_name": "Andi"}
+
+    results = (await push(api, s.device_token, [opened, order])).json()["data"]["results"]
+
+    assert [r["status"] for r in results] == ["accepted", "accepted"]
+    detail = (
+        await api.get(f"/api/v1/orders/{order['aggregate_id']}", headers=bearer(s.owner_token))
+    ).json()["data"]
+    assert (detail["queue_no"], detail["customer_name"]) == ("A-012", "Andi")

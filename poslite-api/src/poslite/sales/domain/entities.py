@@ -58,6 +58,8 @@ class PlaceOrderData:
     channel_id: str | None = None  # ADR-029; absent on devices from before channels
     external_ref: str | None = None  # the delivery app's order number
     closes_bill_id: str | None = None  # ADR-031: the shared open bill this payment closes
+    queue_no: str | None = None  # P1-1: take-away/delivery number, unique per device and day
+    customer_name: str | None = None
 
 
 @dataclass

@@ -142,6 +142,9 @@ class OrderPlacedPayload(_Strict):
     external_ref: Annotated[str, StringConstraints(min_length=1, max_length=50)] | None = None
     # ADR-031: a full payment of a shared open bill closes it on the server.
     closes_bill_id: Ulid | None = None
+    # P1-1: the take-away/delivery queue number and the guest's name.
+    queue_no: Annotated[str, StringConstraints(min_length=1, max_length=20)] | None = None
+    customer_name: Annotated[str, StringConstraints(min_length=1, max_length=40)] | None = None
 
 
 Reason = Annotated[str, StringConstraints(min_length=1, max_length=200)]
@@ -308,6 +311,8 @@ def to_command(event: IncomingEvent) -> Command:
                     channel_id=p.channel_id,
                     external_ref=p.external_ref,
                     closes_bill_id=p.closes_bill_id,
+                    queue_no=p.queue_no,
+                    customer_name=p.customer_name,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err

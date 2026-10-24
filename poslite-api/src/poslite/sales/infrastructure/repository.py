@@ -54,6 +54,8 @@ class SqlAlchemyOrderRepository:
                 price_includes_tax=d.rates.includes_tax,
                 channel_id=order.channel_id,
                 external_ref=d.external_ref,
+                queue_no=d.queue_no,
+                customer_name=d.customer_name,
                 service_charge=d.totals.service_charge,
                 tax=d.totals.tax,
                 total=d.totals.total,

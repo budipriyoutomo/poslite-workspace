@@ -116,6 +116,8 @@ class OrderDetailOut(BaseModel):
     price_includes_tax: bool  # ADR-030: service and tax are inside the prices
     channel_id: str | None  # ADR-029
     external_ref: str | None  # the delivery app's order number
+    queue_no: str | None  # P1-1: called out at the counter, e.g. A-012
+    customer_name: str | None
     service_charge: int
     tax: int
     total: int
