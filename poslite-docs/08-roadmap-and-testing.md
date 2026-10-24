@@ -117,6 +117,10 @@ Desain: [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md). Urut
 - [ ] Uji manual di tablet Android & PC Windows: install PWA, mode pesawat, reboot dengan cart tersimpan, [checklist printer](./04-printing.md#checklist-pengujian-printer)
 - **DoD**: semua jenis printer yang dipakai tenant trial mencetak struk, slip, dan kitchen ticket; reconnect otomatis setelah printer/tablet restart.
 
+### Menuju Pilot
+
+Pekerjaan setelah Fase 7 — audit batal bill (ADR-028), channel penjualan (ADR-029), harga inklusif pajak (ADR-030), fitur operasional kasir, kesiapan staging, uji beban device, dry run, dan Go/No-Go — direncanakan sebagai **Tahap A–F** di [14 — Rencana Perbaikan Menuju Pilot](./14-pilot-readiness.md). Uji perangkat asli Fase 7 dikerjakan di Tahap D (P1-6).
+
 ## Hasil Spike Fase 0
 
 Diukur 2026-09-25 di Chrome 154 (macOS, Intel). Angka tablet = CPU di-throttle 4× via DevTools sebagai pendekatan tablet Android kelas menengah; **bukan** pengganti uji di perangkat asli (I/O flash tablet lebih lambat).
