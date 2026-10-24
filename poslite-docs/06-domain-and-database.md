@@ -100,7 +100,9 @@ tenants          id, slug (unik global), name, status (active|suspended), plan (
 outlets          id, code (unik per tenant, mis. JKT01), name, address, phone, timezone,
                  business_day_cutoff (time, default 04:00), tax_rate_bps (int, mis. 1000),
                  service_rate_bps (int, mis. 500), receipt_header, receipt_footer,
-                 service_mode (counter|table_service, ADR-031, migrasi 0027), version, timestamps, deleted_at
+                 service_mode (counter|table_service, ADR-031, migrasi 0027),
+                 cash_rounding_unit (0|100|500|1000), cash_rounding_mode (nearest|down) (P1-3, migrasi 0030),
+                 version, timestamps, deleted_at
 devices          id, outlet_id, code (A, B, …; unik per outlet), name, platform, app_version,
                  last_seen_at, activated_by, revoked_at, timestamps
 users            id, name, email (unik global, nullable untuk kasir), password_hash (argon2, nullable), pin_hash, pin_salt,
@@ -174,6 +176,7 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  price_includes_tax (snapshot mode harga, ADR-030),
                  channel_id (ADR-029, nullable untuk data lama; diisi migrasi 0026), external_ref (no. order aplikasi),
                  queue_no, customer_name (P1-1, migrasi 0028; hanya take away/delivery),
+                 rounding_amount (P1-3, migrasi 0030: pembulatan bagian tunai, boleh negatif; total tetap),
                  service_charge, tax, total, paid_amount, change_amount,
                  status (paid|voided), flags (text[], kosong = bersih), notes,
                  created_at (waktu device), synced_at (waktu server)

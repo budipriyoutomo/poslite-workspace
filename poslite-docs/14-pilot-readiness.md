@@ -64,7 +64,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 | P0-4 ✅ | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
 | P1-1 ✅ | — | `0028_order_queue_customer` (`orders.customer_name`, `orders.queue_no`) | tidak ada (`syncState.queueCounter`) |
 | P1-2 ✅ | — | `0029_product_availability_from_pos` (`outlet_products.available_until`, `availability_changed_at`, permission `product.availability`) | **v8**: `availabilityOverrides: "productId"` |
-| P1-3 | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `payments.rounding_amount`, `refunds.rounding_amount`) | — (pengaturan outlet di `settings`) |
+| P1-3 ✅ | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `orders.rounding_amount`, `rpt_daily_sales.cash_rounding`) | — (pengaturan outlet di `settings`) |
 | P1-8 | — | `0031_operator_totp` (secret TOTP terenkripsi, `operator_recovery_codes`) | — |
 
 ADR-029 dan ADR-030 dinomori sesuai urutan dokumen (channel lebih dulu dibahas), walaupun P0-3 dikerjakan lebih dulu. v8 menggabungkan perubahan P1-1 dan P1-2 karena dikerjakan di tahap yang sama.
@@ -130,7 +130,7 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 |---|---|
 | P1-1 Nama pelanggan & nomor antrian (migrasi `0028`) ✅ | Draf SOP Gangguan & SOP Manajer |
 | P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) ✅ | Checklist onboarding tenant |
-| P1-3 Pembulatan tunai (migrasi `0030`) | |
+| P1-3 Pembulatan tunai (migrasi `0030`) ✅ | |
 | P1-10 Uji beban device | |
 
 **Gerbang keluar**: semua DoD hijau; target P1-10 tercapai di tablet referensi (atau perangkat sejenis bila perangkat pilot belum tiba).
@@ -386,7 +386,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - **DoD**: tandai habis di tablet A → tablet B ikut habis setelah pull berikutnya; besok kembali tersedia otomatis.
 - **Status (2026-10-24)**: selesai. Izin berupa permission `product.availability` (owner, manager, kasir; pelayan tidak). "Terbaru menang" memakai `occurred_at` event (jam device; belum disesuaikan dengan jam server). Pull membawa `unavailable_until` sehingga tablet lain ikut tersedia lagi tanpa pull baru. Tekan lama = `contextmenu` (Chrome Android memicunya dari tekan lama; di desktop klik kanan).
 
-### P1-3 — Pembulatan Tunai
+### P1-3 — Pembulatan Tunai ✅
 
 - Pengaturan outlet (migrasi `0030`) `cash_rounding_unit`: `0` (mati), `100`, `500`, atau `1000`, dengan `cash_rounding_mode`: `nearest` | `down`.
 - Hanya berlaku untuk bagian pembayaran **tunai**. Total order dan pajak tidak berubah; selisihnya disimpan sebagai `payments.rounding_amount` (bisa negatif).
@@ -396,6 +396,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - Laporan dan tutup hari menampilkan total pembulatan; `expected_cash` shift ikut memperhitungkannya.
 - Struk: baris "Pembulatan".
 - Fixture `cash-rounding-cases.json` dipakai web & API, dan wajib mencakup: tunai penuh, campuran QRIS + tunai, split bill 2 dan 3 bagian, refund parsial tunai, refund penuh, serta mode `down`.
+- **Status (2026-10-25)**: selesai untuk penjualan: fixture 18 kasus (tunai, campuran, split 2 & 3, mode `down`), panel bayar meminta tunai yang sudah dibulatkan, baris "Pembulatan" di struk, `expected_cash` shift otomatis benar (laci = tunai − kembalian), total pembulatan di laporan harian dan tutup hari, setting di halaman Outlet. Penyimpangan: pembulatan disimpan per order (`orders.rounding_amount`, satu bagian tunai per order), bukan `payments.rounding_amount`; aturan ikut payload sebagai snapshot seperti tarif. **Belum**: pembulatan refund tunai (`refunds.rounding_amount`) dan kasus refund di fixture — refund tunai masih dikembalikan persis.
 
 ### P1-4 — Import Menu dari Excel/CSV
 
@@ -593,7 +594,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 **Tahap C — Operasional Kasir**
 - [x] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
 - [x] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
-- [ ] P1-3 Pembulatan tunai (`0030`)
+- [x] P1-3 (refund tunai belum dibulatkan) Pembulatan tunai (`0030`)
 - [ ] P1-10 Uji beban device memenuhi target
 - [ ] Checklist onboarding tenant
 
