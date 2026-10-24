@@ -53,6 +53,7 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
         "price": 5000,
         "image_key": None,
         "is_available": True,
+        "unavailable_until": None,
         "modifier_group_ids": [s.ids["group"]],
     }
     assert changes["category"][0]["data"] == {

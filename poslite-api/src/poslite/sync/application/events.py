@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
@@ -16,6 +17,7 @@ from pydantic import (
     model_validator,
 )
 
+from poslite.catalog.api import ChangeAvailability
 from poslite.sales.api import (
     Discount,
     LineModifier,
@@ -210,8 +212,16 @@ class BillItemVoidedPayload(_Strict):
     lines: Annotated[list[_VoidedBillLine], Field(min_length=1)]
 
 
+class ProductAvailabilityChangedPayload(_Strict):
+    product_id: Ulid
+    is_available: StrictBool
+    until: AwareDatetime | None  # P1-2: a sold-out mark ends by itself then
+    changed_by: Ulid
+
+
 Command = (
-    OpenShift
+    ChangeAvailability
+    | OpenShift
     | CloseShift
     | MoveCash
     | PlaceOrderData
@@ -345,6 +355,11 @@ def to_command(event: IncomingEvent) -> Command:
                     for y in r.payments
                 ),
                 occurred_at=event.occurred_at,
+            )
+        case "product.availability_changed":
+            a = _parse(ProductAvailabilityChangedPayload, event)
+            return ChangeAvailability(
+                a.product_id, a.is_available, a.until, a.changed_by, event.occurred_at
             )
         case "bill.item_voided":
             b = _parse(BillItemVoidedPayload, event)

@@ -1,4 +1,6 @@
-from sqlalchemy import CHAR, BigInteger, Boolean, Integer, SmallInteger, String, Text
+from datetime import datetime
+
+from sqlalchemy import CHAR, BigInteger, Boolean, DateTime, Integer, SmallInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.columns import MasterColumns
@@ -73,6 +75,9 @@ class OutletProductModel(Base):
     product_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     price: Mapped[int | None] = mapped_column(BigInteger)
     is_available: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    # P1-2: a sold-out mark from the POS may end by itself; the latest change wins.
+    available_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    availability_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SalesChannelModel(MasterColumns, Base):

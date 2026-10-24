@@ -1,7 +1,9 @@
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from poslite.catalog.api import ChangeAvailability, ChangeAvailabilityHandler
 from poslite.sales.api import (
     PlaceOrderHandler,
     RefundOrderHandler,
@@ -70,8 +72,20 @@ def push_handler(
             void_order=VoidOrderHandler(allowed, approving, shifts),
             refund_order=RefundOrderHandler(FakeOutlets(), allowed, approving, shifts),
             void_bill_items=VoidBillItemsHandler(FakeOutlets(), allowed, approving, shifts),
+            change_availability=ChangeAvailabilityHandler(approving, FakeAvailability()),
         )
     )
+
+
+class FakeAvailability:
+    async def sells(self, outlet_id: str, product_id: str) -> bool:
+        return True
+
+    async def last_change(self, outlet_id: str, product_id: str) -> datetime | None:
+        return None
+
+    async def apply(self, outlet_id: str, change: ChangeAvailability) -> None:
+        pass
 
 
 def new_uow() -> FakePushUnitOfWork:
