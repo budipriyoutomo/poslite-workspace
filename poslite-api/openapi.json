@@ -2542,6 +2542,44 @@
         "title": "ChannelPricesIn",
         "type": "object"
       },
+      "ChannelSales": {
+        "properties": {
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "channel_name": {
+            "title": "Channel Name",
+            "type": "string"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "channel_id",
+          "channel_name",
+          "kind",
+          "order_count",
+          "gross",
+          "net"
+        ],
+        "title": "ChannelSales",
+        "type": "object"
+      },
       "CloseDayIn": {
         "properties": {
           "business_date": {
@@ -3981,6 +4019,17 @@
             "title": "Change Amount",
             "type": "integer"
           },
+          "channel_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel Id"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3993,6 +4042,17 @@
           "discount_amount": {
             "title": "Discount Amount",
             "type": "integer"
+          },
+          "external_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ref"
           },
           "flags": {
             "items": {
@@ -4106,6 +4166,8 @@
           "subtotal",
           "discount_amount",
           "price_includes_tax",
+          "channel_id",
+          "external_ref",
           "service_charge",
           "tax",
           "total",
@@ -5881,6 +5943,13 @@
             "title": "Categories",
             "type": "array"
           },
+          "channels": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelSales"
+            },
+            "title": "Channels",
+            "type": "array"
+          },
           "days": {
             "items": {
               "$ref": "#/components/schemas/DaySales"
@@ -5912,7 +5981,8 @@
           "payment_methods",
           "products",
           "categories",
-          "cashiers"
+          "cashiers",
+          "channels"
         ],
         "title": "SalesSummaryOut",
         "type": "object"

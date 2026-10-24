@@ -248,6 +248,33 @@ async def daily_cashier_sales(
     return [CashierSales(cid, int(n), int(net)) for cid, n, net in rows]
 
 
+@dataclass(frozen=True, slots=True)
+class ChannelSales:
+    channel_id: str
+    order_count: int
+    gross: int
+    net: int
+
+
+async def daily_channel_sales(
+    uow: SqlAlchemyUnitOfWork, outlet_id: str, day: date
+) -> list[ChannelSales]:
+    """Paid orders per sales channel (ADR-029); orders without one (none after 0026) are out."""
+    rows = await uow.session.execute(
+        select(
+            OrderModel.channel_id,
+            func.count(),
+            func.sum(OrderModel.subtotal),
+            func.sum(OrderModel.total),
+        )
+        .where(
+            _day(outlet_id, day), OrderModel.status == "paid", OrderModel.channel_id.is_not(None)
+        )
+        .group_by(OrderModel.channel_id)
+    )
+    return [ChannelSales(str(c), int(n), int(g), int(t)) for c, n, g, t in rows]
+
+
 async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, object] | None:
     """One order as JSON-ready data (for integrations, ADR-020); None if RLS hides it."""
     order = await uow.session.get(OrderModel, order_id)
@@ -300,6 +327,8 @@ async def order_detail(uow: SqlAlchemyUnitOfWork, order_id: str) -> dict[str, ob
         "subtotal": order.subtotal,
         "discount_amount": order.discount_amount,
         "price_includes_tax": order.price_includes_tax,
+        "channel_id": order.channel_id,
+        "external_ref": order.external_ref,
         "service_charge": order.service_charge,
         "tax": order.tax,
         "total": order.total,

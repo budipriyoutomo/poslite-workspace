@@ -3,10 +3,12 @@ from datetime import date
 
 from sqlalchemy import func, select
 
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.reporting.infrastructure.models import (
     DailyCashierSalesModel,
     DailyCategorySalesModel,
+    DailyChannelSalesModel,
     DailyPaymentSalesModel,
     DailyProductSalesModel,
     DailySalesModel,
@@ -37,6 +39,7 @@ class SalesSummary:
     products: list[dict[str, object]]
     categories: list[dict[str, object]]
     cashiers: list[dict[str, object]]
+    channels: list[dict[str, object]]
 
 
 async def sales_summary(
@@ -125,6 +128,23 @@ async def sales_summary(
         )
     ).all()
     names = await identity.user_names(uow, [c for c, _, _ in cashier_rows])
+    channel_rows = (
+        await uow.session.execute(
+            select(
+                DailyChannelSalesModel.channel_id,
+                func.sum(DailyChannelSalesModel.order_count),
+                func.sum(DailyChannelSalesModel.gross),
+                func.sum(DailyChannelSalesModel.net),
+            )
+            .where(
+                DailyChannelSalesModel.outlet_id.in_(outlet_ids),
+                DailyChannelSalesModel.business_date.between(start, end),
+            )
+            .group_by(DailyChannelSalesModel.channel_id)
+            .order_by(func.sum(DailyChannelSalesModel.net).desc())
+        )
+    ).all()
+    labels = await catalog.channel_labels(uow, [c for c, *_ in channel_rows])
     return SalesSummary(
         days=day_rows,
         totals=totals,
@@ -160,6 +180,17 @@ async def sales_summary(
                 "net": int(v),
             }
             for c, n, v in cashier_rows
+        ],
+        channels=[
+            {
+                "channel_id": c,
+                "channel_name": labels.get(c, ("?", ""))[0],
+                "kind": labels.get(c, ("?", ""))[1],
+                "order_count": int(n),
+                "gross": int(g),
+                "net": int(v),
+            }
+            for c, n, g, v in channel_rows
         ],
     )
 

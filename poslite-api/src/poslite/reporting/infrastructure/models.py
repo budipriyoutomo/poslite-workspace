@@ -77,6 +77,18 @@ class DailyCashierSalesModel(Base):
     net: Mapped[int] = mapped_column(BigInteger)
 
 
+class DailyChannelSalesModel(Base):
+    __tablename__ = "rpt_daily_channel_sales"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    business_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    channel_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    order_count: Mapped[int] = mapped_column(Integer)
+    gross: Mapped[int] = mapped_column(BigInteger)
+    net: Mapped[int] = mapped_column(BigInteger)
+
+
 class DayClosingModel(Base):
     __tablename__ = "day_closings"
 

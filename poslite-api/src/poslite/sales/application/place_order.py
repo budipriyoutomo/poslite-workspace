@@ -7,6 +7,8 @@ from poslite.sales.domain.value_objects import Rates
 from poslite.shared.application.ports import (
     ApproverPort,
     CashierPort,
+    ChannelInfo,
+    ChannelPort,
     EventRecorder,
     OutletPort,
     PaymentMethodPort,
@@ -31,9 +33,23 @@ class PlaceOrderHandler:
         qris: QrisPort | None = None,
         methods: PaymentMethodPort | None = None,
         approvers: ApproverPort | None = None,
+        channels: ChannelPort | None = None,
     ) -> None:
         self._outlets, self._cashiers, self._qris = outlets, cashiers, qris
-        self._methods, self._approvers = methods, approvers
+        self._methods, self._approvers, self._channels = methods, approvers, channels
+
+    async def _channel(
+        self, cmd: PlaceOrderData, outlet_id: str
+    ) -> tuple[ChannelInfo | None, bool]:
+        """The order's channel, or — for an older device or a channel the brand no longer has —
+        the brand's channel of the order's kind. True when the device's channel was unknown."""
+        if self._channels is None:
+            return None, False
+        if cmd.channel_id is not None:
+            found = await self._channels.channel(outlet_id, cmd.channel_id)
+            if found is not None:
+                return found, False
+        return await self._channels.default(outlet_id, cmd.order_type), cmd.channel_id is not None
 
     async def _discount_unapproved(
         self, cmd: PlaceOrderData, outlet_id: str, limits: DiscountLimits
@@ -77,6 +93,13 @@ class PlaceOrderHandler:
                 ctx.outlet_id, sorted({p.payment_method_id for p in cmd.payments})
             )
         )
+        channel, channel_unknown = await self._channel(cmd, ctx.outlet_id)
+        # A rate the channel does not charge is 0 bps (ADR-029 rule 3).
+        rates = Rates(
+            outlet.service_bps if channel is None or channel.applies_service else 0,
+            outlet.tax_bps if channel is None or channel.applies_tax else 0,
+            includes_tax=outlet.price_includes_tax,
+        )
         order = Order.place(
             cmd,
             outlet_id=ctx.outlet_id,
@@ -84,12 +107,15 @@ class PlaceOrderHandler:
             business_date=business_date(
                 cmd.occurred_at, outlet.timezone, outlet.business_day_cutoff
             ),
-            current_rates=Rates(
-                outlet.service_bps, outlet.tax_bps, includes_tax=outlet.price_includes_tax
-            ),
+            current_rates=rates,
             qris_unpaid=qris_unpaid,
             method_inactive=method_inactive,
             discount_unapproved=await self._discount_unapproved(cmd, ctx.outlet_id, limits),
+            channel_id=channel.id if channel else None,
+            channel_unknown=channel_unknown,
+            external_ref_missing=bool(
+                channel and channel.requires_external_ref and not cmd.external_ref
+            ),
         )
         await uow.orders.add(order)
         for event in order.events:

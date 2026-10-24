@@ -1,10 +1,12 @@
+from dataclasses import replace
 from datetime import time
 
 import pytest
 
 from poslite.sales.application.place_order import PlaceOrderHandler
 from poslite.sales.domain.events import OrderPlaced
-from poslite.shared.application.ports import OutletProfile
+from poslite.sales.domain.value_objects import PriceBreakdown, Rates
+from poslite.shared.application.ports import ChannelInfo, OutletProfile
 from poslite.shared.application.sync import DeviceContext, EventOutcome
 from poslite.shared.domain.errors import DomainError
 
@@ -100,3 +102,80 @@ async def test_a_paid_or_static_qris_is_not_flagged() -> None:
     )(order, CTX, FakeUnitOfWork())  # type: ignore[arg-type]
 
     assert outcome == EventOutcome("accepted")
+
+
+class FakeChannels:
+    """ChannelPort (ADR-029): the outlet's brand channels."""
+
+    def __init__(self, *channels: ChannelInfo) -> None:
+        self._channels = channels
+
+    async def channel(self, outlet_id: str, channel_id: str) -> ChannelInfo | None:
+        return next((c for c in self._channels if c.id == channel_id), None)
+
+    async def default(self, outlet_id: str, kind: str) -> ChannelInfo | None:
+        return next((c for c in self._channels if c.kind == kind), None)
+
+
+TAKE_AWAY = ChannelInfo("CH-TA", "take_away", applies_service=True, applies_tax=True)
+GOFOOD = ChannelInfo(
+    "CH-GO", "delivery", applies_service=False, applies_tax=True, requires_external_ref=True
+)
+# DATA sold on GoFood: no service, PB1 on the discounted 63.000 → 69.300.
+ON_GOFOOD = replace(
+    DATA,
+    channel_id="CH-GO",
+    external_ref="GF-123",
+    rates=Rates(0, 1000),
+    totals=PriceBreakdown(70_000, 7_000, 0, 6_300, 69_300),
+    change_amount=30_700,
+)
+
+
+def channel_handler() -> PlaceOrderHandler:
+    return PlaceOrderHandler(
+        outlets=FakeOutlets(),
+        cashiers=FakeCashiers({"U1"}),
+        channels=FakeChannels(TAKE_AWAY, GOFOOD),
+    )
+
+
+async def test_an_order_on_a_channel_keeps_it_and_its_external_ref() -> None:
+    uow = FakeUnitOfWork()
+
+    outcome = await channel_handler()(ON_GOFOOD, CTX, uow)
+
+    assert outcome == EventOutcome("accepted")
+    order = uow.orders.rows["O1"]
+    assert (order.channel_id, order.data.external_ref) == ("CH-GO", "GF-123")
+
+
+async def test_rates_are_checked_against_what_the_channel_charges() -> None:
+    with_service = replace(ON_GOFOOD, rates=Rates(500, 1000), totals=DATA.totals)
+
+    outcome = await channel_handler()(with_service, CTX, FakeUnitOfWork())
+
+    assert outcome == EventOutcome("flagged", ("RATES_OUTDATED",))
+
+
+async def test_an_older_device_without_a_channel_sells_on_the_brand_channel_of_its_kind() -> None:
+    uow = FakeUnitOfWork()
+
+    outcome = await channel_handler()(DATA, CTX, uow)
+
+    assert (outcome, uow.orders.rows["O1"].channel_id) == (EventOutcome("accepted"), "CH-TA")
+
+
+async def test_an_unknown_channel_is_kept_on_the_channel_of_its_kind_and_flagged() -> None:
+    uow = FakeUnitOfWork()
+
+    outcome = await channel_handler()(replace(DATA, channel_id="CH-GONE"), CTX, uow)
+
+    assert outcome == EventOutcome("flagged", ("CHANNEL_UNKNOWN",))
+    assert uow.orders.rows["O1"].channel_id == "CH-TA"
+
+
+async def test_a_missing_order_number_of_a_delivery_app_is_flagged() -> None:
+    outcome = await channel_handler()(replace(ON_GOFOOD, external_ref=None), CTX, FakeUnitOfWork())
+
+    assert outcome == EventOutcome("flagged", ("EXTERNAL_REF_MISSING",))

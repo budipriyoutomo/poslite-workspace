@@ -7,6 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from poslite.reporting.infrastructure.models import (
     DailyCashierSalesModel,
     DailyCategorySalesModel,
+    DailyChannelSalesModel,
     DailyPaymentSalesModel,
     DailyProductSalesModel,
     DailySalesModel,
@@ -33,6 +34,7 @@ async def project_daily_sales(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: da
         DailyPaymentSalesModel,
         DailyCategorySalesModel,
         DailyCashierSalesModel,
+        DailyChannelSalesModel,
     )
     for model in breakdowns:
         await uow.session.execute(
@@ -53,6 +55,10 @@ async def project_daily_sales(uow: SqlAlchemyUnitOfWork, outlet_id: str, day: da
     uow.session.add_all(
         DailyCashierSalesModel(**key, **asdict(c))
         for c in await sales.daily_cashier_sales(uow, outlet_id, day)
+    )
+    uow.session.add_all(
+        DailyChannelSalesModel(**key, **asdict(c))
+        for c in await sales.daily_channel_sales(uow, outlet_id, day)
     )
     await uow.session.flush()
 

@@ -18,6 +18,7 @@ from poslite.shift.api import (
 from poslite.sync.application.events import IncomingEvent
 from poslite.sync.application.push_events import EventRegistry, EventResult, PushEventsHandler
 from poslite.sync.infrastructure.adapters import (
+    CatalogChannels,
     IdentityApprovers,
     IdentityCashiers,
     OrganizationOutlets,
@@ -54,7 +55,12 @@ async def push_events(
     handler = PushEventsHandler(
         EventRegistry(
             place_order=PlaceOrderHandler(
-                outlets, cashiers, PaymentQris(uow), PaymentMethods(uow), approvers
+                outlets,
+                cashiers,
+                PaymentQris(uow),
+                PaymentMethods(uow),
+                approvers,
+                CatalogChannels(uow),
             ),
             open_shift=OpenShiftHandler(outlets, cashiers),
             close_shift=CloseShiftHandler(cashiers),

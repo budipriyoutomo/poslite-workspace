@@ -137,6 +137,9 @@ class OrderPlacedPayload(_Strict):
     change_amount: Rupiah
     # Manager who approved a discount over the brand's cashier limit; optional for older devices.
     discount_approved_by: Ulid | None = None
+    # ADR-029; optional for devices from before sales channels.
+    channel_id: Ulid | None = None
+    external_ref: Annotated[str, StringConstraints(min_length=1, max_length=50)] | None = None
 
 
 Reason = Annotated[str, StringConstraints(min_length=1, max_length=200)]
@@ -300,6 +303,8 @@ def to_command(event: IncomingEvent) -> Command:
                     occurred_at=event.occurred_at,
                     table_label=p.table_label,
                     discount_approved_by=p.discount_approved_by,
+                    channel_id=p.channel_id,
+                    external_ref=p.external_ref,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err

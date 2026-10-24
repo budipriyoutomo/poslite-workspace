@@ -70,6 +70,9 @@ export const orderPlaced = z.strictObject({
   change_amount: rupiah,
   // Manager who approved a discount over the brand's cashier limit (06 Order rule 5); optional for older devices.
   discount_approved_by: ulid.nullable().optional(),
+  // ADR-029: the sales channel and the delivery app's order number; optional for older servers.
+  channel_id: ulid.optional(),
+  external_ref: z.string().min(1).max(50).optional(),
 });
 
 export const orderVoided = z.strictObject({

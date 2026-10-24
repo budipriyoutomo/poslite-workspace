@@ -69,6 +69,15 @@ class CashierSales(BaseModel):
     net: int
 
 
+class ChannelSales(BaseModel):
+    channel_id: str
+    channel_name: str
+    kind: str
+    order_count: int
+    gross: int
+    net: int
+
+
 class SalesSummaryOut(BaseModel):
     days: list[DaySales]
     totals: Totals
@@ -76,6 +85,7 @@ class SalesSummaryOut(BaseModel):
     products: list[ProductSales]
     categories: list[CategorySales]
     cashiers: list[CashierSales]
+    channels: list[ChannelSales]  # ADR-029
 
 
 async def _report_scope(

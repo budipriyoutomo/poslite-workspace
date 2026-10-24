@@ -114,6 +114,8 @@ class OrderDetailOut(BaseModel):
     subtotal: int
     discount_amount: int
     price_includes_tax: bool  # ADR-030: service and tax are inside the prices
+    channel_id: str | None  # ADR-029
+    external_ref: str | None  # the delivery app's order number
     service_charge: int
     tax: int
     total: int

@@ -55,6 +55,8 @@ class PlaceOrderData:
     occurred_at: datetime
     table_label: str | None = None
     discount_approved_by: str | None = None  # manager who approved a discount over the limit
+    channel_id: str | None = None  # ADR-029; absent on devices from before channels
+    external_ref: str | None = None  # the delivery app's order number
 
 
 @dataclass
@@ -68,6 +70,7 @@ class Order:
     business_date: date
     status: str = "paid"
     flags: tuple[str, ...] = ()
+    channel_id: str | None = None  # the channel it is reported on (ADR-029)
     events: list[DomainEvent] = field(default_factory=list)
 
     @property
@@ -90,6 +93,9 @@ class Order:
         qris_unpaid: bool = False,
         method_inactive: bool = False,
         discount_unapproved: bool = False,
+        channel_id: str | None = None,
+        channel_unknown: bool = False,
+        external_ref_missing: bool = False,
     ) -> "Order":
         """Accept a sale from a device (06-domain-and-database.md, Order rules).
 
@@ -131,6 +137,10 @@ class Order:
             flags.append("PAYMENT_METHOD_INACTIVE")
         if discount_unapproved:  # over the brand's cashier limit without a manager (rule 5)
             flags.append("DISCOUNT_UNAPPROVED")
+        if channel_unknown:  # a channel the brand no longer has (ADR-029)
+            flags.append("CHANNEL_UNKNOWN")
+        if external_ref_missing:  # a delivery app sale without its order number
+            flags.append("EXTERNAL_REF_MISSING")
 
         order = cls(
             id=data.order_id,
@@ -139,6 +149,7 @@ class Order:
             data=data,
             business_date=business_date,
             flags=tuple(flags),
+            channel_id=channel_id,
         )
         order.events.append(
             OrderPlaced(

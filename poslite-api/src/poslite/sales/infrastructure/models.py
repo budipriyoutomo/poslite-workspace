@@ -27,6 +27,8 @@ class OrderModel(Base):
     service_rate_bps: Mapped[int] = mapped_column(Integer)
     tax_rate_bps: Mapped[int] = mapped_column(Integer)
     price_includes_tax: Mapped[bool] = mapped_column(Boolean, default=False)  # ADR-030
+    channel_id: Mapped[str | None] = mapped_column(CHAR(26))  # ADR-029
+    external_ref: Mapped[str | None] = mapped_column(String(50))
     service_charge: Mapped[int] = mapped_column(BigInteger)
     tax: Mapped[int] = mapped_column(BigInteger)
     total: Mapped[int] = mapped_column(BigInteger)

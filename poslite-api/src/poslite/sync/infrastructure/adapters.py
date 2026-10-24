@@ -1,7 +1,8 @@
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.payment import api as payment
-from poslite.shared.application.ports import OutletProfile
+from poslite.shared.application.ports import ChannelInfo, OutletProfile
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 from poslite.shift.api import ShiftRepository
 
@@ -75,3 +76,18 @@ class PaymentMethods:
 
     async def inactive(self, outlet_id: str, method_ids: list[str]) -> set[str]:
         return await payment.inactive_methods(self._uow, outlet_id, method_ids)
+
+
+class CatalogChannels:
+    """ChannelPort over the catalog module: channels of the outlet's brand (ADR-029)."""
+
+    def __init__(self, uow: SqlAlchemyUnitOfWork) -> None:
+        self._uow = uow
+
+    async def channel(self, outlet_id: str, channel_id: str) -> ChannelInfo | None:
+        brand_id = await organization.brand_of_outlet(self._uow, outlet_id)
+        return await catalog.channel_info(self._uow, brand_id=brand_id, channel_id=channel_id)
+
+    async def default(self, outlet_id: str, kind: str) -> ChannelInfo | None:
+        brand_id = await organization.brand_of_outlet(self._uow, outlet_id)
+        return await catalog.default_channel(self._uow, brand_id=brand_id, kind=kind)

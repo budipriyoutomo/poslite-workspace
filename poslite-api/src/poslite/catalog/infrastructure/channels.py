@@ -17,6 +17,7 @@ from poslite.catalog.infrastructure.models import (
     ProductModel,
     SalesChannelModel,
 )
+from poslite.shared.application.ports import ChannelInfo
 from poslite.shared.application.sync import Change
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
@@ -182,3 +183,50 @@ async def channel_changes(
             )
         )
     return changes
+
+
+def _info(m: SalesChannelModel) -> ChannelInfo:
+    return ChannelInfo(
+        id=m.id,
+        kind=m.kind,
+        applies_service=m.applies_service,
+        applies_tax=m.applies_tax,
+        requires_external_ref=m.requires_external_ref,
+    )
+
+
+async def channel_info(
+    uow: SqlAlchemyUnitOfWork, *, brand_id: str, channel_id: str
+) -> ChannelInfo | None:
+    """A channel of the brand, even switched off or deleted: the sale happened on it."""
+    row = await uow.session.get(SalesChannelModel, channel_id)
+    return _info(row) if row is not None and row.brand_id == brand_id else None
+
+
+async def default_channel(
+    uow: SqlAlchemyUnitOfWork, *, brand_id: str, kind: str
+) -> ChannelInfo | None:
+    """The brand's first live channel of a kind, for sales without one (older devices)."""
+    row = await uow.session.scalar(
+        select(SalesChannelModel)
+        .where(
+            SalesChannelModel.brand_id == brand_id,
+            SalesChannelModel.kind == kind,
+            SalesChannelModel.deleted_at.is_(None),
+        )
+        .order_by(SalesChannelModel.sort_order, SalesChannelModel.id)
+        .limit(1)
+    )
+    return _info(row) if row is not None else None
+
+
+async def channel_labels(
+    uow: SqlAlchemyUnitOfWork, channel_ids: list[str]
+) -> dict[str, tuple[str, str]]:
+    """Name and kind per channel id, for reports (deleted channels keep their name)."""
+    rows = await uow.session.execute(
+        select(SalesChannelModel.id, SalesChannelModel.name, SalesChannelModel.kind).where(
+            SalesChannelModel.id.in_(channel_ids)
+        )
+    )
+    return {i: (n, k) for i, n, k in rows}
