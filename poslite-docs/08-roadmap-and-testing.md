@@ -155,6 +155,20 @@ Diukur 2026-09-25 di Chrome 154 (macOS, Intel). Angka tablet = CPU di-throttle 4
 - **Aturan yang dihasilkan**: layar & laporan harus memakai index (`shiftId`, range `createdAt`, `syncStatus`), jangan scan seluruh `orders` (±0,5 detik di 4×, tumbuh linear). Laporan lintas hari yang besar lebih baik memakai ringkasan per shift yang disimpan saat tutup shift.
 - Batch outbox saat spike memindai urut `seq` lalu filter status. Rekomendasi compound index `[status+seq]` sudah diterapkan di skema v1 ([03](./03-offline-sync.md)), jadi batch push tetap cepat walau device offline berhari-hari.
 
+## Hasil Uji Beban Device (P1-10, 2026-10-25)
+
+`make web-load` (Playwright, full stack, Chrome): 3.000 order historis (30 hari), 5 open bill, outbox 500 event pending (shift + 499 order, 2 jam offline), lalu satu penjualan tunai offline dan kembali online. Waktu diukur dari aksi sampai hasil tampil (termasuk overhead Playwright, jadi batas atas). Laptop pengembang; **tablet referensi belum diuji**.
+
+| Metrik | CPU 1x | CPU 4x (≈ tablet menengah) | Target |
+|---|---|---|---|
+| Tambah item ke cart (tap → tampil) | 66 ms | 440 ms | < 100 ms |
+| Bayar tunai sampai transaksi tersimpan | 132 ms | 1.553 ms | < 500 ms |
+| Buka riwayat order hari ini | 644 ms | 3.575 ms | < 1 detik |
+| Push 501 event setelah online | 9,1 detik | 24,4 detik | < 60 detik, tanpa duplikat ✅ |
+| Ukuran IndexedDB setelah seed | 13,4 MB | 13,4 MB | dicatat |
+
+Server menerima tepat 500 order hari itu (499 seed + 1), tanpa duplikat. Di CPU 4x tiga target UI meleset; perlu diukur di tablet referensi sebelum gerbang Tahap C. Temuan yang sudah diperbaiki: tap sebelum cart tersimpan selesai dimuat bisa hilang (hidrasi zustand menimpa cart) — sekarang cart yang sudah terisi tidak ditimpa.
+
 ## Strategi Testing
 
 ### Frontend

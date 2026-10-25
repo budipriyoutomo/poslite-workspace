@@ -121,7 +121,7 @@ Bounded context di `src/poslite/`: `tenancy`, `identity`, `organization`, `catal
 | Pembayaran & billing | `payments/qris`, `gateway/webhook`, `billing/subscription` |
 | Integrasi | `webhooks`, `webhooks/{id}/deliveries`, `webhook-deliveries/{id}/retry` |
 
-Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 30 migrasi Alembic.
+Background (worker arq): relay outbox → read model laporan & webhook keluar (tiap 5 detik), job billing harian. 31 migrasi Alembic.
 
 ### Kualitas & tooling
 

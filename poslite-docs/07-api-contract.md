@@ -241,9 +241,11 @@ Dipakai oleh app `poslite-operator` (ADR-025) dengan token operator; token tenan
 
 | Method | Path | Keterangan |
 |---|---|---|
-| POST | `/platform/auth/login` | Email + password operator → `{token, expires_at}` (8 jam); salah atau operator nonaktif → 401 `INVALID_CREDENTIALS` |
+| POST | `/platform/auth/login` | Email + password operator → `{challenge_token, expires_at, step}` (5 menit; P1-8). `step: setup` (2FA belum aktif, wajib saat login pertama) menyertakan `totp_secret` dan `otpauth_uri`; `step: verify` tidak. Token challenge **tidak** membuka konsol. Salah atau operator nonaktif → 401 `INVALID_CREDENTIALS` |
+| POST | `/platform/auth/2fa` `{challenge_token, code \| recovery_code}` | Kode TOTP (RFC 6238, ±1 langkah 30 detik) atau satu kode pemulihan sekali pakai → `{token, expires_at, recovery_codes}` (8 jam). `recovery_codes` (10) hanya saat setup selesai; audit `operator.2fa_enabled`. Salah/kedaluwarsa → 401 `INVALID_2FA_CODE`; rate limit per IP |
 | GET | `/platform/me` | Operator yang sedang login `{id, email, name, created_at, disabled_at}` |
 | GET · POST | `/platform/operators` | Daftar operator · tambah `{email, name, password}` (password ≥ 12) → 201; email dipakai → 409 `OPERATOR_EMAIL_TAKEN` |
+| POST | `/platform/operators/{id}/reset-2fa` | Autentikator hilang (P1-8): rahasia & kode pemulihan dihapus, sesi dicabut; operator mengatur 2FA lagi saat login. Diri sendiri → 422 `CANNOT_RESET_SELF`; audit `operator.2fa_reset` |
 | POST | `/platform/operators/{id}/disable` · `/enable` | Nonaktifkan = semua token operator itu dicabut & login ditolak; diri sendiri → 409 `CANNOT_DISABLE_SELF`; tak dikenal → 404 `OPERATOR_NOT_FOUND` |
 | GET | `/platform/summary` | Jumlah tenant (aktif/ditangguhkan), langganan (`trialing`/`active`/`past_due`), outlet & perangkat aktif, `monthly_recurring_revenue` (tagihan terakhir tiap langganan aktif), `open_invoice_amount` — Rupiah integer |
 | GET | `/platform/tenants?status=active\|suspended&q=&limit=50&offset=0` | Daftar tenant terbaru dulu: jumlah outlet & perangkat, status langganan, `suspended_reason` (`manual`/`billing`). `q` mencocokkan nama, slug, atau email user tenant. `meta: {total, limit, offset}`; `limit` 1–200 |
@@ -256,7 +258,7 @@ Dipakai oleh app `poslite-operator` (ADR-025) dengan token operator; token tenan
 | POST | `/platform/tenants/{tid}/users/{uid}/deactivate` · `/activate` | Nonaktifkan = token user dicabut; owner aktif terakhir → 409 `LAST_OWNER` |
 | GET | `/platform/audit?tenant_id=&limit=50&offset=0` | Audit log aksi operator, terbaru dulu: `action`, `operator_name`, `tenant_name`, `target_id`, `detail`; `meta: {total, limit, offset}` |
 
-Setiap aksi yang mengubah data (suspend/aktifkan tenant, perpanjang trial, tandai lunas, reset password, (non)aktifkan user, tambah/(non)aktifkan operator) tercatat di `platform_audit_log`. Kode aksi: `tenant.suspend`, `tenant.activate`, `subscription.extend_trial`, `invoice.mark_paid`, `user.reset_password`, `user.deactivate`, `user.activate`, `operator.create`, `operator.disable`, `operator.enable`.
+Setiap aksi yang mengubah data (suspend/aktifkan tenant, perpanjang trial, tandai lunas, reset password, (non)aktifkan user, tambah/(non)aktifkan operator) tercatat di `platform_audit_log`. Kode aksi: `tenant.suspend`, `tenant.activate`, `subscription.extend_trial`, `invoice.mark_paid`, `user.reset_password`, `user.deactivate`, `user.activate`, `operator.create`, `operator.disable`, `operator.enable`, `operator.2fa_enabled`, `operator.2fa_reset` (P1-8).
 
 Semua endpoint lain otomatis ter-scope ke tenant dari token; **tidak ada** parameter `tenant_id` di URL/body tenant API.
 

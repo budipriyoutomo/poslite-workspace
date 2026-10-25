@@ -441,13 +441,14 @@ Provisioning VPS + Vercel dimulai di Tahap A; sisanya di Tahap D.
 | Rilis | Tag versi per rilis; rilis web hanya di luar jam operasional restoran pilot; SW update tetap tidak memaksa reload (sudah ada) |
 | Rollback | Prosedur tertulis: rollback image API + `alembic downgrade` satu langkah + redeploy Vercel ke build sebelumnya. Setiap migrasi `0023`–`0031` wajib punya `downgrade()` yang diuji |
 
-### P1-8 — 2FA Konsol Operator
+### P1-8 — 2FA Konsol Operator ✅
 
 - TOTP (RFC 6238) untuk semua akun `platform_admin`; wajib saat login pertama setelah fitur aktif.
 - 10 recovery code sekali pakai (migrasi `0031`).
 - Audit log mencatat aktivasi/reset 2FA.
 - Rate limit login sudah ada (ADR-027); tambahkan juga untuk verifikasi TOTP.
 - Wajib selesai sebelum data menu restoran pilot masuk ke staging (Tahap E).
+- **Status (2026-10-25)**: selesai (migrasi `0031`). TOTP tanpa dependensi baru (stdlib, diuji dengan test vector RFC 6238). Login = password → token challenge 5 menit → kode TOTP atau kode pemulihan → sesi 8 jam. Konsol menampilkan kunci (teks + tautan `otpauth://`, belum QR) dan 10 kode pemulihan sekali. Rahasia TOTP disimpan di database tanpa enkripsi tambahan (hanya role `poslite_system` yang membacanya) — enkripsi at-rest menyusul bila ada KMS.
 
 ### P1-9 — Perbaikan Dokumen
 
@@ -461,7 +462,7 @@ Provisioning VPS + Vercel dimulai di Tahap A; sisanya di Tahap D.
 
 - ADR-028 sampai ADR-031 ke [01](./01-system-architecture.md), schema ke [06](./06-domain-and-database.md), event & endpoint ke [07](./07-api-contract.md), Dexie v6–v8 ke [03](./03-offline-sync.md), jumlah migrasi di 09.
 
-### P1-10 — Uji Beban Device
+### P1-10 — Uji Beban Device (harness ✅, target belum)
 
 Metrik pilot menuntut ≥ 30 transaksi/jam di jam puncak, dan dry run mematikan Wi-Fi selama 2 jam. Keduanya belum pernah diuji di perangkat.
 
@@ -477,6 +478,7 @@ Metrik pilot menuntut ≥ 30 transaksi/jam di jam puncak, dan dry run mematikan 
 | Ukuran IndexedDB setelah seed | Tercatat (untuk batas retensi lokal) |
 
 - Hasil dicatat di [08](./08-roadmap-and-testing.md). Bila target tidak tercapai, perbaikan masuk Tahap C sebelum gerbang keluar.
+- **Status (2026-10-25)**: `make web-load` siap (seed + ukur + cek duplikat di server). Di laptop CPU 1x semua target tercapai; di CPU 4x tiga target UI meleset (lihat 08). Belum diukur di tablet referensi; optimasi menunggu angka dari perangkat itu.
 
 ---
 
@@ -595,12 +597,12 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 - [x] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
 - [x] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
 - [x] P1-3 (refund tunai belum dibulatkan) Pembulatan tunai (`0030`)
-- [ ] P1-10 Uji beban device memenuhi target
+- [~] P1-10 (harness siap; target UI belum di CPU 4x) Uji beban device memenuhi target
 - [ ] Checklist onboarding tenant
 
 **Tahap D — Infrastruktur, Keamanan & Hardware**
 - [ ] P1-7 Monitoring, backup off-site, uji restore, prosedur rollback
-- [ ] P1-8 2FA konsol operator (`0031`)
+- [x] P1-8 2FA konsol operator (`0031`)
 - [ ] P1-5 Print Bridge installer + pairing (bila D4 memakai LAN)
 - [ ] P1-6 Uji perangkat asli + Daftar Perangkat Teruji
 - [ ] Perjanjian pilot + syarat & privasi
