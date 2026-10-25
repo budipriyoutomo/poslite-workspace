@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1280px; padding: 28px; background: #eef1f5; }
+h1 { font-size: 20px; margin-bottom: 4px; } p.sub { color: var(--muted-fg); margin-bottom: 20px; }
+.state { margin-bottom: 18px; }
+.state label { display: block; font-size: 13px; font-weight: 700; color: var(--muted-fg); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.hdr { height: 64px; border-radius: 14px; }
+.demo { background: repeating-linear-gradient(135deg,#c62a21 0 14px,#b0241c 14px 28px); color: #fff; font-weight: 700; padding: 9px 18px; border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; font-size: 14px; }
+.demo + .hdr { border-radius: 0 0 14px 14px; }
+.pop { margin-top: 8px; width: 380px; margin-left: auto; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(15,23,42,.12); font-size: 14px; }
+.pop .r { display: flex; justify-content: space-between; padding: 5px 0; }
+</style></head><body>
+<h1>Header kasir: status sinkronisasi, bukan sekadar status internet</h1>
+<p class="sub">Kasir dan manajer perlu tahu satu hal: apakah transaksi sudah aman di server. Badge bisa ditekan dan membuka layar Sync.</p>
+
+<div class="state"><label>1 · Normal: semua transaksi sudah di server</label>
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>Sushi Maru</b><small>Outlet Dago · Tablet Kasir 1</small></div><div class="sp"></div>
+<span class="pill s-ok"><span class="dot"></span>Tersinkron · 2 mnt lalu</span>
+<div class="user"><div class="av">S</div>Siti</div><span class="lockbtn">🔒 Kunci</span></div></div>
+
+<div class="state"><label>2 · Offline atau sedang mengirim: jualan tetap jalan</label>
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>Sushi Maru</b><small>Outlet Dago · Tablet Kasir 1</small></div><div class="sp"></div>
+<span class="pill s-wait"><span class="dot"></span>Offline · 7 transaksi menunggu</span>
+<div class="user"><div class="av">S</div>Siti</div><span class="lockbtn">🔒 Kunci</span></div></div>
+
+<div class="state"><label>3 · Gagal sync: perlu tindakan (merah, berkedip pelan sekali)</label>
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>Sushi Maru</b><small>Outlet Dago · Tablet Kasir 1</small></div><div class="sp"></div>
+<span class="pill s-err"><span class="dot"></span>2 transaksi gagal dikirim · Lihat</span>
+<div class="user"><div class="av">S</div>Siti</div><span class="lockbtn">🔒 Kunci</span></div>
+<div class="pop"><b>Status sinkronisasi</b>
+<div class="r"><span class="muted">Terakhir berhasil</span><span>14:02</span></div>
+<div class="r"><span class="muted">Menunggu dikirim</span><span>5</span></div>
+<div class="r"><span class="muted">Gagal (butuh manajer)</span><span style="color:var(--destructive);font-weight:700">2</span></div>
+<div style="margin-top:10px" class="row gap8"><span class="btn" style="flex:1">Kirim ulang</span><span class="btn primary" style="flex:1">Buka layar Sync</span></div></div></div>
+
+<div class="state"><label>4 · Mode demo: tidak bisa tertukar dengan mode produksi</label>
+<div class="demo"><span>⚠ MODE DEMO: transaksi TIDAK tersimpan ke server dan tidak masuk laporan owner</span><span>Keluar dari demo</span></div>
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>POSLite Demo</b><small>Data contoh</small></div><div class="sp"></div>
+<span class="pill" style="background:rgba(255,255,255,.12);color:#fff">DEMO</span>
+<div class="user"><div class="av">S</div>Siti</div><span class="lockbtn">🔒 Kunci</span></div></div>
+</body></html>

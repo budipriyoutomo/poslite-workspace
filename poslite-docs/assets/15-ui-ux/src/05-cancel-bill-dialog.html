@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1280px; height: 800px; background: #3c4352; position: relative; overflow: hidden; }
+.dlg { position: absolute; left: 140px; top: 46px; width: 1000px; background: #fff; border-radius: 20px; padding: 24px 26px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+.dlg h2 { font-size: 22px; } .grid { display: grid; grid-template-columns: 1fr 330px; gap: 24px; margin-top: 14px; }
+.warn { background: var(--warning-bg); color: #6b3b00; border-radius: 12px; padding: 12px 14px; font-size: 13.5px; line-height: 1.45; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-fg); margin: 16px 0 8px; }
+.it { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14.5px; }
+.cb { width: 20px; height: 20px; border-radius: 6px; background: var(--destructive); color: #fff; display: inline-grid; place-items: center; font-size: 12px; margin-right: 10px; }
+.reasons { display: flex; flex-wrap: wrap; gap: 8px; }
+.reasons span { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; }
+.reasons .on { background: var(--destructive-bg); border-color: var(--destructive); color: var(--destructive); }
+.ta { border: 1px solid var(--input); border-radius: 12px; padding: 10px 12px; color: var(--muted-fg); height: 54px; font-size: 14px; }
+.appr { background: var(--muted); border-radius: 16px; padding: 16px; }
+.mgr { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-weight: 600; }
+.dots { display: flex; justify-content: center; gap: 14px; margin: 14px 0; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #94a0b8; } .dots i.f { background: var(--fg); border-color: var(--fg); }
+.kp { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.kp span { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 11px 0; text-align: center; font-size: 18px; font-weight: 600; }
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+</style></head><body>
+<div class="dlg">
+<div class="row between"><h2>Batalkan bill Meja A1</h2><span style="font-size:22px">✕</span></div>
+<div class="grid">
+<div>
+<div class="warn"><b>3 item sudah dikirim ke dapur/bar (Rp 174.000).</b> Pembatalan dicatat atas nama Anda dan manajer yang menyetujui, muncul di laporan owner, dan tiket <b>BATAL</b> otomatis dicetak ke dapur dan bar.</div>
+<h3>Item yang dibatalkan</h3>
+<div class="it"><span><span class="cb">✓</span>2× Salmon Roll <span class="tag t-kitchen">Di dapur</span></span><span>Rp 90.000</span></div>
+<div class="it"><span><span class="cb">✓</span>1× Tonkotsu Ramen <span class="tag t-kitchen">Di dapur</span></span><span>Rp 60.000</span></div>
+<div class="it"><span><span class="cb">✓</span>2× Ocha Dingin <span class="tag t-kitchen">Di bar</span></span><span>Rp 24.000</span></div>
+<h3>Alasan (wajib)</h3>
+<div class="reasons"><span class="on">Tamu batal / pergi</span><span>Salah input</span><span>Menu habis</span><span>Kualitas / komplain</span><span>Lainnya</span></div>
+<h3>Catatan</h3>
+<div class="ta">mis. tamu menunggu terlalu lama, pindah ke resto lain…</div>
+</div>
+<div class="appr">
+<div style="font-weight:700;margin-bottom:10px">Persetujuan manajer</div>
+<div class="mgr"><span class="av" style="background:var(--primary)">B</span>Budi · Manajer<span class="sp"></span><span class="muted">Ganti ▾</span></div>
+<div class="dots"><i class="f"></i><i class="f"></i><i></i><i></i></div>
+<div class="kp"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span></span><span>0</span><span>⌫</span></div>
+</div>
+</div>
+<div class="foot"><span class="btn">Kembali</span><div class="row gap12"><span class="muted" style="font-size:13px">Aktif setelah alasan &amp; PIN diisi</span><span class="btn danger lg" style="opacity:.55">Batalkan bill · Rp 174.000</span></div></div>
+</div>
+<span class="pin" style="left:112px;top:104px">1</span>
+<span class="pin" style="left:112px;top:388px">2</span>
+<span class="pin" style="left:1148px;top:112px">3</span>
+<span class="pin" style="left:1148px;top:612px">4</span>
+</body></html>

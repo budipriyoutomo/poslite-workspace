@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+.main { display: grid; grid-template-columns: 420px 1fr; gap: 16px; padding: 16px; min-height: 0; position: relative; }
+.c { padding: 18px 20px; } h2 { font-size: 20px; }
+.pr { border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 10px; }
+.pr .row b { font-size: 16px; }
+.ok { background: var(--accent); color: var(--accent-fg); } .off { background: var(--muted); color: var(--muted-fg); } .err { background: var(--destructive-bg); color: var(--destructive); }
+.steps { display: flex; gap: 8px; margin: 10px 0 18px; font-size: 13px; font-weight: 600; }
+.steps span { flex: 1; padding: 8px 10px; border-radius: 10px; background: var(--muted); color: var(--muted-fg); }
+.steps .on { background: var(--primary); color: #fff; } .steps .done { background: var(--accent); color: var(--accent-fg); }
+.opts { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.opt { border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.opt .ic { font-size: 30px; } .opt b { font-size: 17px; } .opt p { font-size: 13px; color: var(--muted-fg); line-height: 1.4; }
+.opt.on { border: 2px solid var(--primary); background: #f3fbf7; }
+.rec { align-self: flex-start; font-size: 11.5px; font-weight: 700; color: var(--accent-fg); background: var(--accent); padding: 3px 8px; border-radius: 999px; }
+.found { margin-top: 16px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.found div { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14.5px; }
+.found div:last-child { border: 0; }
+.adv { margin-top: 12px; font-size: 13px; color: var(--muted-fg); }
+</style></head><body>
+<div class="app">
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>Sushi Maru</b><small>Outlet Dago · Tablet Kasir 1</small></div><div class="sp"></div>
+<span class="pill s-ok"><span class="dot"></span>Tersinkron · 1 mnt lalu</span><div class="user"><div class="av" style="background:var(--primary)">B</div>Budi · Manajer</div><span class="lockbtn">🔒 Kunci</span></div>
+<div class="body">
+<div class="rail"><div><i>🛒</i>Jual</div><div><i>🍽</i>Meja</div><div><i>🧾</i>Riwayat</div><div><i>⏱</i>Shift</div><div class="on" style="margin-top:auto"><i>☰</i>Lainnya</div></div>
+<div class="main">
+<div class="card c">
+<h2>Printer di tablet ini</h2>
+<div class="muted" style="font-size:13px">Hanya manajer yang bisa mengubah. Kasir hanya melihat status.</div>
+<div class="pr"><div class="row between"><b>🧾 Struk kasir</b><span class="tag ok">● Siap</span></div><div class="muted" style="font-size:13px;margin:4px 0 10px">Bluetooth · RPP02N · 58 mm</div><div class="row gap8"><span class="btn" style="flex:1;padding:9px">Test print</span><span class="btn" style="flex:1;padding:9px">Ganti</span></div></div>
+<div class="pr"><div class="row between"><b>🍳 Dapur</b><span class="tag err">● Tidak terjangkau</span></div><div class="muted" style="font-size:13px;margin:4px 0 10px">Wi-Fi · 192.168.1.50 · 80 mm · 3 tiket menunggu</div><div class="row gap8"><span class="btn" style="flex:1;padding:9px">Coba lagi</span><span class="btn" style="flex:1;padding:9px">Panduan</span></div></div>
+<div class="pr"><div class="row between"><b>🍹 Bar</b><span class="tag off">Belum diatur</span></div><div class="muted" style="font-size:13px;margin:4px 0 10px">Tiket minuman ikut printer struk</div><span class="btn primary" style="width:100%;padding:9px">Atur printer bar</span></div>
+</div>
+<div class="card c">
+<h2>Atur printer bar</h2>
+<div class="steps"><span class="done">1 · Peran ✓</span><span class="on">2 · Cara terhubung</span><span>3 · Pilih printer</span><span>4 · Test print</span></div>
+<div class="opts">
+<div class="opt on"><span class="ic">📶</span><b>Wi-Fi / Kabel LAN</b><p>Printer tersambung ke router outlet. Cocok untuk dapur &amp; bar, dipakai bersama banyak tablet.</p><span class="rec">Disarankan untuk dapur/bar</span></div>
+<div class="opt"><span class="ic">🔵</span><b>Bluetooth</b><p>Printer kecil di samping tablet kasir. Tablet Android dengan Chrome. Tidak tersedia di iPad.</p><span class="rec" style="background:var(--muted);color:var(--muted-fg)">Untuk struk kasir</span></div>
+<div class="opt"><span class="ic">🔌</span><b>Kabel USB</b><p>Printer dicolok langsung ke PC kasir Windows.</p></div>
+</div>
+<div class="found">
+<div><span><b>Printer ditemukan lewat Print Bridge</b></span><span class="muted">Mencari… 2 printer</span></div>
+<div><span>🖨 EPSON TM-T82X · 192.168.1.61 · 80 mm</span><span class="btn primary" style="padding:8px 14px">Pilih</span></div>
+<div><span>🖨 Printer 192.168.1.50 (Dapur)</span><span class="muted">Sudah dipakai: Dapur</span></div>
+</div>
+<div class="adv">Tidak ketemu? <u>Masukkan alamat IP manual</u> · <u>Pengaturan lanjutan (Print Bridge, ePOS)</u></div>
+</div>
+<span class="pin" style="left:6px;top:4px">1</span>
+<span class="pin" style="left:408px;top:186px">2</span>
+<span class="pin" style="left:450px;top:120px">3</span>
+<span class="pin" style="left:450px;top:410px">4</span>
+</div></div></div></body></html>

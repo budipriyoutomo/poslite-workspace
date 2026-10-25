@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--bg); }
+.h { background: var(--header); color: #fff; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.h .t { flex: 1; } .h b { font-size: 16px; } .h small { display: block; color: #9aa6bd; font-size: 12px; }
+.tablebar { background: var(--warning-bg); color: #7a4300; padding: 10px 14px; font-weight: 700; display: flex; justify-content: space-between; font-size: 14px; }
+.search { margin: 10px 14px 8px; border: 1px solid var(--input); background: #fff; border-radius: 12px; padding: 10px 12px; color: var(--muted-fg); font-size: 14px; }
+.cats { display: flex; gap: 6px; padding: 0 14px 8px; overflow: hidden; }
+.cats .chip { padding: 7px 12px; font-size: 13px; white-space: nowrap; }
+.list { background: #fff; border-top: 1px solid var(--border); }
+.it { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+.it::before { content: ""; width: 4px; align-self: stretch; border-radius: 4px; background: var(--c); }
+.it .n { flex: 1; } .it .n b { display: block; font-size: 15px; } .it .n span { font-size: 13px; color: var(--primary); font-weight: 700; }
+.add { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+.q { display: flex; align-items: center; gap: 8px; } .q span { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); display: grid; place-items: center; font-weight: 700; } .q b { width: 16px; text-align: center; }
+.out { opacity: .5; } .out .n span { color: var(--destructive); }
+.bottom { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--border); padding: 10px 14px 18px; }
+.bottom .btn { width: 100%; justify-content: space-between; }
+</style></head><body>
+<div class="h"><div class="logo" style="width:32px;height:32px;font-size:15px">P</div><div class="t"><b>Sushi Maru</b><small>Dago · HP Pelayan 2</small></div><span class="pill s-wait" style="padding:5px 9px;font-size:12px"><span class="dot"></span>3 menunggu</span></div>
+<div class="tablebar"><span>🍽 Meja A3 · 2 tamu</span><span style="text-decoration:underline">Ganti</span></div>
+<div class="search">🔍 Cari menu…</div>
+<div class="cats"><span class="chip on">Semua</span><span class="chip">Sushi Roll</span><span class="chip">Nigiri</span><span class="chip">Ramen</span><span class="chip">Minuman</span></div>
+<div class="list">
+<div class="it" style="--c:#e8590c"><div class="n"><b>Salmon Roll</b><span>Rp 45.000</span></div><div class="q"><span>−</span><b>2</b><span>+</span></div></div>
+<div class="it" style="--c:#e8590c"><div class="n"><b>California Roll</b><span>Rp 38.000</span></div><span class="add">+</span></div>
+<div class="it" style="--c:#e8590c"><div class="n"><b>Dragon Roll</b><span>Rp 62.000</span></div><span class="add">+</span></div>
+<div class="it out" style="--c:#e8590c"><div class="n"><b>Unagi Roll</b><span>Habis</span></div><span class="add" style="background:var(--muted);color:#aab">+</span></div>
+<div class="it" style="--c:#d6336c"><div class="n"><b>Salmon Nigiri (2 pcs)</b><span>Rp 32.000</span></div><span class="add">+</span></div>
+<div class="it" style="--c:#7048e8"><div class="n"><b>Tonkotsu Ramen</b><span>Rp 55.000 · ada pilihan</span></div><div class="q"><span>−</span><b>1</b><span>+</span></div></div>
+<div class="it" style="--c:#7048e8"><div class="n"><b>Shoyu Ramen</b><span>Rp 50.000 · ada pilihan</span></div><span class="add">+</span></div>
+<div class="it" style="--c:#0ca678"><div class="n"><b>Ocha Dingin</b><span>Rp 12.000</span></div><div class="q"><span>−</span><b>2</b><span>+</span></div></div>
+<div class="it" style="--c:#0ca678"><div class="n"><b>Matcha Latte</b><span>Rp 28.000</span></div><span class="add">+</span></div>
+</div>
+<div class="bottom"><div class="muted" style="font-size:12.5px;margin-bottom:6px">5 item baru · belum dikirim</div><span class="btn primary lg"><span>Kirim ke dapur</span><span>Subtotal Rp 169.000 ›</span></span></div>
+<span class="pin" style="left:350px;top:96px">1</span>
+<span class="pin" style="left:296px;top:274px">2</span>
+<span class="pin" style="left:350px;top:742px">3</span>
+</body></html>

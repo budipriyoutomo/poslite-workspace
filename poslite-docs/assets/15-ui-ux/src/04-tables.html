@@ -1,0 +1,59 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+.main { display: grid; grid-template-columns: 1fr 380px; min-height: 0; position: relative; }
+.floor { padding: 16px 18px; }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted-fg); margin: 12px 0 14px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+.tables { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+.tb { border-radius: 14px; padding: 12px; height: 118px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid transparent; }
+.tb b { font-size: 22px; }
+.tb .meta { font-size: 12.5px; line-height: 1.35; }
+.free { background: #fff; border-color: var(--border); color: var(--muted-fg); } .free b { color: var(--fg); }
+.busy { background: #fff4e2; color: #7a4300; }
+.late { background: #fdecea; color: #9b1c15; }
+.bill { background: #e8f0ff; color: #1b4ea8; }
+.sel { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(10,127,92,.2); }
+.side { background: #fff; border-left: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.side h2 { font-size: 22px; }
+.it { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.danger-zone { margin-top: auto; border-top: 1px dashed #f3c6c2; padding-top: 10px; }
+</style></head><body>
+<div class="app">
+<div class="hdr"><div class="logo">P</div><div class="brand"><b>Sushi Maru</b><small>Outlet Dago · Tablet Kasir 1</small></div><div class="sp"></div>
+<span class="pill s-ok"><span class="dot"></span>Tersinkron · 1 mnt lalu</span><div class="user"><div class="av">S</div>Siti</div><span class="lockbtn">🔒 Kunci</span></div>
+<div class="body">
+<div class="rail"><div><i>🛒</i>Jual</div><div class="on"><i>🍽</i>Meja</div><div><i>🧾</i>Riwayat</div><div><i>⏱</i>Shift</div><div style="margin-top:auto"><i>☰</i>Lainnya</div></div>
+<div class="main">
+<div class="floor">
+<div class="row between"><div class="seg"><span class="on">Semua (10)</span><span>Dalam</span><span>Teras</span><span>Bar</span></div><span class="btn primary">+ Pesanan baru tanpa meja</span></div>
+<div class="legend"><span><i style="background:#fff;border:1px solid #ccd"></i>Kosong (4)</span><span><i style="background:#ffd58a"></i>Terisi (4)</span><span><i style="background:#f7a8a2"></i>&gt; 90 menit (1)</span><span><i style="background:#a9c4ff"></i>Tagihan dicetak (1)</span></div>
+<div class="tables">
+<div class="tb busy sel"><b>A1</b><div class="meta">3 tamu · 52 mnt<br><b style="font-size:15px">Rp 200.970</b></div></div>
+<div class="tb free"><b>A2</b><div class="meta">Kosong<br>Dalam · 4 kursi</div></div>
+<div class="tb late"><b>A3</b><div class="meta">2 tamu · 1 j 47 mnt<br><b style="font-size:15px">Rp 156.200</b></div></div>
+<div class="tb busy"><b>A4</b><div class="meta">4 tamu · 18 mnt<br><b style="font-size:15px">Rp 318.000</b></div></div>
+<div class="tb free"><b>A5</b><div class="meta">Kosong<br>Dalam · 2 kursi</div></div>
+<div class="tb bill"><b>B1</b><div class="meta">Tagihan dicetak 20:14<br><b style="font-size:15px">Rp 412.500</b></div></div>
+<div class="tb busy"><b>B2</b><div class="meta">2 tamu · 34 mnt<br><b style="font-size:15px">Rp 98.000</b></div></div>
+<div class="tb free"><b>B3</b><div class="meta">Kosong<br>Teras · 4 kursi</div></div>
+<div class="tb busy"><b>BAR 1</b><div class="meta">1 tamu · 9 mnt<br><b style="font-size:15px">Rp 45.000</b></div></div>
+<div class="tb free"><b>BAR 2</b><div class="meta">Kosong<br>Bar · 1 kursi</div></div>
+</div>
+</div>
+<div class="side">
+<div class="row between"><h2>Meja A1</h2><span class="tag t-kitchen">Terisi · 52 mnt</span></div>
+<div class="muted" style="font-size:13px">3 tamu · dibuka 19:42 oleh Siti · Tablet Kasir 1</div>
+<div class="it"><span>2× Salmon Roll <span class="tag t-kitchen">Di dapur</span></span><span>90.000</span></div>
+<div class="it"><span>1× Tonkotsu Ramen <span class="tag t-kitchen">Di dapur</span></span><span>60.000</span></div>
+<div class="it"><span>2× Ocha Dingin <span class="tag t-kitchen">Di bar</span></span><span>24.000</span></div>
+<div class="row between" style="font-weight:800;font-size:18px;padding-top:4px"><span>Total</span><span>Rp 200.970</span></div>
+<span class="btn primary lg">Tambah pesanan</span>
+<div class="acts"><span class="btn">🖨 Cetak tagihan</span><span class="btn">Bayar</span><span class="btn">⇄ Pindah meja</span><span class="btn">Pisah bill</span></div>
+<div class="danger-zone"><span class="btn danger-ghost" style="width:100%">🔒 Batalkan bill · butuh PIN manajer</span></div>
+</div>
+<span class="pin" style="left:6px;top:150px">1</span>
+<span class="pin" style="left:452px;top:46px">2</span>
+<span class="pin" style="left:1176px;top:345px">3</span>
+<span class="pin" style="left:1176px;top:686px">4</span>
+</div></div></div></body></html>
