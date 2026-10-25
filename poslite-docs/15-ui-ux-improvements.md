@@ -77,6 +77,13 @@ Prinsip ini dipakai untuk menilai semua layar di dokumen ini dan layar baru ke d
 
 ### UX-01 — Status Sync Selalu Terlihat + Banner Mode Demo
 
+**Status: selesai** (branch `feat/ux-01-sync-status`). Catatan implementasi:
+
+- Baris identitas di header memakai kode device (`Perangkat A`), karena nama device belum disimpan di data lokal.
+- Badge `DEMO` tidak bisa ditekan; banner demo sudah menjelaskan statusnya.
+- "Keluar dari demo" meminta konfirmasi, menghapus data demo, mengunci sesi, lalu membuka `/activate`. Fungsi ini menolak menghapus device yang sudah diaktifkan.
+- Cek badge kuning → hijau ada di `tests/fullstack/activate-sell-sync.spec.ts` (butuh API lokal), bukan di `offline.spec.ts`, karena device demo tidak pernah sync.
+
 **Masalah**
 
 - Header menampilkan **"Online"** (status internet). Di mode demo, badge ini tetap hijau "Online" padahal tidak ada data yang dikirim ke server. Di Riwayat, order berstatus "Pending" di saat yang sama.
@@ -482,7 +489,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 
 ## 6. Checklist
 
-- [ ] UX-01 Badge status sync selalu tampil (dengan urutan kondisi) + banner mode demo + demo dimatikan di produksi
+- [x] UX-01 Badge status sync selalu tampil (dengan urutan kondisi) + banner mode demo + demo dimatikan di produksi
 - [ ] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
 - [ ] UX-07 Toast tidak menutupi konten
 - [ ] UX-02 API: migrasi `0032`, `denominations` di payload dan `ShiftOut`, `blind_close`, permission `shift.variance.view`
