@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
-import { ApprovalField, type Approver } from "@/shared/ui/approval-field";
+import { type ApprovalCheck, ApprovalField, type Approver } from "@/shared/ui/approval-field";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 
 import { copy } from "../copy";
@@ -38,7 +38,7 @@ export function RefundDialog({
   defaultMethodId: string;
   actorIsManager: boolean;
   approvers: Approver[];
-  verifyApprover: (userId: string, pin: string) => Promise<boolean>;
+  verifyApprover: ApprovalCheck;
   onConfirm: (request: RefundRequest) => Promise<void>;
   onClose: () => void;
 }) {

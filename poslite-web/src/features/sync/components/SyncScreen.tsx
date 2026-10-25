@@ -1,10 +1,9 @@
 "use client";
 
-import { useLiveQuery } from "dexie-react-hooks";
 import { RefreshCw, Send } from "lucide-react";
 
-import { verifyPin } from "@/features/auth";
-import { getDb, isManager } from "@/shared/db";
+import { checkManagerPin, useManagers } from "@/features/auth";
+import { getDb } from "@/shared/db";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 
@@ -14,14 +13,8 @@ import { kickSync } from "../application/sync-runner";
 import { useDeadEvents, useSyncStatus } from "../application/use-sync-status";
 import { EmergencyExport } from "./EmergencyExport";
 
-/** A manager's PIN, checked offline like the lock screen. */
-async function isManagerPin(userId: string, pin: string): Promise<boolean> {
-  try {
-    return isManager((await verifyPin({ userId, pin })).role);
-  } catch {
-    return false;
-  }
-}
+/** A manager's PIN, checked offline like the lock screen (and counted toward its lockout). */
+const isManagerPin = async (userId: string, pin: string) => (await checkManagerPin(userId, pin)) === true;
 
 const TYPE_LABEL: Record<string, string> = {
   "order.placed": "Penjualan",
@@ -36,7 +29,7 @@ const TYPE_LABEL: Record<string, string> = {
 export function SyncScreen() {
   const status = useSyncStatus();
   const dead = useDeadEvents();
-  const managers = useLiveQuery(async () => (await getDb().users.toArray()).filter((u) => isManager(u.role)).map((u) => ({ id: u.id, name: u.name })), []) ?? [];
+  const managers = useManagers() ?? [];
   if (!status) return null;
   if (status.mode !== "server") return <p className="p-6 text-muted-foreground">Mode demo: data tidak dikirim ke server.</p>;
 

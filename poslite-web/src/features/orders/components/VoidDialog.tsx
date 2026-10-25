@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Button } from "@/shared/ui/button";
-import { ApprovalField, type Approver } from "@/shared/ui/approval-field";
+import { type ApprovalCheck, ApprovalField, type Approver } from "@/shared/ui/approval-field";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 
 import { copy } from "../copy";
@@ -24,7 +24,7 @@ export function VoidDialog({
   hasNonCash: boolean;
   actorIsManager: boolean;
   approvers: Approver[];
-  verifyApprover: (userId: string, pin: string) => Promise<boolean>;
+  verifyApprover: ApprovalCheck;
   onConfirm: (input: { reason: string; approvedBy: string | null }) => Promise<void>;
   onClose: () => void;
 }) {

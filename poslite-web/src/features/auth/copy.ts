@@ -11,6 +11,7 @@ export const copy = {
   errors: {
     WRONG_PIN: "PIN salah",
     UNKNOWN_USER: "Kasir tidak ditemukan di perangkat ini",
+    NOT_MANAGER: "Hanya manajer atau pemilik yang bisa menyetujui",
     PIN_LOCKED: (until: string) => `Terlalu banyak PIN salah. Coba lagi pukul ${until}`,
   },
   demoHint: "Demo: Siti 1234 · Budi 9999",

@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { VoidedLine } from "@/features/cart";
 import { checkReason, type Reason, ReasonField } from "@/features/orders";
 import { formatRupiah } from "@/shared/money";
-import { ApprovalField, type Approver } from "@/shared/ui/approval-field";
+import { type ApprovalCheck, ApprovalField, type Approver } from "@/shared/ui/approval-field";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 
@@ -25,7 +25,7 @@ export function BillVoidDialog({
   voided: VoidedLine[];
   actorIsManager: boolean;
   approvers: Approver[];
-  verifyApprover: (userId: string, pin: string) => Promise<boolean>;
+  verifyApprover: ApprovalCheck;
   onConfirm: (input: { reason: string; approvedBy: string | null }) => Promise<void>;
   onClose: () => void;
 }) {

@@ -4,19 +4,10 @@ import { UserRound } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import type { UserRow } from "@/shared/db";
-import { AppError } from "@/shared/errors";
 
+import { pinErrorMessage } from "../application/manager-pin";
 import { copy } from "../copy";
 import { PinPad } from "./PinPad";
-
-function errorMessage(error: unknown): string {
-  if (!(error instanceof AppError)) return String(error);
-  if (error.code === "PIN_LOCKED") {
-    const until = new Date(String(error.details.lockedUntil)).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    return copy.errors.PIN_LOCKED(until);
-  }
-  return copy.errors[error.code as "WRONG_PIN" | "UNKNOWN_USER"] ?? error.code;
-}
 
 /**
  * Pick a name, then the PIN (03-offline-sync, Offline Auth). Opens on the last cashier who logged
@@ -48,7 +39,7 @@ export function CashierLogin({
     try {
       await onLogin(selected, pin);
     } catch (e) {
-      setError(errorMessage(e));
+      setError(pinErrorMessage(e));
     } finally {
       setIsChecking(false);
     }

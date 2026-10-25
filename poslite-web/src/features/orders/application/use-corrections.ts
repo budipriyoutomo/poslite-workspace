@@ -2,25 +2,19 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { verifyPin } from "@/features/auth";
+import { checkManagerPin, useManagers } from "@/features/auth";
 import { API_BASE_URL, APP_VERSION } from "@/config/env";
-import { getDb, isManager, readState } from "@/shared/db";
+import { getDb, readState } from "@/shared/db";
 
 import { orderLookup } from "../infrastructure/order-lookup";
 
 /** Managers and owners on this device: they approve voids and refunds with their PIN. */
 export function useApprovers() {
-  return useLiveQuery(async () => (await getDb().users.toArray()).filter((u) => isManager(u.role)).map((u) => ({ id: u.id, name: u.name })), []) ?? [];
+  return useManagers() ?? [];
 }
 
 /** Offline PIN check of a manager (same PBKDF2 and lockout as the lock screen). */
-export async function verifyApprover(userId: string, pin: string): Promise<boolean> {
-  try {
-    return isManager((await verifyPin({ userId, pin })).role);
-  } catch {
-    return false;
-  }
-}
+export const verifyApprover = checkManagerPin;
 
 export function useRefundsOf(orderIds: string[]) {
   return useLiveQuery(() => getDb().refunds.where("orderId").anyOf(orderIds).toArray(), [orderIds.join()]) ?? [];

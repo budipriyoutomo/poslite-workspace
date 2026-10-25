@@ -20,6 +20,9 @@ export interface Approver {
 
 const selectClass = "h-10 w-full rounded-md border bg-card px-3 text-sm";
 
+/** true approves; false or a message (e.g. the PIN lockout) refuses. */
+export type ApprovalCheck = (userId: string, pin: string) => Promise<boolean | string>;
+
 /** A manager confirms with their PIN on this device, offline (voids, refunds, big discounts). */
 export function ApprovalField({
   approvers,
@@ -28,7 +31,7 @@ export function ApprovalField({
   onApproved,
 }: {
   approvers: Approver[];
-  verifyApprover: (userId: string, pin: string) => Promise<boolean>;
+  verifyApprover: ApprovalCheck;
   approvedBy: string | null;
   onApproved: (userId: string) => void;
 }) {
@@ -40,8 +43,9 @@ export function ApprovalField({
 
   const approve = async () => {
     setError(null);
-    if (await verifyApprover(userId, pin)) onApproved(userId);
-    else setError(copy.wrongPin);
+    const result = await verifyApprover(userId, pin);
+    if (result === true) onApproved(userId);
+    else setError(result || copy.wrongPin);
     setPin("");
   };
 
