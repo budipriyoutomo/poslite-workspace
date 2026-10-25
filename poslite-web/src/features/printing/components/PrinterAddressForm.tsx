@@ -9,12 +9,40 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
 import { copy } from "../copy";
+import { pairPrintBridge } from "../application/printer-setup";
 
 /** Address of a LAN printer: Epson ePOS (printer address) or Print Bridge (bridge URL + token + printer IP:port). */
-export function PrinterAddressForm({ id, isBridge, device, isBusy, onSave }: { id: string; isBridge: boolean; device: PrinterDevice | undefined; isBusy: boolean; onSave: (device: PrinterDevice) => void }) {
+export function PrinterAddressForm({
+  id,
+  isBridge,
+  device,
+  isBusy,
+  onSave,
+  pair = pairPrintBridge,
+}: {
+  id: string;
+  isBridge: boolean;
+  device: PrinterDevice | undefined;
+  isBusy: boolean;
+  onSave: (device: PrinterDevice) => void;
+  /** P1-5: the bridge's 6-digit code → its token. */
+  pair?: (bridgeUrl: string, code: string) => Promise<string>;
+}) {
   const [address, setAddress] = useState(device?.address ?? "");
   const [bridgeUrl, setBridgeUrl] = useState(device?.bridgeUrl ?? "");
   const [bridgeToken, setBridgeToken] = useState(device?.bridgeToken ?? "");
+  const [code, setCode] = useState("");
+  const [pairing, setPairing] = useState<{ error?: string; isPaired?: boolean }>({});
+  const pairNow = async () => {
+    try {
+      setBridgeToken(await pair(bridgeUrl, code));
+      setPairing({ isPaired: true });
+      setCode("");
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      setPairing({ error: copy.pairErrors[reason] ?? reason });
+    }
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -32,6 +60,21 @@ export function PrinterAddressForm({ id, isBridge, device, isBusy, onSave }: { i
           <div className="space-y-1">
             <Label className="text-xs" htmlFor={`${id}-bridge-token`}>{copy.bridgeToken}</Label>
             <Input id={`${id}-bridge-token`} type="password" value={bridgeToken} onChange={(e) => setBridgeToken(e.target.value)} autoComplete="off" />
+          </div>
+          <div className="space-y-1 sm:col-span-2">
+            <Label className="text-xs" htmlFor={`${id}-pairing-code`}>{copy.pairingCode}</Label>
+            <div className="flex gap-2">
+              <Input id={`${id}-pairing-code`} value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} placeholder="123456" autoComplete="off" />
+              <Button type="button" size="sm" variant="secondary" disabled={!bridgeUrl || code.trim().length !== 6} onClick={() => void pairNow()}>
+                {copy.pairBridge}
+              </Button>
+            </div>
+            {pairing.error && (
+              <p role="alert" className="text-xs text-destructive">
+                {pairing.error}
+              </p>
+            )}
+            {pairing.isPaired && <p className="text-xs text-success">{copy.bridgePaired}</p>}
           </div>
         </div>
       )}
