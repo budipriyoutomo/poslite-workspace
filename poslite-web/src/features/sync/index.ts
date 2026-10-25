@@ -4,5 +4,5 @@ export { type BaseApi, deviceApi, pullAll, serverDevice } from "./application/pu
 export { pushOutbox } from "./application/push";
 export { resendDead, runSync } from "./application/sync-engine";
 export { kickSync, startSyncLoop } from "./application/sync-runner";
-export { SyncBadge } from "./components/SyncBadge";
+export { SyncStatus } from "./components/SyncStatus";
 export { SyncScreen } from "./components/SyncScreen";

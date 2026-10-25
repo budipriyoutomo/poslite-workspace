@@ -82,8 +82,12 @@ test("activate a device, sell offline, and the sale reaches the server", async (
   await page.getByRole("button", { name: "Rp 20.790" }).click();
   await page.getByRole("button", { name: "Selesaikan" }).click();
   const receiptNo = (await page.getByRole("dialog").getByText(/^JKT01A-\d{6}-0001$/).textContent())!;
+  // 15 · UX-01: the header badge turns yellow with the waiting sale, then green once it is sent.
+  // CSS locators: the open dialog hides the header from the accessibility tree.
+  await expect(page.locator('header [data-tone="wait"]')).toContainText(/Offline · \d+ transaksi menunggu/);
 
   await context.setOffline(false); // back online → the sync loop pushes the outbox
+  await expect(page.locator('header [data-tone="ok"]')).toContainText("Tersinkron", { timeout: 30_000 });
   await expect
     .poll(
       async () => {

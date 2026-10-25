@@ -2,35 +2,40 @@
 
 import { Lock, Store, WifiOff } from "lucide-react";
 
-import { authCopy } from "@/features/auth";
-import { SyncBadge } from "@/features/sync";
+import { authCopy, DemoBanner } from "@/features/auth";
+import { SyncStatus } from "@/features/sync";
+import { useOutletSetting } from "@/shared/hooks";
 import { Button } from "@/shared/ui/button";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
-import { cn } from "@/shared/ui/utils";
 
 type Props = { cashierName: string; isOnline: boolean; onLock: () => void };
 
-/** Compact POS top bar: brand, connection and sync state, theme, cashier and lock; an offline banner below it. */
+/** "Sushi Maru · Outlet Dago · Perangkat A": which till this is, for multi-brand groups (ADR-022). */
+function useTillName(): string | null {
+  const outlet = useOutletSetting();
+  if (!outlet) return null;
+  return [outlet.brand?.name, outlet.outletName, `Perangkat ${outlet.deviceCode}`].filter(Boolean).join(" · ");
+}
+
+/**
+ * Compact POS top bar: brand and till, sync state, theme, cashier and lock (15 · UX-01). A demo
+ * banner above it on a demo device, and an offline banner below it.
+ */
 export function PosHeader({ cashierName, isOnline, onLock }: Props) {
+  const tillName = useTillName();
   return (
     <>
+      <DemoBanner />
       <header className="flex h-14 shrink-0 items-center gap-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 px-3 text-white shadow-md lg:px-4">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm shadow-emerald-500/30">
           <Store className="size-4" />
         </span>
-        <span className="hidden font-bold tracking-tight sm:inline">POSLite</span>
+        <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+          <span className="font-bold tracking-tight">POSLite</span>
+          {tillName && <span className="truncate text-xs text-slate-400">{tillName}</span>}
+        </span>
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <SyncBadge />
-          <span
-            className={cn(
-              "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
-              isOnline ? "text-emerald-300 sm:bg-emerald-500/15" : "bg-red-500/20 text-red-200",
-            )}
-          >
-            {isOnline ? <span aria-hidden className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px] shadow-emerald-400/20" /> : <WifiOff aria-hidden className="size-3" />}
-            {/* Online is the normal state, so phones show just the dot; Offline always reads out. */}
-            <span className={cn(isOnline && "max-sm:sr-only")}>{isOnline ? "Online" : "Offline"}</span>
-          </span>
+          <SyncStatus isOnline={isOnline} />
           <ThemeToggle className="text-slate-300 hover:bg-white/10 hover:text-white dark:hover:bg-white/10" />
           {/* Who is on the till stays visible on every screen size. */}
           <span className="flex min-w-0 items-center gap-2 text-sm text-slate-300">

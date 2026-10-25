@@ -16,13 +16,18 @@ test("sell and pay offline, then find the order after a reload", async ({ page, 
 
   await logIn(page, "Siti", "1234");
   await expect(page).toHaveURL(/\/shift$/); // no open shift yet → the guard sends the cashier here
+  // 15 · UX-01: a demo device says so on every POS screen.
+  const demoBanner = page.getByRole("alert").filter({ hasText: "MODE DEMO" });
+  await expect(demoBanner).toBeVisible();
   for (const key of ["2", "00", "000"]) await page.getByRole("button", { name: key, exact: true }).click();
   await expect(page.getByRole("status", { name: "Modal awal" })).toHaveText("Rp 200.000");
   await page.getByRole("button", { name: "Buka Shift" }).click();
   await expect(page).toHaveURL(/\/sell$/);
 
+  await expect(demoBanner).toBeVisible();
+
   await context.setOffline(true);
-  await expect(page.getByText("Offline", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Sedang offline/)).toBeVisible();
 
   await page.getByRole("button", { name: /Es Teh Manis/ }).click();
   await page.getByRole("radio", { name: "Less Sugar" }).click();
@@ -53,6 +58,7 @@ test("sell and pay offline, then find the order after a reload", async ({ page, 
   await page.reload();
   await expect(page.getByText("Siti", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Riwayat" }).click();
+  await expect(demoBanner).toBeVisible();
   const row = page.getByRole("button", { name: new RegExp(receiptNo) });
   await expect(row).toContainText("Pending");
   await expect(row).toContainText("Rp 46.200");
