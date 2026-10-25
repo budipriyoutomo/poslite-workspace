@@ -51,7 +51,7 @@ features/printing/
     └── system-printer.ts       # window.print()
 ```
 
-Driver `picker` (Web Serial/Bluetooth/USB) di-pair lewat dialog browser; driver `address` (Epson ePOS, Print Bridge) diisi alamatnya di layar Printer. Yang disimpan di `printers.device`: `getInfo()` Web Serial, id device BLE, vendor/product/serial USB, atau alamat printer (+ URL & token bridge).
+Driver `picker` (Web Serial/Bluetooth/USB) di-pair lewat dialog browser; driver `address` (Epson ePOS, Print Bridge) diisi alamatnya di layar Printer. Yang disimpan di `printers.device`: `getInfo()` Web Serial, id device BLE, vendor/product/serial USB, atau alamat printer (+ URL & token bridge). Token bridge didapat lewat **pairing** (P1-5): POS mengirim kode 6 digit dari halaman lokal bridge (`http://localhost:9180/`) ke `POST /pair` dan menyimpan token yang dikembalikan.
 
 Catatan per driver:
 - **Web Serial**: dua printer Bluetooth tidak bisa dibedakan dari `getInfo()` — bila beberapa diizinkan, yang pertama dipakai.

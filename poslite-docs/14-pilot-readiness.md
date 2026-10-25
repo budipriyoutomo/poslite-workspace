@@ -408,7 +408,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - **DoD**: menu 200 produk + modifier masuk dalam < 5 menit dari file contoh.
 - **Status (2026-10-25)**: selesai untuk `.xlsx` (CSV belum: satu file CSV hanya memuat satu sheet). Tombol "Import Excel" di halaman Menu: unduh template → periksa (pratinjau jumlah baru/diperbarui dan error per baris) → import. 200 produk + modifier masuk dalam beberapa detik di test e2e (batas uji 30 detik). Import memakai fungsi katalog yang sama dengan edit manual, jadi setiap baris tersinkron ke device lewat versi seperti biasa.
 
-### P1-5 — Print Bridge untuk Non-Teknis
+### P1-5 — Print Bridge untuk Non-Teknis (sebagian ✅)
 
 Setup sekarang membutuhkan Node 24, token manual, dan mkcert. Untuk pilot:
 
@@ -419,6 +419,7 @@ Setup sekarang membutuhkan Node 24, token manual, dan mkcert. Untuk pilot:
 5. Halaman status lokal: daftar printer, test print, dan log error terakhir (tanpa isi struk).
 
 **DoD**: orang non-developer bisa memasang bridge dan mencetak test print dalam < 10 menit dengan mengikuti panduan bergambar.
+- **Status (2026-10-25)**: butir 2, 3, 5 selesai — bind `127.0.0.1` (sudah default), token dibuat sendiri bila tidak diisi, pairing kode 6 digit (`POST /pair`, terkunci 5 menit setelah 5 kode salah), halaman lokal `http://localhost:9180/` (kode, printer, test print, 20 error terakhir tanpa isi struk; hanya untuk PC itu), dan isian **Kode pairing** di layar Printer POS. **Belum**: butir 1 (`poslite-bridge.exe` Node SEA + installer Windows service) — perlu dibangun dan diuji di Windows; sementara memakai NSSM seperti di README. Butir 4 tetap dokumentasi teknisi.
 
 ### P1-6 — Uji Printer & Perangkat Asli (Fase 7)
 
