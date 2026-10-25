@@ -12,7 +12,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/ui/utils";
 
-import { activateDevice, DEFAULT_API as API, loginManager, startDemo } from "../application/activate-device";
+import { activateDevice, DEFAULT_API as API, IS_DEMO_ENABLED, loginManager, startDemo } from "../application/activate-device";
 
 const ERRORS: Record<string, string> = {
   INVALID_CREDENTIALS: "Email atau password salah",
@@ -27,8 +27,8 @@ function message(e: unknown): string {
   return String(e);
 }
 
-/** One-time device activation by a manager (online), or the offline demo. */
-export function ActivationScreen() {
+/** One-time device activation by a manager (online), or the offline demo where the deployment allows it. */
+export function ActivationScreen({ isDemoEnabled = IS_DEMO_ENABLED }: { isDemoEnabled?: boolean }) {
   const router = useRouter();
   const isOnline = useOnlineStatus();
   const [email, setEmail] = useState("");
@@ -122,9 +122,11 @@ export function ActivationScreen() {
             {error}
           </p>
         )}
-        <button type="button" onClick={demo} disabled={isBusy} className="w-full text-center text-sm text-slate-300 underline-offset-4 hover:text-white hover:underline">
-          Coba mode demo (tanpa server)
-        </button>
+        {isDemoEnabled && (
+          <button type="button" onClick={demo} disabled={isBusy} className="w-full text-center text-sm text-slate-300 underline-offset-4 hover:text-white hover:underline">
+            Coba mode demo (tanpa server)
+          </button>
+        )}
       </div>
     </main>
   );

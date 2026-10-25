@@ -4,7 +4,7 @@ import { ApiError } from "@/shared/api";
 import { ensureDemoData, readState } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
-import { activateDevice, loginManager, startDemo } from "./activate-device";
+import { activateDevice, exitDemo, loginManager, startDemo } from "./activate-device";
 
 const OUTLET = "01K5ZT00000000000000000001";
 const DEVICE = "01K5ZD00000000000000000001";
@@ -89,5 +89,24 @@ describe("startDemo", () => {
     expect(await readState(db, "device")).toEqual({ mode: "demo" });
     expect(await db.products.count()).toBeGreaterThan(0);
     expect(await ensureDemoData(db)).toBe(false);
+  });
+});
+
+describe("exitDemo", () => {
+  it("removes the demo data and the device state so the device asks for activation again", async () => {
+    const db = createTestDb();
+    await startDemo({ db });
+    await exitDemo({ db });
+    expect(await readState(db, "device")).toBeUndefined();
+    expect(await db.products.count()).toBe(0);
+  });
+
+  it("never wipes an activated device", async () => {
+    const db = createTestDb();
+    await db.syncState.put({ key: "device", value: { mode: "server", deviceId: DEVICE, deviceCode: "A", outletId: OUTLET, token: "t" } });
+    await db.outbox.add({ id: "01K5ZE00000000000000000001", type: "shift.opened", aggregateId: "S", occurredAt: "", payload: {}, status: "pending", attempts: 0, createdAt: "" });
+    await exitDemo({ db });
+    expect(await readState(db, "device")).toMatchObject({ mode: "server" });
+    expect(await db.outbox.count()).toBe(1);
   });
 });

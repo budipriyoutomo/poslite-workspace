@@ -44,6 +44,7 @@ Buat **tiga project** dari repo yang sama:
 | Framework | Next.js (dari `vercel.json`) | Next.js | Next.js |
 | Env `NEXT_PUBLIC_API_URL` | `https://<API_DOMAIN>/api/v1` | — | — |
 | Env `NEXT_PUBLIC_API_ORIGIN` | — | `https://<API_DOMAIN>` | `https://<API_DOMAIN>` |
+| Env `NEXT_PUBLIC_DEMO_ENABLED` | `false` untuk POS tenant · `true` hanya untuk situs demo penjualan | — | — |
 | Env `ENABLE_EXPERIMENTAL_COREPACK` | `1` (pakai pnpm sesuai `packageManager`) | `1` | `1` |
 | Node.js | 24.x | 24.x | 24.x |
 | Domain | `POS_DOMAIN` | `ADMIN_DOMAIN` | `OPERATOR_DOMAIN` |

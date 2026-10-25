@@ -23,6 +23,8 @@ export default defineConfig({
   webServer: {
     // Start next directly: via `pnpm start` the server outlives Playwright's teardown.
     command: "pnpm build && ./node_modules/.bin/next start -p 3200",
+    // The offline specs start from "Coba mode demo", which a tenant build hides (15 · UX-01).
+    env: { NEXT_PUBLIC_DEMO_ENABLED: "true" },
     url: "http://localhost:3200",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

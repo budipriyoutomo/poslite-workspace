@@ -1,12 +1,14 @@
 import { z } from "zod";
 
-import { API_BASE_URL, APP_VERSION } from "@/config/env";
+import { API_BASE_URL, APP_VERSION, DEMO_ENABLED } from "@/config/env";
 import { type BaseApi, pullAll } from "@/features/sync";
 import { apiRequest } from "@/shared/api";
-import { ensureDemoData, type PosDb, writeState } from "@/shared/db";
+import { ensureDemoData, type PosDb, readState, writeState } from "@/shared/db";
 
 /** The configured API (NEXT_PUBLIC_API_URL); tests pass their own with an injected fetch. */
 export const DEFAULT_API: BaseApi = { baseUrl: API_BASE_URL, appVersion: APP_VERSION };
+/** Whether this deployment offers the offline demo (15 · UX-01). */
+export const IS_DEMO_ENABLED = DEMO_ENABLED;
 
 const outletsSchema = z.array(z.object({ id: z.string(), code: z.string(), name: z.string() }));
 const loginSchema = z.object({ token: z.string() });
@@ -67,4 +69,10 @@ export async function startDemo(deps: { db: PosDb }): Promise<void> {
   await wipeLocalData(deps.db);
   await ensureDemoData(deps.db);
   await writeState(deps.db, "device", { mode: "demo" });
+}
+
+/** "Keluar dari demo" (15 · UX-01): back to activation. Only ever wipes a demo device. */
+export async function exitDemo(deps: { db: PosDb }): Promise<void> {
+  if ((await readState(deps.db, "device"))?.mode !== "demo") return;
+  await wipeLocalData(deps.db);
 }
