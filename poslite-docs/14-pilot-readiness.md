@@ -398,7 +398,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - Fixture `cash-rounding-cases.json` dipakai web & API, dan wajib mencakup: tunai penuh, campuran QRIS + tunai, split bill 2 dan 3 bagian, refund parsial tunai, refund penuh, serta mode `down`.
 - **Status (2026-10-25)**: selesai untuk penjualan: fixture 18 kasus (tunai, campuran, split 2 & 3, mode `down`), panel bayar meminta tunai yang sudah dibulatkan, baris "Pembulatan" di struk, `expected_cash` shift otomatis benar (laci = tunai − kembalian), total pembulatan di laporan harian dan tutup hari, setting di halaman Outlet. Penyimpangan: pembulatan disimpan per order (`orders.rounding_amount`, satu bagian tunai per order), bukan `payments.rounding_amount`; aturan ikut payload sebagai snapshot seperti tarif. **Belum**: pembulatan refund tunai (`refunds.rounding_amount`) dan kasus refund di fixture — refund tunai masih dikembalikan persis.
 
-### P1-4 — Import Menu dari Excel/CSV
+### P1-4 — Import Menu dari Excel/CSV ✅
 
 - Template `.xlsx` yang bisa diunduh dari admin, berisi sheet `products`, `categories`, `modifier_groups`, `channel_prices`, dan `outlet_prices`.
 - Alur: unggah → validasi dengan pratinjau error per baris → konfirmasi → upsert berdasarkan `sku` atau nama.
@@ -406,6 +406,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - **Alasan**: ini menghemat waktu onboarding terbesar. Saat pilot, tim POSLite yang mengisi menu restoran, dan setelah pilot owner bisa melakukannya sendiri.
 - **Status**: tidak memblok Go (Tahap E). Wajib selesai sebelum onboarding tenant kedua.
 - **DoD**: menu 200 produk + modifier masuk dalam < 5 menit dari file contoh.
+- **Status (2026-10-25)**: selesai untuk `.xlsx` (CSV belum: satu file CSV hanya memuat satu sheet). Tombol "Import Excel" di halaman Menu: unduh template → periksa (pratinjau jumlah baru/diperbarui dan error per baris) → import. 200 produk + modifier masuk dalam beberapa detik di test e2e (batas uji 30 detik). Import memakai fungsi katalog yang sama dengan edit manual, jadi setiap baris tersinkron ke device lewat versi seperti biasa.
 
 ### P1-5 — Print Bridge untuk Non-Teknis
 
@@ -608,7 +609,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 - [ ] Perjanjian pilot + syarat & privasi
 
 **Tahap E — Onboarding, Dry Run & Go/No-Go**
-- [ ] P1-4 Import menu Excel/CSV (tidak memblok Go)
+- [x] P1-4 Import menu Excel/CSV (tidak memblok Go)
 - [ ] Menu restoran pilot masuk staging
 - [ ] P1-9 bagian 2 (01/03/06/07 mutakhir)
 - [ ] SOP kasir, gangguan, manajer + training
