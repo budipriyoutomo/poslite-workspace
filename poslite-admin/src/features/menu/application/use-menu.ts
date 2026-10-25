@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { type components, unwrap, useApi } from "@/shared/api";
+import { type Api, ApiError, type components, unwrap, useApi } from "@/shared/api";
 
 export type Category = components["schemas"]["CategoryOut"];
 export type Product = components["schemas"]["ProductOut"];
@@ -92,4 +92,32 @@ export function useUploadImage() {
         }),
       ),
   });
+}
+
+const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+/** Menu import (P1-4): `dryRun` previews every row; otherwise all rows go in, or none. */
+export function useMenuImport() {
+  const api = useApi();
+  return useMenuMutation(
+    async ({ file, dryRun }: { file: File; dryRun: boolean }) =>
+      unwrap(
+        api.POST("/api/v1/menu-import", {
+          params: { query: { dry_run: dryRun } },
+          body: (await file.arrayBuffer()) as unknown as string,
+          bodySerializer: (body) => body as unknown as BodyInit,
+          headers: { "Content-Type": XLSX },
+        }),
+      ),
+    ["products", "categories", "modifier-groups"],
+  );
+}
+
+/** The workbook to fill in, saved under the server's filename. */
+export async function downloadMenuTemplate(api: Api): Promise<void> {
+  const { data, response } = await api.GET("/api/v1/menu-import/template", { parseAs: "blob" });
+  if (!response.ok || !(data instanceof Blob)) throw new ApiError(response.status, `HTTP_${response.status}`, "Unduh gagal");
+  const url = URL.createObjectURL(data);
+  Object.assign(document.createElement("a"), { href: url, download: "template-menu.xlsx" }).click();
+  URL.revokeObjectURL(url);
 }

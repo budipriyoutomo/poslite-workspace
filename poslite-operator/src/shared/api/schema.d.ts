@@ -341,6 +341,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/menu-import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Menu
+         * @description The filled workbook as the raw body (max 5 MB). `dry_run` previews; otherwise every row is
+         *     upserted in one transaction, or none when any row has an error.
+         */
+        post: operations["import_menu_api_v1_menu_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu-import/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Menu Template
+         * @description The workbook to fill in (P1-4): one sheet per part of the menu, with an example row.
+         */
+        get: operations["menu_template_api_v1_menu_import_template_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/modifier-groups": {
         parameters: {
             query?: never;
@@ -1849,6 +1890,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[MenuImportOut] */
+        ApiResponse_MenuImportOut_: {
+            data: components["schemas"]["MenuImportOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[ModifierGroupOut] */
         ApiResponse_ModifierGroupOut_: {
             data: components["schemas"]["ModifierGroupOut"];
@@ -3064,6 +3121,13 @@ export interface components {
             /** Outlet Id */
             outlet_id: string;
         };
+        /** CountsOut */
+        CountsOut: {
+            /** Create */
+            create: number;
+            /** Update */
+            update: number;
+        };
         /** CreatedEndpointOut */
         CreatedEndpointOut: {
             /** Brand Ids */
@@ -3506,6 +3570,20 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** MenuImportOut */
+        MenuImportOut: {
+            /** Applied */
+            applied: boolean;
+            categories: components["schemas"]["CountsOut"];
+            /** Channel Prices */
+            channel_prices: number;
+            /** Errors */
+            errors: components["schemas"]["RowErrorOut"][];
+            modifier_groups: components["schemas"]["CountsOut"];
+            /** Outlet Prices */
+            outlet_prices: number;
+            products: components["schemas"]["CountsOut"];
         };
         /** MethodOutletsIn */
         MethodOutletsIn: {
@@ -4399,6 +4477,15 @@ export interface components {
             code: string | null;
             /** Id */
             id: string;
+        };
+        /** RowErrorOut */
+        RowErrorOut: {
+            /** Message */
+            message: string;
+            /** Row */
+            row: number;
+            /** Sheet */
+            sheet: string;
         };
         /**
          * SalesChannelIn
@@ -5740,6 +5827,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiResponse_ImageOut_"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_menu_api_v1_menu_import_post: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_MenuImportOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    menu_template_api_v1_menu_import_template_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Brand-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
