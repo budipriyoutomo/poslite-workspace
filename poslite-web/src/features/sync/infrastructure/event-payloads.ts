@@ -70,6 +70,23 @@ export const orderPlaced = z.strictObject({
   change_amount: rupiah,
   // Manager who approved a discount over the brand's cashier limit (06 Order rule 5); optional for older devices.
   discount_approved_by: ulid.nullable().optional(),
+  // ADR-029: the sales channel and the delivery app's order number; optional for older servers.
+  channel_id: ulid.optional(),
+  external_ref: z.string().min(1).max(50).optional(),
+  // P1-1: take-away/delivery queue number and the guest's name; optional for older servers.
+  queue_no: z.string().min(1).max(20).optional(),
+  customer_name: z.string().min(1).max(40).optional(),
+  // P1-3: the outlet's cash rounding as sold with, and what it added to the cash part (may be < 0).
+  cash_rounding: z.strictObject({ unit: z.union([z.literal(100), z.literal(500), z.literal(1000)]), mode: z.enum(["nearest", "down"]), amount: z.number().int() }).optional(),
+  // ADR-031: a full payment of a table-service outlet's shared bill closes it on the server.
+  closes_bill_id: ulid.optional(),
+});
+
+export const productAvailabilityChanged = z.strictObject({
+  product_id: ulid,
+  is_available: z.boolean(),
+  until: z.string().datetime().nullable(),
+  changed_by: ulid,
 });
 
 export const orderVoided = z.strictObject({
@@ -137,6 +154,7 @@ export const eventPayloads: Record<OutboxEventType, z.ZodType> = {
   "order.voided": orderVoided,
   "order.refunded": orderRefunded,
   "bill.item_voided": billItemVoided,
+  "product.availability_changed": productAvailabilityChanged,
 };
 
 export type OrderPlacedPayload = z.infer<typeof orderPlaced>;

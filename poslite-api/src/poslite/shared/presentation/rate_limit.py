@@ -14,6 +14,7 @@ ACTIVATE_IP = RateLimit("activate-ip", limit=30, window_seconds=300)
 ACTIVATE_EMAIL = RateLimit("activate-email", limit=10, window_seconds=900)
 OPERATOR_LOGIN_IP = RateLimit("operator-login-ip", limit=10, window_seconds=300)
 OPERATOR_LOGIN_EMAIL = RateLimit("operator-login-email", limit=5, window_seconds=900)
+OPERATOR_2FA_IP = RateLimit("operator-2fa-ip", limit=10, window_seconds=300)  # P1-8
 
 
 def client_address(request: Request) -> str:

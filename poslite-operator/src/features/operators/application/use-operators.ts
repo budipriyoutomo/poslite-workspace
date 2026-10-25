@@ -38,3 +38,13 @@ export function useSetOperatorDisabled() {
     onSuccess: invalidate,
   });
 }
+
+/** A lost authenticator (P1-8): the operator sets 2FA up again at the next sign-in. */
+export function useResetTwoFactor() {
+  const api = useApi();
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (id: string) => unwrap(api.POST("/api/v1/platform/operators/{operator_id}/reset-2fa", { params: { path: { operator_id: id } } })),
+    onSuccess: invalidate,
+  });
+}

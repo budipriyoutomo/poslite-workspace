@@ -102,6 +102,7 @@ export function DashboardScreen() {
             <BreakdownTable title="Kategori" countLabel="Qty" rows={data.categories.map((c) => ({ key: c.category_name, label: c.category_name, count: c.quantity, amount: c.gross }))} />
             <BreakdownTable title="Metode pembayaran" countLabel="Transaksi" rows={data.payment_methods.map((m) => ({ key: m.payment_method_id, label: methodLabel(m.method_type), count: m.count, amount: m.amount }))} />
             <BreakdownTable title="Kasir" countLabel="Transaksi" rows={data.cashiers.map((c) => ({ key: c.cashier_id, label: c.cashier_name, count: c.order_count, amount: c.net }))} />
+            <BreakdownTable title="Channel" countLabel="Transaksi" rows={data.channels.map((c) => ({ key: c.channel_id, label: c.channel_name, count: c.order_count, amount: c.net }))} />
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization.domain.discount_policy import DiscountPolicy
 from poslite.organization.infrastructure.service import (
@@ -56,6 +57,7 @@ from poslite.organization.presentation.schemas import (
     TableOut,
 )
 from poslite.payment import api as payment
+from poslite.sales import api as sales
 from poslite.shared.application.clock import Clock
 from poslite.shared.domain.errors import DomainError
 from poslite.shared.domain.media import media_url
@@ -148,6 +150,9 @@ def _settings_out(s: OutletSettings) -> OutletSettingsOut:
         service_rate_bps=s.service_rate_bps,
         receipt_header=s.receipt_header,
         receipt_footer=s.receipt_footer,
+        service_mode=s.service_mode,
+        cash_rounding_unit=s.cash_rounding_unit,
+        cash_rounding_mode=s.cash_rounding_mode,
     )
 
 
@@ -252,6 +257,13 @@ async def update_settings(
     hour, minute = map(int, body.business_day_cutoff.split(":"))
     async with open_uow(request, principal.tenant_id) as uow:
         await _outlet_in_scope(uow, scope, outlet_id, brand)
+        # Bills on the server would be stranded: devices in counter mode never fetch them.
+        if body.service_mode == "counter" and await sales.has_open_bills(uow, outlet_id):
+            raise DomainError(
+                "OPEN_BILLS_EXIST",
+                "Close the outlet's open bills before switching to counter mode",
+                kind="conflict",
+            )
         saved = await update_outlet_settings(
             uow,
             outlet_id,
@@ -262,6 +274,9 @@ async def update_settings(
             service_rate_bps=body.service_rate_bps,
             receipt_header=body.receipt_header,
             receipt_footer=body.receipt_footer,
+            service_mode=body.service_mode,
+            cash_rounding_unit=body.cash_rounding_unit,
+            cash_rounding_mode=body.cash_rounding_mode,
         )
         await uow.commit()
     return ok(_settings_out(saved))
@@ -445,6 +460,7 @@ async def add_brand(
             **body.model_dump(exclude={"discount"}),
             discount=_policy(body),
         )
+        await catalog.seed_channels(uow, new_id, brand_id=brand_id)
         brand = await get_brand(uow, brand_id)
         await uow.commit()
     return ok(_brand_out(brand, base_url))

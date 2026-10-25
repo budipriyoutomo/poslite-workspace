@@ -83,3 +83,13 @@ export function cartLines(lines: CartLine[]): PricedLine[] {
 export function setLineDiscount(lines: CartLine[], key: string, discount: LineDiscount | null): CartLine[] {
   return lines.map((l) => (l.key === key ? { ...l, discount } : l));
 }
+
+/**
+ * The lines at their prices on another sales channel (ADR-029); `priceOf` gives a product's unit
+ * price there. null when a line is not sold on that channel: the cart stays as it is.
+ */
+export function repriceLines(lines: CartLine[], priceOf: (productId: string) => number | null): CartLine[] | null {
+  const prices = lines.map((l) => priceOf(l.productId));
+  if (prices.some((p) => p === null)) return null;
+  return lines.map((l, i) => ({ ...l, unitPrice: prices[i]! }));
+}

@@ -4,15 +4,15 @@ import { remainingDue, settle } from "./payment";
 
 describe("settle", () => {
   it("returns change for a cash overpayment", () => {
-    expect(settle(87_500, [{ methodType: "cash", amount: 100_000 }])).toEqual({ ok: true, paidAmount: 100_000, changeAmount: 12_500 });
+    expect(settle(87_500, [{ methodType: "cash", amount: 100_000 }])).toEqual({ ok: true, paidAmount: 100_000, changeAmount: 12_500, rounding: 0 });
   });
 
   it("accepts exact cash with no change", () => {
-    expect(settle(25_000, [{ methodType: "cash", amount: 25_000 }])).toEqual({ ok: true, paidAmount: 25_000, changeAmount: 0 });
+    expect(settle(25_000, [{ methodType: "cash", amount: 25_000 }])).toEqual({ ok: true, paidAmount: 25_000, changeAmount: 0, rounding: 0 });
   });
 
   it("accepts an exact non-cash payment", () => {
-    expect(settle(49_088, [{ methodType: "qris", amount: 49_088 }])).toEqual({ ok: true, paidAmount: 49_088, changeAmount: 0 });
+    expect(settle(49_088, [{ methodType: "qris", amount: 49_088 }])).toEqual({ ok: true, paidAmount: 49_088, changeAmount: 0, rounding: 0 });
   });
 
   it("gives change only from cash in a split payment", () => {
@@ -21,7 +21,7 @@ describe("settle", () => {
       { methodType: "debit", amount: 60_000 },
       { methodType: "cash", amount: 50_000 },
     ]);
-    expect(result).toEqual({ ok: true, paidAmount: 110_000, changeAmount: 10_000 });
+    expect(result).toEqual({ ok: true, paidAmount: 110_000, changeAmount: 10_000, rounding: 0 });
   });
 
   it("rejects an order with no payment", () => {
@@ -37,7 +37,7 @@ describe("settle", () => {
   });
 
   it("accepts a zero total with one zero payment (100% discount)", () => {
-    expect(settle(0, [{ methodType: "cash", amount: 0 }])).toEqual({ ok: true, paidAmount: 0, changeAmount: 0 });
+    expect(settle(0, [{ methodType: "cash", amount: 0 }])).toEqual({ ok: true, paidAmount: 0, changeAmount: 0, rounding: 0 });
   });
 
   it.each([-1, 10.5])("rejects a payment amount of %d (integer Rupiah >= 0)", (amount) => {

@@ -43,6 +43,11 @@ async def _live(uow: SqlAlchemyUnitOfWork, method_id: str) -> PaymentMethodModel
     return row
 
 
+async def ensure_payment_method(uow: SqlAlchemyUnitOfWork, method_id: str) -> None:
+    """A live payment method of this company (others are not found; RLS hides other tenants)."""
+    await _live(uow, method_id)
+
+
 async def list_payment_methods(uow: SqlAlchemyUnitOfWork) -> list[PaymentMethodOut]:
     rows = await uow.session.scalars(
         select(PaymentMethodModel)

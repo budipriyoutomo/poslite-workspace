@@ -14,6 +14,7 @@ const SUMMARY = {
   products: [{ product_id: "P", product_name: "Nasi Gudeg", quantity: 2, gross: 70_000 }],
   categories: [{ category_name: "Makanan", quantity: 2, gross: 70_000 }],
   cashiers: [{ cashier_id: "U", cashier_name: "Siti", order_count: 1, net: 72_765 }],
+  channels: [{ channel_id: "H", channel_name: "GoFood", kind: "delivery", order_count: 1, gross: 70_000, net: 72_765 }],
 };
 
 beforeEach(() => {
@@ -37,6 +38,13 @@ function server(company = true) {
 }
 
 describe("DashboardScreen", () => {
+  it("breaks sales down per sales channel (ADR-029)", async () => {
+    server();
+
+    const table = await screen.findByRole("table", { name: "Channel" });
+    expect(within(table).getByRole("row", { name: /GoFood.*1.*Rp 72\.765/ })).toBeInTheDocument();
+  });
+
   it("shows the last 7 days of the selected outlet by default", async () => {
     const { calls } = server();
 

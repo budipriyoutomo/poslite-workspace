@@ -19,6 +19,18 @@ describe("cart store", () => {
     expect(useCart.getState()).toMatchObject({ lines: [], discount: null });
   });
 
+  it("keeps an item tapped before the stored cart finished loading (P1-10: a busy device)", async () => {
+    let release = () => {};
+    const slow = { getItem: () => new Promise<string | null>((resolve) => (release = () => resolve(JSON.stringify({ state: { lines: [] }, version: 0 })))), setItem: () => {}, removeItem: () => {} };
+    const useCart = createCartStore(slow);
+    useCart.getState().add(gudeg);
+
+    release();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(useCart.getState().lines).toMatchObject([{ productId: "P1" }]);
+  });
+
   it("restores the cart after a reload from IndexedDB", async () => {
     const db = createTestDb();
     const before = createCartStore(cartStorage(() => db));
@@ -84,5 +96,34 @@ describe("cart store", () => {
 
     useCart.getState().loadBill(bill, [{ ...gudeg, key: "g", quantity: 1 }], null, ["PR2"]);
     expect(useCart.getState().promotionIds).toEqual(["PR2"]);
+  });
+
+  it("moves the cart to another channel at that channel's prices, and a new sale starts on the default (ADR-029)", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+    useCart.getState().setExternalRef("GF-1");
+
+    expect(useCart.getState().setChannel("GOFOOD", () => 30_000)).toBe(true);
+    expect(useCart.getState()).toMatchObject({ channelId: "GOFOOD", lines: [{ unitPrice: 30_000 }], externalRef: "" });
+
+    useCart.getState().clear();
+    expect(useCart.getState()).toMatchObject({ channelId: null, externalRef: "" });
+  });
+
+  it("keeps the guest's name for the sale and forgets it with the sale (P1-1)", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().setCustomerName("Andi");
+    expect(useCart.getState().customerName).toBe("Andi");
+
+    useCart.getState().clear();
+    expect(useCart.getState().customerName).toBe("");
+  });
+
+  it("stays on its channel when a line is not sold on the other one", () => {
+    const useCart = createCartStore(cartStorage(() => createTestDb()));
+    useCart.getState().add(gudeg);
+
+    expect(useCart.getState().setChannel("SHOPEE", () => null)).toBe(false);
+    expect(useCart.getState()).toMatchObject({ channelId: null, lines: [{ unitPrice: 25_000 }] });
   });
 });

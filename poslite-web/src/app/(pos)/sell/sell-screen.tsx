@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import { useSession } from "@/features/auth";
 import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
-import { LineEditorDialog, type LineChoice, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
-import { OrderSummary, useCartTotals } from "@/features/checkout";
+import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
+import { ChannelPicker, OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
 import type { ProductRow } from "@/shared/db";
-import { useMediaQuery, useOutletSetting } from "@/shared/hooks";
+import { useMediaQuery } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
@@ -26,17 +28,33 @@ function appliedLabel(line: { discount: { type: string; value: number } | null; 
 
 /** Sell screen: catalog plus the order — a side panel from tablet width, a bottom bar and drawer on phones. */
 export function SellScreen() {
-  const catalog = useCatalog();
-  const outlet = useOutletSetting();
+  const menu = useCatalog();
+  const user = useSession((s) => s.user);
+  const isWaiter = user?.role === "waiter";
+  // P1-2: a cashier or manager marks an item sold out with a long press; a waiter may not.
+  const [managing, setManaging] = useState<ProductRow | null>(null);
+  const chooseAvailability = async (choice: { isAvailable: boolean; untilEndOfDay: boolean }) => {
+    if (!managing || !user) return;
+    try {
+      await markAvailability({ productId: managing.id, ...choice, userId: user.id });
+      toast.success(choice.isAvailable ? `${managing.name} tersedia lagi` : `${managing.name} ditandai habis`);
+    } catch {
+      toast.error("Gagal mengubah ketersediaan");
+    }
+    setManaging(null);
+  };
   const cart = useCart();
-  const rates = { serviceBps: outlet?.serviceBps ?? 0, taxBps: outlet?.taxBps ?? 0, includesTax: outlet?.priceIncludesTax === true };
+  const sale = useSaleChannel();
+  const { rates } = sale; // the sale channel's rates (ADR-029), as placeOrder snapshots them
   const totals = useCartTotals(rates);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   // The order renders in one place only: the side panel from tablet width, a drawer on phones.
   const isWide = useMediaQuery("(min-width: 768px)", true);
 
-  if (!catalog) return <ProductGridSkeleton />;
+  if (!menu) return <ProductGridSkeleton />;
+  // Prices on the sale's channel; a price-list channel without a price does not sell the product.
+  const catalog = { ...menu, products: menu.products.flatMap((p) => { const price = sale.priceOf(p); return price === null ? [] : [{ ...p, price }]; }) };
   const groupsOf = (p: ProductRow) => p.modifierGroupIds.flatMap((id) => catalog.groupsById.get(id) ?? []);
   const categoryName = (p: ProductRow) => catalog.categoryNameById.get(p.categoryId) ?? "";
 
@@ -65,21 +83,34 @@ export function SellScreen() {
 
   const cartPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
+      {!cart.bill && (
+        <ChannelPicker
+          channels={sale.channels}
+          activeId={sale.channel?.id ?? null}
+          onChoose={(c) => cart.setChannel(c.id, sale.priceById(c)) || toast.error(`Ada menu di keranjang yang tidak dijual di ${c.name}`)}
+        />
+      )}
       <DineInBar />
       <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
       <OrderSummary rates={rates}>
-        <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
-          <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
-            Bayar · {formatRupiah(totals.total)}
-          </Link>
-        </Button>
+        {/* A waiter saves the bill; the cashier takes the money (ADR-031). */}
+        {!isWaiter && (
+          <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
+            <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
+              Bayar · {formatRupiah(totals.total)}
+            </Link>
+          </Button>
+        )}
       </OrderSummary>
     </div>
   );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} />
+      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} {...(user && !isWaiter && { onManage: setManaging })} />
+      {managing && (
+        <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
+      )}
       {isWide ? (
         <aside className="flex w-80 shrink-0 flex-col border-l bg-card p-4 lg:w-96">
           <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>

@@ -1,7 +1,9 @@
+from poslite.catalog.api import ChangeAvailabilityHandler
 from poslite.sales.api import (
     OrderRepository,
     PlaceOrderHandler,
     RefundOrderHandler,
+    SqlAlchemyOpenBills,
     SqlAlchemyOrderRepository,
     VoidBillItemsHandler,
     VoidOrderHandler,
@@ -18,6 +20,8 @@ from poslite.shift.api import (
 from poslite.sync.application.events import IncomingEvent
 from poslite.sync.application.push_events import EventRegistry, EventResult, PushEventsHandler
 from poslite.sync.infrastructure.adapters import (
+    CatalogAvailability,
+    CatalogChannels,
     IdentityApprovers,
     IdentityCashiers,
     OrganizationOutlets,
@@ -54,7 +58,13 @@ async def push_events(
     handler = PushEventsHandler(
         EventRegistry(
             place_order=PlaceOrderHandler(
-                outlets, cashiers, PaymentQris(uow), PaymentMethods(uow), approvers
+                outlets,
+                cashiers,
+                PaymentQris(uow),
+                PaymentMethods(uow),
+                approvers,
+                CatalogChannels(uow),
+                SqlAlchemyOpenBills(uow),
             ),
             open_shift=OpenShiftHandler(outlets, cashiers),
             close_shift=CloseShiftHandler(cashiers),
@@ -62,6 +72,7 @@ async def push_events(
             void_order=VoidOrderHandler(cashiers, approvers, shifts),
             refund_order=RefundOrderHandler(outlets, cashiers, approvers, shifts),
             void_bill_items=VoidBillItemsHandler(outlets, cashiers, approvers, shifts),
+            change_availability=ChangeAvailabilityHandler(approvers, CatalogAvailability(uow)),
         )
     )
     return await handler(

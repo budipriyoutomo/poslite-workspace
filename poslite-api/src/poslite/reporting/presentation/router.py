@@ -33,6 +33,7 @@ class Totals(BaseModel):
     # Bill items cancelled after the kitchen had them (ADR-028); never part of `net`.
     pre_payment_void_count: int
     pre_payment_void_amount: int
+    cash_rounding: int  # P1-3: added to cash by rounding (may be < 0); not part of `net`
 
 
 class DaySales(Totals):
@@ -69,6 +70,15 @@ class CashierSales(BaseModel):
     net: int
 
 
+class ChannelSales(BaseModel):
+    channel_id: str
+    channel_name: str
+    kind: str
+    order_count: int
+    gross: int
+    net: int
+
+
 class SalesSummaryOut(BaseModel):
     days: list[DaySales]
     totals: Totals
@@ -76,6 +86,7 @@ class SalesSummaryOut(BaseModel):
     products: list[ProductSales]
     categories: list[CategorySales]
     cashiers: list[CashierSales]
+    channels: list[ChannelSales]  # ADR-029
 
 
 async def _report_scope(

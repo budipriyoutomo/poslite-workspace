@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
@@ -16,7 +17,9 @@ from pydantic import (
     model_validator,
 )
 
+from poslite.catalog.api import ChangeAvailability
 from poslite.sales.api import (
+    CashRounding,
     Discount,
     LineModifier,
     OrderLine,
@@ -123,6 +126,12 @@ class _Payment(_Strict):
     reference: Annotated[str, StringConstraints(max_length=64)] | None
 
 
+class _CashRounding(_Strict):
+    unit: Literal[100, 500, 1000]
+    mode: Literal["nearest", "down"]
+    amount: StrictInt
+
+
 class OrderPlacedPayload(_Strict):
     shift_id: Ulid
     receipt_no: Annotated[str, StringConstraints(min_length=1, max_length=40)]
@@ -137,6 +146,16 @@ class OrderPlacedPayload(_Strict):
     change_amount: Rupiah
     # Manager who approved a discount over the brand's cashier limit; optional for older devices.
     discount_approved_by: Ulid | None = None
+    # ADR-029; optional for devices from before sales channels.
+    channel_id: Ulid | None = None
+    external_ref: Annotated[str, StringConstraints(min_length=1, max_length=50)] | None = None
+    # ADR-031: a full payment of a shared open bill closes it on the server.
+    closes_bill_id: Ulid | None = None
+    # P1-3: the outlet's cash rounding the device sold with, and what it added (may be < 0).
+    cash_rounding: _CashRounding | None = None
+    # P1-1: the take-away/delivery queue number and the guest's name.
+    queue_no: Annotated[str, StringConstraints(min_length=1, max_length=20)] | None = None
+    customer_name: Annotated[str, StringConstraints(min_length=1, max_length=40)] | None = None
 
 
 Reason = Annotated[str, StringConstraints(min_length=1, max_length=200)]
@@ -202,8 +221,16 @@ class BillItemVoidedPayload(_Strict):
     lines: Annotated[list[_VoidedBillLine], Field(min_length=1)]
 
 
+class ProductAvailabilityChangedPayload(_Strict):
+    product_id: Ulid
+    is_available: StrictBool
+    until: AwareDatetime | None  # P1-2: a sold-out mark ends by itself then
+    changed_by: Ulid
+
+
 Command = (
-    OpenShift
+    ChangeAvailability
+    | OpenShift
     | CloseShift
     | MoveCash
     | PlaceOrderData
@@ -300,6 +327,17 @@ def to_command(event: IncomingEvent) -> Command:
                     occurred_at=event.occurred_at,
                     table_label=p.table_label,
                     discount_approved_by=p.discount_approved_by,
+                    channel_id=p.channel_id,
+                    external_ref=p.external_ref,
+                    closes_bill_id=p.closes_bill_id,
+                    cash_rounding=(
+                        CashRounding(p.cash_rounding.unit, p.cash_rounding.mode)
+                        if p.cash_rounding
+                        else None
+                    ),
+                    rounding_amount=p.cash_rounding.amount if p.cash_rounding else 0,
+                    queue_no=p.queue_no,
+                    customer_name=p.customer_name,
                 )
             except ValueError as err:  # value objects guard ranges (e.g. percentage > 100)
                 raise DomainError("SCHEMA_INVALID", str(err)) from err
@@ -332,6 +370,11 @@ def to_command(event: IncomingEvent) -> Command:
                     for y in r.payments
                 ),
                 occurred_at=event.occurred_at,
+            )
+        case "product.availability_changed":
+            a = _parse(ProductAvailabilityChangedPayload, event)
+            return ChangeAvailability(
+                a.product_id, a.is_available, a.until, a.changed_by, event.occurred_at
             )
         case "bill.item_voided":
             b = _parse(BillItemVoidedPayload, event)

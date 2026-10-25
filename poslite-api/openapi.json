@@ -28,7 +28,8 @@
                 "enum": [
                   "owner",
                   "manager",
-                  "cashier"
+                  "cashier",
+                  "waiter"
                 ],
                 "type": "string"
               },
@@ -68,7 +69,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -515,6 +517,29 @@
         "title": "ApiResponse[LoginOut]",
         "type": "object"
       },
+      "ApiResponse_MenuImportOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MenuImportOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[MenuImportOut]",
+        "type": "object"
+      },
       "ApiResponse_ModifierGroupOut_": {
         "properties": {
           "data": {
@@ -560,6 +585,29 @@
           "data"
         ],
         "title": "ApiResponse[NoneType]",
+        "type": "object"
+      },
+      "ApiResponse_OpenBillOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OpenBillOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[OpenBillOut]",
         "type": "object"
       },
       "ApiResponse_OperatorOut_": {
@@ -861,6 +909,29 @@
         "title": "ApiResponse[RefundDetailOut]",
         "type": "object"
       },
+      "ApiResponse_SalesChannelOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SalesChannelOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[SalesChannelOut]",
+        "type": "object"
+      },
       "ApiResponse_SalesSummaryOut_": {
         "properties": {
           "data": {
@@ -882,6 +953,29 @@
           "data"
         ],
         "title": "ApiResponse[SalesSummaryOut]",
+        "type": "object"
+      },
+      "ApiResponse_SessionOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[SessionOut]",
         "type": "object"
       },
       "ApiResponse_ShiftDetailOut_": {
@@ -1326,6 +1420,33 @@
         "title": "ApiResponse[list[ModifierGroupOut]]",
         "type": "object"
       },
+      "ApiResponse_list_OpenBillOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OpenBillOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[OpenBillOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_OperatorOut__": {
         "properties": {
           "data": {
@@ -1542,6 +1663,33 @@
         "title": "ApiResponse[list[RefundOut]]",
         "type": "object"
       },
+      "ApiResponse_list_SalesChannelOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SalesChannelOut"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[SalesChannelOut]]",
+        "type": "object"
+      },
       "ApiResponse_list_ShiftOut__": {
         "properties": {
           "data": {
@@ -1708,7 +1856,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -1758,7 +1907,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -2453,6 +2603,83 @@
         "title": "ChangeOut",
         "type": "object"
       },
+      "ChannelPrice": {
+        "properties": {
+          "price": {
+            "maximum": 1000000000000.0,
+            "minimum": 0.0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "product_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Product Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_id",
+          "price"
+        ],
+        "title": "ChannelPrice",
+        "type": "object"
+      },
+      "ChannelPricesIn": {
+        "description": "The whole price list of a channel: products left out are no longer sold there.",
+        "properties": {
+          "prices": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelPrice"
+            },
+            "maxItems": 2000,
+            "title": "Prices",
+            "type": "array"
+          }
+        },
+        "required": [
+          "prices"
+        ],
+        "title": "ChannelPricesIn",
+        "type": "object"
+      },
+      "ChannelSales": {
+        "properties": {
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "channel_name": {
+            "title": "Channel Name",
+            "type": "string"
+          },
+          "gross": {
+            "title": "Gross",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "net": {
+            "title": "Net",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "channel_id",
+          "channel_name",
+          "kind",
+          "order_count",
+          "gross",
+          "net"
+        ],
+        "title": "ChannelSales",
+        "type": "object"
+      },
       "CloseDayIn": {
         "properties": {
           "business_date": {
@@ -2477,6 +2704,24 @@
           "business_date"
         ],
         "title": "CloseDayIn",
+        "type": "object"
+      },
+      "CountsOut": {
+        "properties": {
+          "create": {
+            "title": "Create",
+            "type": "integer"
+          },
+          "update": {
+            "title": "Update",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "create",
+          "update"
+        ],
+        "title": "CountsOut",
         "type": "object"
       },
       "CreatedEndpointOut": {
@@ -2662,6 +2907,10 @@
             "title": "Business Date",
             "type": "string"
           },
+          "cash_rounding": {
+            "title": "Cash Rounding",
+            "type": "integer"
+          },
           "discount": {
             "title": "Discount",
             "type": "integer"
@@ -2719,6 +2968,7 @@
           "refund_count",
           "pre_payment_void_count",
           "pre_payment_void_amount",
+          "cash_rounding",
           "business_date"
         ],
         "title": "DaySales",
@@ -3455,6 +3705,50 @@
         "title": "InvoiceOut",
         "type": "object"
       },
+      "JsonValue": {},
+      "LeaseIn": {
+        "properties": {
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "LeaseIn",
+        "type": "object"
+      },
+      "LeaseOut": {
+        "properties": {
+          "device_id": {
+            "title": "Device Id",
+            "type": "string"
+          },
+          "device_name": {
+            "title": "Device Name",
+            "type": "string"
+          },
+          "until": {
+            "format": "date-time",
+            "title": "Until",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_id",
+          "device_name",
+          "user_id",
+          "until"
+        ],
+        "title": "LeaseOut",
+        "type": "object"
+      },
       "LoginIn": {
         "properties": {
           "email": {
@@ -3476,20 +3770,52 @@
         "type": "object"
       },
       "LoginOut": {
+        "description": "After the password (P1-8): only the second step is open. `setup` shows the secret once.",
         "properties": {
+          "challenge_token": {
+            "title": "Challenge Token",
+            "type": "string"
+          },
           "expires_at": {
             "format": "date-time",
             "title": "Expires At",
             "type": "string"
           },
-          "token": {
-            "title": "Token",
+          "otpauth_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Otpauth Uri"
+          },
+          "step": {
+            "enum": [
+              "setup",
+              "verify"
+            ],
+            "title": "Step",
             "type": "string"
+          },
+          "totp_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Secret"
           }
         },
         "required": [
-          "token",
-          "expires_at"
+          "challenge_token",
+          "expires_at",
+          "step"
         ],
         "title": "LoginOut",
         "type": "object"
@@ -3512,6 +3838,49 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "MenuImportOut": {
+        "properties": {
+          "applied": {
+            "title": "Applied",
+            "type": "boolean"
+          },
+          "categories": {
+            "$ref": "#/components/schemas/CountsOut"
+          },
+          "channel_prices": {
+            "title": "Channel Prices",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RowErrorOut"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "modifier_groups": {
+            "$ref": "#/components/schemas/CountsOut"
+          },
+          "outlet_prices": {
+            "title": "Outlet Prices",
+            "type": "integer"
+          },
+          "products": {
+            "$ref": "#/components/schemas/CountsOut"
+          }
+        },
+        "required": [
+          "errors",
+          "categories",
+          "modifier_groups",
+          "products",
+          "channel_prices",
+          "outlet_prices",
+          "applied"
+        ],
+        "title": "MenuImportOut",
         "type": "object"
       },
       "MethodOutletsIn": {
@@ -3625,6 +3994,89 @@
           "price"
         ],
         "title": "ModifierOut",
+        "type": "object"
+      },
+      "NewBillIn": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "Opened By",
+            "type": "string"
+          },
+          "release_lease": {
+            "default": false,
+            "title": "Release Lease",
+            "type": "boolean"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Table Label",
+            "type": "string"
+          },
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_label",
+          "lines",
+          "user_id",
+          "id",
+          "opened_by",
+          "opened_at"
+        ],
+        "title": "NewBillIn",
         "type": "object"
       },
       "NewOutlet": {
@@ -3747,6 +4199,96 @@
           "name"
         ],
         "title": "NewPaymentMethodIn",
+        "type": "object"
+      },
+      "OpenBillOut": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lease": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeaseOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when nobody is editing the bill"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "opened_by": {
+            "title": "Opened By",
+            "type": "string"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "title": "Table Label",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "table_id",
+          "table_label",
+          "lines",
+          "discount",
+          "opened_by",
+          "opened_at",
+          "version",
+          "lease",
+          "updated_at"
+        ],
+        "title": "OpenBillOut",
         "type": "object"
       },
       "OperatorIn": {
@@ -3892,10 +4434,32 @@
             "title": "Change Amount",
             "type": "integer"
           },
+          "channel_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel Id"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
           },
           "device_id": {
             "title": "Device Id",
@@ -3904,6 +4468,17 @@
           "discount_amount": {
             "title": "Discount Amount",
             "type": "integer"
+          },
+          "external_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ref"
           },
           "flags": {
             "items": {
@@ -3946,6 +4521,17 @@
             "title": "Price Includes Tax",
             "type": "boolean"
           },
+          "queue_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue No"
+          },
           "receipt_no": {
             "title": "Receipt No",
             "type": "string"
@@ -3956,6 +4542,10 @@
             },
             "title": "Refunds",
             "type": "array"
+          },
+          "rounding_amount": {
+            "title": "Rounding Amount",
+            "type": "integer"
           },
           "service_charge": {
             "title": "Service Charge",
@@ -4017,6 +4607,11 @@
           "subtotal",
           "discount_amount",
           "price_includes_tax",
+          "channel_id",
+          "external_ref",
+          "queue_no",
+          "rounding_amount",
+          "customer_name",
           "service_charge",
           "tax",
           "total",
@@ -4319,7 +4914,8 @@
             "enum": [
               "owner",
               "manager",
-              "cashier"
+              "cashier",
+              "waiter"
             ],
             "title": "Role",
             "type": "string"
@@ -4339,6 +4935,26 @@
             "title": "Business Day Cutoff",
             "type": "string"
           },
+          "cash_rounding_mode": {
+            "default": "nearest",
+            "enum": [
+              "nearest",
+              "down"
+            ],
+            "title": "Cash Rounding Mode",
+            "type": "string"
+          },
+          "cash_rounding_unit": {
+            "default": 0,
+            "enum": [
+              0,
+              100,
+              500,
+              1000
+            ],
+            "title": "Cash Rounding Unit",
+            "type": "integer"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -4355,6 +4971,15 @@
             "default": "",
             "maxLength": 500,
             "title": "Receipt Header",
+            "type": "string"
+          },
+          "service_mode": {
+            "default": "counter",
+            "enum": [
+              "counter",
+              "table_service"
+            ],
+            "title": "Service Mode",
             "type": "string"
           },
           "service_rate_bps": {
@@ -4391,6 +5016,26 @@
             "title": "Business Day Cutoff",
             "type": "string"
           },
+          "cash_rounding_mode": {
+            "default": "nearest",
+            "enum": [
+              "nearest",
+              "down"
+            ],
+            "title": "Cash Rounding Mode",
+            "type": "string"
+          },
+          "cash_rounding_unit": {
+            "default": 0,
+            "enum": [
+              0,
+              100,
+              500,
+              1000
+            ],
+            "title": "Cash Rounding Unit",
+            "type": "integer"
+          },
           "code": {
             "title": "Code",
             "type": "string"
@@ -4415,6 +5060,15 @@
             "default": "",
             "maxLength": 500,
             "title": "Receipt Header",
+            "type": "string"
+          },
+          "service_mode": {
+            "default": "counter",
+            "enum": [
+              "counter",
+              "table_service"
+            ],
+            "title": "Service Mode",
             "type": "string"
           },
           "service_rate_bps": {
@@ -5578,6 +6232,227 @@
         "title": "RejectedEventOut",
         "type": "object"
       },
+      "RowErrorOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "integer"
+          },
+          "sheet": {
+            "title": "Sheet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sheet",
+          "row",
+          "message"
+        ],
+        "title": "RowErrorOut",
+        "type": "object"
+      },
+      "SalesChannelIn": {
+        "description": "ADR-029. A markup needs a rounding unit; only `markup_bps` channels carry a markup.",
+        "properties": {
+          "applies_service": {
+            "default": true,
+            "title": "Applies Service",
+            "type": "boolean"
+          },
+          "applies_tax": {
+            "default": true,
+            "title": "Applies Tax",
+            "type": "boolean"
+          },
+          "code": {
+            "pattern": "^[A-Za-z0-9_]{2,20}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "default_payment_method_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Payment Method Id"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dine_in",
+              "take_away",
+              "delivery"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "markup_bps": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Markup Bps",
+            "type": "integer"
+          },
+          "markup_rounding_unit": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Markup Rounding Unit",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "price_mode": {
+            "default": "base",
+            "enum": [
+              "base",
+              "markup_bps",
+              "price_list"
+            ],
+            "title": "Price Mode",
+            "type": "string"
+          },
+          "requires_external_ref": {
+            "default": false,
+            "title": "Requires External Ref",
+            "type": "boolean"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind"
+        ],
+        "title": "SalesChannelIn",
+        "type": "object"
+      },
+      "SalesChannelOut": {
+        "properties": {
+          "applies_service": {
+            "default": true,
+            "title": "Applies Service",
+            "type": "boolean"
+          },
+          "applies_tax": {
+            "default": true,
+            "title": "Applies Tax",
+            "type": "boolean"
+          },
+          "code": {
+            "pattern": "^[A-Za-z0-9_]{2,20}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "default_payment_method_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Payment Method Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dine_in",
+              "take_away",
+              "delivery"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "markup_bps": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Markup Bps",
+            "type": "integer"
+          },
+          "markup_rounding_unit": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Markup Rounding Unit",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "price_mode": {
+            "default": "base",
+            "enum": [
+              "base",
+              "markup_bps",
+              "price_list"
+            ],
+            "title": "Price Mode",
+            "type": "string"
+          },
+          "prices": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelPrice"
+            },
+            "title": "Prices",
+            "type": "array"
+          },
+          "requires_external_ref": {
+            "default": false,
+            "title": "Requires External Ref",
+            "type": "boolean"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind",
+          "id",
+          "prices"
+        ],
+        "title": "SalesChannelOut",
+        "type": "object"
+      },
       "SalesSummaryOut": {
         "properties": {
           "cashiers": {
@@ -5592,6 +6467,13 @@
               "$ref": "#/components/schemas/CategorySales"
             },
             "title": "Categories",
+            "type": "array"
+          },
+          "channels": {
+            "items": {
+              "$ref": "#/components/schemas/ChannelSales"
+            },
+            "title": "Channels",
             "type": "array"
           },
           "days": {
@@ -5625,9 +6507,108 @@
           "payment_methods",
           "products",
           "categories",
-          "cashiers"
+          "cashiers",
+          "channels"
         ],
         "title": "SalesSummaryOut",
+        "type": "object"
+      },
+      "SaveBillIn": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount"
+          },
+          "lines": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "release_lease": {
+            "default": false,
+            "title": "Release Lease",
+            "type": "boolean"
+          },
+          "table_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Id"
+          },
+          "table_label": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Table Label",
+            "type": "string"
+          },
+          "user_id": {
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "title": "User Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "table_label",
+          "lines",
+          "user_id",
+          "version"
+        ],
+        "title": "SaveBillIn",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "recovery_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recovery Codes",
+            "type": "array"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expires_at"
+        ],
+        "title": "SessionOut",
         "type": "object"
       },
       "ShiftDetailOut": {
@@ -6657,6 +7638,10 @@
       },
       "Totals": {
         "properties": {
+          "cash_rounding": {
+            "title": "Cash Rounding",
+            "type": "integer"
+          },
           "discount": {
             "title": "Discount",
             "type": "integer"
@@ -6713,9 +7698,47 @@
           "refund_amount",
           "refund_count",
           "pre_payment_void_count",
-          "pre_payment_void_amount"
+          "pre_payment_void_amount",
+          "cash_rounding"
         ],
         "title": "Totals",
+        "type": "object"
+      },
+      "TwoFactorIn": {
+        "properties": {
+          "challenge_token": {
+            "title": "Challenge Token",
+            "type": "string"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "recovery_code": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Code"
+          }
+        },
+        "required": [
+          "challenge_token"
+        ],
+        "title": "TwoFactorIn",
         "type": "object"
       },
       "UserHitOut": {
@@ -8156,6 +9179,130 @@
         ]
       }
     },
+    "/api/v1/menu-import": {
+      "post": {
+        "description": "The filled workbook as the raw body (max 5 MB). `dry_run` previews; otherwise every row is\nupserted in one transaction, or none when any row has an error.",
+        "operationId": "import_menu_api_v1_menu_import_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_MenuImportOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Menu",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/menu-import/template": {
+      "get": {
+        "description": "The workbook to fill in (P1-4): one sheet per part of the menu, with an example row.",
+        "operationId": "menu_template_api_v1_menu_import_template_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Menu Template",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/api/v1/modifier-groups": {
       "get": {
         "operationId": "list_modifier_groups_api_v1_modifier_groups_get",
@@ -8403,6 +9550,293 @@
         "summary": "Update Modifier Group",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/open-bills": {
+      "get": {
+        "description": "The outlet's open bills; devices poll this every few seconds while online.",
+        "operationId": "list_open_bills_api_v1_open_bills_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_OpenBillOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Open Bills",
+        "tags": [
+          "sales"
+        ]
+      },
+      "post": {
+        "operationId": "open_bill_api_v1_open_bills_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewBillIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Open Bill",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/open-bills/{bill_id}": {
+      "delete": {
+        "operationId": "cancel_bill_api_v1_open_bills__bill_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Bill",
+        "tags": [
+          "sales"
+        ]
+      },
+      "put": {
+        "description": "Saves over `version`; an older version is 409 BILL_VERSION_CONFLICT (never merged).",
+        "operationId": "save_bill_api_v1_open_bills__bill_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBillIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Bill",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/open-bills/{bill_id}/lease": {
+      "delete": {
+        "operationId": "release_lease_api_v1_open_bills__bill_id__lease_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Release Lease",
+        "tags": [
+          "sales"
+        ]
+      },
+      "post": {
+        "description": "Takes the bill for editing, or renews the lease while it stays on screen.",
+        "operationId": "lease_bill_api_v1_open_bills__bill_id__lease_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bill_id",
+            "required": true,
+            "schema": {
+              "title": "Bill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_OpenBillOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lease Bill",
+        "tags": [
+          "sales"
         ]
       }
     },
@@ -9575,6 +11009,48 @@
         ]
       }
     },
+    "/api/v1/platform/auth/2fa": {
+      "post": {
+        "description": "A TOTP code (or a recovery code) after the password opens the console (P1-8).",
+        "operationId": "second_factor_api_v1_platform_auth_2fa_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SessionOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Second Factor",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/platform/auth/login": {
       "post": {
         "operationId": "login_api_v1_platform_auth_login_post",
@@ -9853,6 +11329,55 @@
           }
         ],
         "summary": "Enable Operator",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/operators/{operator_id}/reset-2fa": {
+      "post": {
+        "description": "A lost authenticator: the operator sets 2FA up again at the next sign-in.",
+        "operationId": "reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operator_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Operator Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reset Two Factor",
         "tags": [
           "platform"
         ]
@@ -11385,6 +12910,330 @@
         "summary": "Export Sales Summary",
         "tags": [
           "reporting"
+        ]
+      }
+    },
+    "/api/v1/sales-channels": {
+      "get": {
+        "operationId": "list_channels_api_v1_sales_channels_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_SalesChannelOut__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Channels",
+        "tags": [
+          "catalog"
+        ]
+      },
+      "post": {
+        "operationId": "create_channel_api_v1_sales_channels_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesChannelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Channel",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/sales-channels/{channel_id}": {
+      "delete": {
+        "operationId": "delete_channel_api_v1_sales_channels__channel_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Channel",
+        "tags": [
+          "catalog"
+        ]
+      },
+      "put": {
+        "operationId": "update_channel_api_v1_sales_channels__channel_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesChannelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Channel",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/sales-channels/{channel_id}/prices": {
+      "put": {
+        "description": "The whole price list of a `price_list` channel; products left out are not sold there.",
+        "operationId": "set_channel_prices_api_v1_sales_channels__channel_id__prices_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChannelPricesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SalesChannelOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Channel Prices",
+        "tags": [
+          "catalog"
         ]
       }
     },

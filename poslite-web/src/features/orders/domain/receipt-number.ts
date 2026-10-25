@@ -15,6 +15,11 @@ export function nextReceiptCounter(counter: ReceiptCounter | undefined, business
   return { businessDate, seq: counter.seq + 1 };
 }
 
+/** Queue number called out for take-away and delivery (P1-1): the device code keeps tablets apart offline. */
+export function formatQueueNo(p: { deviceCode: string; seq: number }): string {
+  return `${p.deviceCode}-${String(p.seq).padStart(3, "0")}`;
+}
+
 /** Refunds have their own daily series on the device (ADR-023): {OUTLET}{DEVICE}-R{YYMMDD}-{SEQ}. */
 export function formatRefundNo(p: { outletCode: string; deviceCode: string; businessDate: string; seq: number }): string {
   const yymmdd = p.businessDate.slice(2).replaceAll("-", "");

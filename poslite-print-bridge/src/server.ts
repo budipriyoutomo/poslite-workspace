@@ -1,7 +1,9 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type RequestListener, type Server, type ServerResponse } from "node:http";
 
+import { Pairing } from "./pairing.ts";
 import { isAllowed, type PrinterAddress, parsePrinterAddress } from "./printer-address.ts";
+import { statusPage } from "./status-page.ts";
 
 export interface BridgeConfig {
   /** Shared secret per outlet; the POS sends it as `Authorization: Bearer …`. */
@@ -11,6 +13,10 @@ export interface BridgeConfig {
   /** `host:port` printers allowed; empty = private IPv4 addresses only. */
   printers: string[];
   version: string;
+  /** P1-5: a 6-digit code on the local page pairs a POS instead of a typed token. */
+  pairing?: Pairing;
+  /** Whether the caller is this PC (the local page and test print are not for the LAN). */
+  isLocal?: (req: IncomingMessage) => boolean;
 }
 
 export type SendRaw = (address: PrinterAddress, data: Buffer) => Promise<void>;
@@ -43,6 +49,22 @@ function readBody(req: IncomingMessage): Promise<string | null> {
   });
 }
 
+const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
+const isLoopback = (req: IncomingMessage) => LOOPBACK.has(req.socket.remoteAddress ?? "");
+const MAX_ERRORS = 20;
+// ESC @ (reset), the text, feed 4 lines, GS V 1 (partial cut).
+const testPage = (version: string) =>
+  Buffer.concat([Buffer.from([0x1b, 0x40]), Buffer.from(`POSLite Print Bridge ${version}\nTest print OK\n${new Date().toISOString()}\n`, "latin1"), Buffer.from([0x1b, 0x64, 4, 0x1d, 0x56, 1])]);
+
+function parseJson(body: string | null): Record<string, unknown> | null {
+  try {
+    const value: unknown = JSON.parse(body ?? "");
+    return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
 function parseJob(body: string): { printer: PrinterAddress; data: Buffer } | null {
   let value: unknown;
   try {
@@ -64,6 +86,14 @@ function parseJob(body: string): { printer: PrinterAddress; data: Buffer } | nul
  */
 export function createBridgeHandler(config: BridgeConfig, send: SendRaw): RequestListener {
   const queues = new Map<string, Promise<unknown>>();
+  const pairing = config.pairing ?? new Pairing();
+  const isLocal = config.isLocal ?? isLoopback;
+  // Why the last jobs failed (printer and error code only: never the receipt bytes).
+  const errors: { at: string; printer: string; error: string }[] = [];
+  const failed = (printer: PrinterAddress, error: string) => {
+    errors.unshift({ at: new Date().toISOString(), printer: `${printer.host}:${printer.port}`, error });
+    errors.length = Math.min(errors.length, MAX_ERRORS);
+  };
   const enqueue = (address: PrinterAddress, data: Buffer) => {
     const key = `${address.host.toLowerCase()}:${address.port}`;
     const job = (queues.get(key) ?? Promise.resolve()).catch(() => undefined).then(() => send(address, data));
@@ -90,6 +120,33 @@ export function createBridgeHandler(config: BridgeConfig, send: SendRaw): Reques
       return res.writeHead(isOriginAllowed ? 204 : 403).end();
     }
     if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, version: config.version });
+    if (req.method === "GET" && path === "/") {
+      if (!isLocal(req)) return json(res, 403, { error: "LOCAL_ONLY" });
+      const page = statusPage({ version: config.version, pairing: pairing.current(), printers: config.printers, errors });
+      return res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }).end(page);
+    }
+    if (req.method === "POST" && path === "/pair") {
+      const body = parseJson(await readBody(req).catch(() => null));
+      if (!isOriginAllowed) return json(res, 403, { error: "ORIGIN_NOT_ALLOWED" });
+      const result = pairing.redeem(typeof body?.code === "string" ? body.code : "");
+      if (result === "locked") return json(res, 429, { error: "PAIRING_LOCKED" });
+      return result === "paired" ? json(res, 200, { token: config.token }) : json(res, 401, { error: "INVALID_CODE" });
+    }
+    if (req.method === "POST" && path === "/test-print") {
+      if (!isLocal(req)) return json(res, 403, { error: "LOCAL_ONLY" });
+      const body = parseJson(await readBody(req).catch(() => null));
+      const address = typeof body?.printer === "string" ? parsePrinterAddress(body.printer) : null;
+      if (!address) return json(res, 400, { error: "BAD_REQUEST" });
+      if (!isAllowed(address, config.printers)) return json(res, 403, { error: "PRINTER_NOT_ALLOWED" });
+      try {
+        await enqueue(address, testPage(config.version));
+        return json(res, 200, { ok: true });
+      } catch (e) {
+        const code = e instanceof Error && e.message in STATUS_OF ? e.message : "PRINTER_UNREACHABLE";
+        failed(address, code);
+        return json(res, STATUS_OF[code] ?? 502, { error: code });
+      }
+    }
     if (req.method !== "POST" || path !== "/print") return json(res, 404, { error: "NOT_FOUND" });
 
     const body = await readBody(req).catch(() => null);
@@ -105,6 +162,7 @@ export function createBridgeHandler(config: BridgeConfig, send: SendRaw): Reques
       json(res, 200, { ok: true });
     } catch (e) {
       const code = e instanceof Error && e.message in STATUS_OF ? e.message : "PRINTER_UNREACHABLE";
+      failed(job.printer, code);
       json(res, STATUS_OF[code] ?? 502, { error: code });
     }
   };

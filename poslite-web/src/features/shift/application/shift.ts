@@ -1,7 +1,7 @@
 import { enqueueEvent } from "@/features/sync";
 import { AppError } from "@/shared/errors";
-import type { PosDb, ShiftRow } from "@/shared/db";
-import { getDb } from "@/shared/db";
+import type { OpenBillRow, PosDb, ShiftRow } from "@/shared/db";
+import { getDb, readState } from "@/shared/db";
 import { newId } from "@/shared/id";
 
 import { businessDate } from "../domain/business-date";
@@ -82,10 +82,14 @@ export async function recordCashMovement(
 /** Counted cash is recorded against the expected amount; a variance never blocks closing. */
 export async function closeShift(input: { closedBy: string; countedCash: number }, deps: ShiftDeps = defaultDeps()): Promise<ShiftRow> {
   const { db } = deps;
-  return db.transaction("rw", [db.shifts, db.orders, db.payments, db.refunds, db.cashMovements, db.openBills, db.outbox], async () => {
+  return db.transaction("rw", [db.shifts, db.orders, db.payments, db.refunds, db.cashMovements, db.openBills, db.outbox, db.syncState], async () => {
     const shift = await requireOpenShift(db);
-    // Unpaid bills live only here; closing would strand them outside any shift (ADR-015).
-    if ((await db.openBills.count()) > 0) throw new AppError("OPEN_BILLS");
+    // Counter: unpaid bills live only here; closing would strand them outside any shift (ADR-015).
+    // Table service: bills belong to the outlet; only one this device holds or has not sent blocks (ADR-031 rule 7).
+    const isShared = (await readState(db, "serviceMode")) === "table_service";
+    const now = deps.now().toISOString();
+    const isHeldHere = (b: OpenBillRow) => b.origin !== "server" || b.dirty === true || (b.leaseUntil ?? "") > now;
+    if ((await db.openBills.filter((b) => !isShared || isHeldHere(b)).count()) > 0) throw new AppError("OPEN_BILLS");
     const orders = await db.orders.where("shiftId").equals(shift.id).toArray();
     const payments = await db.payments.where("orderId").anyOf(orders.map((o) => o.id)).toArray();
     const movements = await db.cashMovements.where("shiftId").equals(shift.id).toArray();

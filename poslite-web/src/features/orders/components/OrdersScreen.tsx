@@ -73,6 +73,12 @@ export function OrdersScreen() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-mono text-sm font-semibold">{o.receiptNo}</p>
+                  {o.queueNo && (
+                    <p className="text-sm font-semibold">
+                      {o.queueNo}
+                      {o.customerName && ` · ${o.customerName}`}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {time(o.createdAt)} · {o.cashierName} · {o.lines.reduce((n, l) => n + l.quantity, 0)} item
                   </p>

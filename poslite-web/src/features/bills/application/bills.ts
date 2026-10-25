@@ -18,6 +18,8 @@ export interface BillDeps {
   db: PosDb;
   now: () => Date;
   newId?: () => string;
+  /** Table-service outlet (ADR-031): the change also goes to the server's copy of the bill. */
+  shared?: boolean;
 }
 
 /** Who takes sent items off a bill, why, and the manager who approved (null = a manager acting alone). */
@@ -80,7 +82,18 @@ export async function saveBill(
     const voided = saved ? voidedUnits(saved.lines, input.lines) : [];
     if (voided.length > 0) await recordVoid({ bill: input.bill, scope: "line", voided, approval: input.void }, deps);
     const lines = saved ? reconcileSent(saved.lines, input.lines) : input.lines;
-    await db.openBills.put({ ...input.bill, lines, discount: input.discount, updatedAt: deps.now().toISOString() });
+    const sharedState = {
+      origin: saved?.origin ?? "local",
+      ...(deps.shared && { dirty: true }),
+    } as const;
+    await db.openBills.put({
+      ...saved,
+      ...input.bill,
+      lines,
+      discount: input.discount,
+      updatedAt: deps.now().toISOString(),
+      ...sharedState,
+    });
     return { voided };
   });
 }
@@ -110,6 +123,11 @@ export async function moveBill(input: { billId: string; table: { id: string | nu
     const same = input.table.id !== null ? bill.tableId === input.table.id : bill.tableLabel === input.table.label;
     if (same) throw new AppError("SAME_TABLE");
     if (input.table.id !== null && (await db.openBills.where("tableId").equals(input.table.id).count()) > 0) throw new AppError("TABLE_OCCUPIED");
-    await db.openBills.update(bill.id, { tableId: input.table.id, tableLabel: input.table.label, updatedAt: deps.now().toISOString() });
+    await db.openBills.update(bill.id, {
+      tableId: input.table.id,
+      tableLabel: input.table.label,
+      updatedAt: deps.now().toISOString(),
+      ...(deps.shared && { dirty: true }),
+    });
   });
 }

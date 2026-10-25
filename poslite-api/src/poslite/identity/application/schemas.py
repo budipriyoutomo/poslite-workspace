@@ -9,13 +9,13 @@ Pin = Annotated[str, StringConstraints(pattern=r"^\d{4,6}$")]
 
 class OutletRole(BaseModel):
     outlet_id: Ulid
-    role: Literal["owner", "manager", "cashier"]
+    role: Literal["owner", "manager", "cashier", "waiter"]
 
 
 class AssignmentIn(BaseModel):
     """`brand_id` of an outlet scope may be left out: it is the outlet's brand."""
 
-    role: Literal["owner", "manager", "cashier"]
+    role: Literal["owner", "manager", "cashier", "waiter"]
     scope_type: Literal["company", "brand", "outlet"]
     brand_id: Ulid | None = None
     outlet_id: Ulid | None = None
@@ -26,7 +26,7 @@ class AssignmentsIn(BaseModel):
 
 
 class AssignmentOut(BaseModel):
-    role: Literal["owner", "manager", "cashier"]
+    role: Literal["owner", "manager", "cashier", "waiter"]
     scope_type: Literal["company", "brand", "outlet"]
     brand_id: str | None
     outlet_id: str | None

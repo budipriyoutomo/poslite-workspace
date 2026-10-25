@@ -31,8 +31,11 @@ describe("loadConfig", () => {
     });
   });
 
-  it("refuses to start without a long enough token", () => {
-    assert.throws(() => loadConfig({}), /BRIDGE_TOKEN/);
+  it("leaves the token to the bridge when none is set: it makes one and the POS pairs with a code (P1-5)", () => {
+    assert.equal(loadConfig({}).token, "");
+  });
+
+  it("refuses a token that is too short", () => {
     assert.throws(() => loadConfig({ BRIDGE_TOKEN: "short" }), /BRIDGE_TOKEN/);
   });
 

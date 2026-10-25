@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from poslite.billing.presentation.router import router as billing_router
+from poslite.catalog.presentation.channels import router as channels_router
+from poslite.catalog.presentation.menu_import import router as menu_import_router
 from poslite.catalog.presentation.router import router as catalog_router
 from poslite.gateway.presentation.router import router as gateway_router
 from poslite.identity.api import SqlTokenResolver
@@ -19,6 +21,7 @@ from poslite.payment.presentation.router import router as payment_router
 from poslite.platform_admin.presentation.router import router as platform_router
 from poslite.promotion.presentation.router import router as promotion_router
 from poslite.reporting.presentation.router import router as reporting_router
+from poslite.sales.presentation.open_bills import router as open_bills_router
 from poslite.sales.presentation.router import router as sales_router
 from poslite.shared.application.clock import SystemClock
 from poslite.shared.config import Settings, get_settings
@@ -76,6 +79,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         users_router,
         organization_router,
         catalog_router,
+        channels_router,
+        menu_import_router,
         payment_router,
         promotion_router,
         integration_router,
@@ -85,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         shift_router,
         reporting_router,
         sales_router,
+        open_bills_router,
         platform_router,
     ):
         api.include_router(module_router)

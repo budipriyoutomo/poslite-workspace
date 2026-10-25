@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import UTC, datetime
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -382,6 +383,7 @@ async def catalog_changes(
             "price": p.price,
             "image_key": p.image_key,
             "is_available": p.is_available,
+            "unavailable_until": None,
         },
     )
     live = [c.id for c in products if c.data is not None]
@@ -454,12 +456,19 @@ async def _overrides(
 
 
 def _effective(data: dict[str, object], override: OutletProductModel | None) -> dict[str, object]:
-    """What this outlet sells: its own price if set; available only if both flags agree."""
+    """What this outlet sells: its own price if set; available only if both flags agree. A sold-out
+    mark from the POS may end by itself (P1-2): the device sees `unavailable_until` and sells the
+    item again from then on, without a new pull."""
     if override is None:
         return data
     return data | {
         "price": override.price if override.price is not None else data["price"],
         "is_available": bool(data["is_available"]) and override.is_available,
+        "unavailable_until": (
+            override.available_until.isoformat().replace("+00:00", "Z")
+            if data["is_available"] and not override.is_available and override.available_until
+            else None
+        ),
     }
 
 
@@ -473,7 +482,13 @@ async def set_outlet_product(
 ) -> OutletProductOut:
     """`brand_id` = the outlet's brand: an outlet sells only its own brand's menu."""
     product = await _reference(uow, ProductModel, product_id, "PRODUCT_NOT_FOUND", brand_id)
-    values = {"price": body.price, "is_available": body.is_available}
+    # The back-office decides for good: no end time, and it outranks earlier POS marks (P1-2).
+    values = {
+        "price": body.price,
+        "is_available": body.is_available,
+        "available_until": None,
+        "availability_changed_at": func.now(),
+    }
     await uow.session.execute(
         insert(OutletProductModel)
         .values(tenant_id=uow.tenant_id, outlet_id=outlet_id, product_id=product_id, **values)
@@ -491,9 +506,17 @@ async def set_outlet_product(
     )
 
 
+def _sells_now(override: OutletProductModel | None, now: datetime) -> bool:
+    """A sold-out mark from the POS that has run out no longer counts (P1-2)."""
+    if override is None or override.is_available:
+        return True
+    return override.available_until is not None and override.available_until <= now
+
+
 async def list_outlet_products(
     uow: SqlAlchemyUnitOfWork, outlet_id: str, *, brand_id: str
 ) -> list[OutletProductOut]:
+    now = datetime.now(UTC)
     products = list(
         await uow.session.scalars(
             select(ProductModel)
@@ -513,7 +536,7 @@ async def list_outlet_products(
                 base_price=p.price,
                 price=price,
                 effective_price=price if price is not None else p.price,
-                is_available=p.is_available and (o.is_available if o else True),
+                is_available=p.is_available and _sells_now(o, now),
             )
         )
     return result

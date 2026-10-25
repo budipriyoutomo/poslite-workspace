@@ -170,6 +170,9 @@ function Summary({ snapshot: { totals, payment_methods, cash } }: { snapshot: Da
           <Row label="Transaksi" value={`${totals.order_count} order · ${totals.void_count} void`} />
           <Row label="Refund" value={`${formatRupiah(totals.refund_amount)} (${totals.refund_count})`} />
           <Row label="Batal sebelum bayar" value={`${formatRupiah(totals.pre_payment_void_amount)} (${totals.pre_payment_void_count})`} />
+          {totals.cash_rounding !== 0 && (
+            <Row label="Pembulatan tunai" value={`${totals.cash_rounding > 0 ? "+" : "−"}${formatRupiah(Math.abs(totals.cash_rounding))}`} />
+          )}
         </CardContent>
       </Card>
       <Card className="gap-2 shadow-xs">

@@ -3,6 +3,7 @@ import type { PosDb, PrinterConfigRow, PrinterDevice } from "@/shared/db";
 import { buildTestPage } from "../domain/test-page";
 import { createConfiguredPrinter, type PrinterDrivers, type PrinterRole, printerConfigFor } from "./configured-printer";
 import { RECEIPT_COLUMNS } from "./load-receipt";
+import { pairBridge } from "../infrastructure/bridge-driver";
 
 export interface PrinterSetupDeps {
   db: PosDb;
@@ -88,3 +89,6 @@ export async function savePrinterAddress({ role = "receipt", device }: { role?: 
   if (fields.some((f) => !cleaned[f])) throw new Error("PRINTER_ADDRESS_REQUIRED");
   await db.printers.put({ ...current, device: cleaned });
 }
+
+/** P1-5: the 6-digit code shown on the Print Bridge PC → the bridge token for this device. */
+export const pairPrintBridge = (bridgeUrl: string, code: string): Promise<string> => pairBridge(bridgeUrl, code);

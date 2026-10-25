@@ -18,7 +18,12 @@ export interface OutletSetting {
   brand?: BrandIdentityRow; // ADR-022; missing on a device set up by a server before brands
   discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
   priceIncludesTax?: boolean; // the brand's prices include service and PB1 (ADR-030); missing = they do not
+  serviceMode?: ServiceMode; // ADR-031; missing = counter
+  cashRounding?: { unit: number; mode: "nearest" | "down" }; // P1-3; missing = off
 }
+
+/** ADR-031: open bills kept on each device (counter) or shared through the server (table_service). */
+export type ServiceMode = "counter" | "table_service";
 
 /** A brand's manual-discount rules (06 Order rule 5). */
 export interface DiscountPolicyRow {
@@ -62,6 +67,8 @@ export interface ProductRow {
   price: number;
   imageKey: string | null; // object key; URL = mediaBaseUrl + key (ADR-021)
   isAvailable: boolean;
+  /** The outlet's sold-out mark lifts by itself then (P1-2); absent = no end time or not sold out. */
+  unavailableUntil?: string | null;
   modifierGroupIds: string[];
 }
 
@@ -83,7 +90,11 @@ export interface PaymentMethodRow {
   sortOrder: number;
 }
 
-export type UserRole = "owner" | "manager" | "cashier";
+/** A waiter takes orders on a table-service outlet but never takes money (ADR-031). */
+export type UserRole = "owner" | "manager" | "cashier" | "waiter";
+
+/** Who may approve voids, refunds and discounts over the limit (never a cashier or a waiter). */
+export const isManager = (role: UserRole | undefined): boolean => role === "owner" || role === "manager";
 
 export interface UserRow {
   id: string;
@@ -133,6 +144,15 @@ export interface OrderRow {
   businessDate: string;
   orderType: "take_away" | "dine_in";
   tableLabel?: string | null;
+  /** The sales channel and the delivery app's order number (ADR-029); absent on older rows. */
+  channelId?: string | null;
+  channelName?: string | null;
+  externalRef?: string | null;
+  /** Called out at the counter for take-away and delivery (P1-1): `<device code>-<seq>`, e.g. A-012. */
+  queueNo?: string | null;
+  customerName?: string | null;
+  /** Cash rounding (P1-3): added to the cash part, may be negative; the total never changes. */
+  rounding?: number;
   lines: OrderLineRow[];
   discount: { type: "percentage" | "fixed"; value: number } | null;
   rates: { serviceBps: number; taxBps: number; includesTax?: boolean };
@@ -197,7 +217,15 @@ export interface CashMovementRow {
 
 // ── Infrastructure ──────────────────────────────────────────────────────────────────────────
 
-export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved" | "bill.item_voided";
+export type OutboxEventType = "shift.opened" | "shift.closed" | "order.placed" | "order.voided" | "order.refunded" | "cash.moved" | "bill.item_voided" | "product.availability_changed";
+
+/** A sold-out mark made on this device (P1-2): shown at once, offline too, until the server has it. */
+export interface AvailabilityOverrideRow {
+  productId: string;
+  isAvailable: boolean;
+  until: string | null; // lifts by itself then; null = until switched back on
+  changedAt: string;
+}
 
 export interface OutboxRow {
   seq?: number; // local auto-increment → send order
@@ -218,6 +246,7 @@ export interface OutboxRow {
 export type SyncStateRow =
   | { key: "receiptCounter"; value: { businessDate: string; seq: number } }
   | { key: "refundCounter"; value: { businessDate: string; seq: number } } // ADR-023
+  | { key: "queueCounter"; value: { businessDate: string; seq: number } } // P1-1, per device per business day
   | { key: "pinLockout"; value: { failures: number; lockedUntil: string | null } }
   | { key: "cart"; value: string } // serialized by the cart store (survives reload / tablet restart)
   | { key: "session"; value: string } // serialized by the session store (logged-in cashier)
@@ -225,7 +254,8 @@ export type SyncStateRow =
   | { key: "pullCursor"; value: number }
   | { key: "lastSyncAt"; value: string }
   | { key: "mediaBaseUrl"; value: string } // from every pull page: follows an S3 vendor switch
-  | { key: "recentLogins"; value: string[] }; // user ids, most recent first: the lock screen opens on the first
+  | { key: "recentLogins"; value: string[] } // user ids, most recent first: the lock screen opens on the first
+  | { key: "serviceMode"; value: ServiceMode }; // the mode this device works in (ADR-031 rule 1)
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =
@@ -305,6 +335,24 @@ export interface PromotionRow {
   endsOn: string | null;
 }
 
+/** Where a sale comes from and how it is priced (ADR-029); pulled, inactive ones are deleted. */
+export interface SalesChannelRow {
+  id: string;
+  code: string;
+  name: string;
+  kind: "dine_in" | "take_away" | "delivery";
+  priceMode: "base" | "markup_bps" | "price_list";
+  markupBps: number;
+  markupRoundingUnit: number;
+  defaultPaymentMethodId: string | null;
+  appliesService: boolean;
+  appliesTax: boolean;
+  requiresExternalRef: boolean;
+  sortOrder: number;
+  /** price_list channels: productId → price; a product missing here is not sold on the channel. */
+  prices: Record<string, number>;
+}
+
 export type LineDiscount = { type: "percentage" | "fixed"; value: number };
 
 /** A cart line kept on an open bill (same shape as the cart feature's CartLine). */
@@ -323,7 +371,10 @@ export interface OpenBillLine {
   sentQuantity?: number;
 }
 
-/** A dine-in bill not paid yet: lives only on this device, never synced (ADR-015). */
+/**
+ * A dine-in bill not paid yet. At a counter outlet it lives only on this device (ADR-015); at a
+ * table-service outlet it is a copy of the server's bill, edited by one device at a time (ADR-031).
+ */
 export interface OpenBillRow {
   id: string;
   tableId: string | null;
@@ -333,4 +384,16 @@ export interface OpenBillRow {
   openedBy: string;
   openedAt: string;
   updatedAt: string;
+  /** `local`: only on this device (counter mode, or opened offline and not uploaded yet). */
+  origin?: "local" | "server";
+  /** The server version this copy is based on; a save names it. */
+  serverVersion?: number | null;
+  /** Changed here and not on the server yet. */
+  dirty?: boolean;
+  /** Until when this device may edit the bill (its lease). */
+  leaseUntil?: string | null;
+  /** Another device is editing the bill: read-only here. */
+  leaseHolder?: { deviceName: string; userId: string; until: string } | null;
+  /** This device's edit the server refused (another device changed the bill): shown, never merged. */
+  conflict?: { lines: OpenBillLine[]; at: string } | null;
 }

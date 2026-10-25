@@ -76,6 +76,95 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(false);
   });
 
+  it("keeps the outlet's service mode (ADR-031); an older server means counter", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, service_mode: "table_service" } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.serviceMode).toBe("table_service");
+
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.serviceMode).toBe("counter");
+  });
+
+  it("keeps when an outlet's sold-out mark ends, and drops this device's mark once the server has it (P1-2)", async () => {
+    const product = MENU.find((c) => c.entity === "product")!;
+    await db.availabilityOverrides.bulkPut([
+      { productId: product.id, isAvailable: false, until: null, changedAt: "2026-09-25T05:00:00.000Z" },
+      { productId: ULID("P", 9), isAvailable: false, until: null, changedAt: "2026-09-25T05:00:00.000Z" },
+    ]);
+    await db.outbox.add({ id: "E1", type: "product.availability_changed", aggregateId: ULID("P", 9), occurredAt: "2026-09-25T05:00:00.000Z", payload: {}, status: "pending", attempts: 0, createdAt: "2026-09-25T05:00:00.000Z" });
+    const pendingProduct = { ...product, id: ULID("P", 9) };
+    const soldOut = { ...product, data: { ...product.data, is_available: false, unavailable_until: "2026-09-25T21:00:00Z" } };
+
+    await pullAll(deps(vi.fn(async () => page([...MENU.filter((c) => c !== product), soldOut, pendingProduct], 9))));
+
+    expect((await db.products.get(product.id))?.unavailableUntil).toBe("2026-09-25T21:00:00Z");
+    expect(await db.availabilityOverrides.toCollection().primaryKeys()).toEqual([ULID("P", 9)]);
+  });
+
+  it("keeps the outlet's cash rounding (P1-3); an older server or unit 0 means off", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, cash_rounding_unit: 500, cash_rounding_mode: "down" } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.cashRounding).toEqual({ unit: 500, mode: "down" });
+
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.cashRounding).toEqual({ unit: 0, mode: "nearest" });
+  });
+
+  it("keeps a waiter (ADR-031)", async () => {
+    const waiter = {
+      entity: "user",
+      op: "upsert",
+      id: ULID("A", 7),
+      version: 9,
+      data: { name: "Dewi", role: "waiter", pin_hash: "aGFzaA==", pin_salt: "c2FsdA==", pin_iterations: 310000 },
+    };
+    await pullAll(deps(vi.fn(async () => page([...MENU, waiter], 9))));
+
+    expect((await db.users.get(ULID("A", 7)))?.role).toBe("waiter");
+  });
+
+  it("keeps sales channels with their prices, and drops one switched off (ADR-029)", async () => {
+    const gofood = {
+      entity: "sales_channel",
+      op: "upsert",
+      id: ULID("H", 1),
+      version: 9,
+      data: {
+        code: "GOFOOD",
+        name: "GoFood",
+        kind: "delivery",
+        price_mode: "price_list",
+        markup_bps: 0,
+        markup_rounding_unit: 100,
+        default_payment_method_id: null,
+        applies_service: false,
+        applies_tax: true,
+        requires_external_ref: true,
+        sort_order: 3,
+        prices: [{ product_id: ULID("P", 1), price: 22_000 }],
+      },
+    };
+    await pullAll(deps(vi.fn(async () => page([...MENU, gofood], 9))));
+    expect(await db.salesChannels.get(ULID("H", 1))).toEqual({
+      id: ULID("H", 1),
+      code: "GOFOOD",
+      name: "GoFood",
+      kind: "delivery",
+      priceMode: "price_list",
+      markupBps: 0,
+      markupRoundingUnit: 100,
+      defaultPaymentMethodId: null,
+      appliesService: false,
+      appliesTax: true,
+      requiresExternalRef: true,
+      sortOrder: 3,
+      prices: { [ULID("P", 1)]: 22_000 },
+    });
+
+    await pullAll(deps(vi.fn(async () => page([{ entity: "sales_channel", op: "delete", id: ULID("H", 1), version: 10 }], 10))));
+    expect(await db.salesChannels.count()).toBe(0);
+  });
+
   it("keeps image keys and the server's current media base URL (ADR-021)", async () => {
     await pullAll(deps(vi.fn(async () => page(MENU, 9))));
 

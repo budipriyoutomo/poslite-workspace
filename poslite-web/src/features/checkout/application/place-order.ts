@@ -1,14 +1,15 @@
-import { formatReceiptNo, nextReceiptCounter } from "@/features/orders";
+import { formatQueueNo, formatReceiptNo, nextReceiptCounter } from "@/features/orders";
 import { localMoment } from "@/features/promotions";
 import { businessDate, getOpenShift } from "@/features/shift";
 import { enqueueEvent } from "@/features/sync";
 import type { OrderRow, PaymentRow, PosDb } from "@/shared/db";
-import { DEFAULT_DISCOUNT_POLICY, getDb, readState, writeState } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, getDb, isManager, readState, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 
+import { channelRates, orderTypeOf, pickChannel } from "../domain/channel-pricing";
 import { manualDiscounts, needsApproval } from "../domain/discount-policy";
-import { settle } from "../domain/payment";
+import { NO_ROUNDING, settle } from "../domain/payment";
 import type { Discount } from "../domain/pricing";
 import { priceCart } from "./price-cart";
 
@@ -34,6 +35,14 @@ export interface PlaceOrderInput {
   payments: { paymentMethodId: string; amount: number; reference?: string | null }[];
   /** Manager who approved a discount over the brand's cashier limit (06 Order rule 5). */
   discountApprovedBy?: string | null;
+  /** The channel the cashier chose (ADR-029); none = the brand's channel of the order's kind. */
+  channelId?: string | null;
+  /** The delivery app's order number, required by channels that ask for it. */
+  externalRef?: string | null;
+  /** The guest's name for a take-away or delivery order (P1-1, ≤ 40 characters). */
+  customerName?: string | null;
+  /** ADR-031: the shared open bill this payment closes on the server. */
+  closesBillId?: string | null;
 }
 
 export interface PlaceOrderDeps {
@@ -43,7 +52,7 @@ export interface PlaceOrderDeps {
 }
 
 /** Everything placeOrder writes or reads; an outer transaction must cover all of them. */
-export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.users, db.orders, db.payments, db.syncState, db.outbox];
+export const placeOrderTables = (db: PosDb) => [db.settings, db.shifts, db.paymentMethods, db.promotions, db.salesChannels, db.users, db.orders, db.payments, db.syncState, db.outbox];
 
 const defaultDeps = (): PlaceOrderDeps => ({ db: getDb(), now: () => new Date(), newId });
 
@@ -61,7 +70,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
     const shift = await getOpenShift(db);
     if (!shift) throw new AppError("NO_OPEN_SHIFT");
 
-    const rates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps, includesTax: outlet.priceIncludesTax === true }; // snapshot (ADR-011, ADR-030)
+    const kind = input.orderType ?? "take_away";
+    const channel = pickChannel(await db.salesChannels.toArray(), input.channelId, kind);
+    const externalRef = input.externalRef?.trim() || null;
+    if (channel?.requiresExternalRef && !externalRef) throw new AppError("EXTERNAL_REF_REQUIRED");
+    // Snapshot (ADR-011): outlet rates in the brand's price mode (ADR-030), only those the channel charges (ADR-029).
+    const outletRates = { serviceBps: outlet.serviceBps, taxBps: outlet.taxBps, includesTax: outlet.priceIncludesTax === true };
+    const rates = channel ? channelRates(outletRates, outletRates.includesTax, channel) : outletRates;
     const now = deps.now();
     // Only the promotions the cashier chose, checked again now in outlet time (ADR-016).
     const chosen = (await db.promotions.toArray()).filter((p) => input.promotionIds?.includes(p.id));
@@ -75,13 +90,21 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       if (!method) throw new AppError("UNKNOWN_PAYMENT_METHOD");
       return { ...p, method };
     });
-    const settlement = settle(totals.total, tendered.map((p) => ({ methodType: p.method.type, amount: p.amount })));
+    const roundingRule = outlet.cashRounding ?? NO_ROUNDING;
+    const settlement = settle(totals.total, tendered.map((p) => ({ methodType: p.method.type, amount: p.amount })), roundingRule);
     if (!settlement.ok) throw new AppError(settlement.reason);
 
     const createdAt = now.toISOString();
     const date = businessDate(now, outlet.timezone, outlet.businessDayCutoff);
     const counter = nextReceiptCounter(await readState(db, "receiptCounter"), date);
     await writeState(db, "receiptCounter", counter);
+    // P1-1: take-away and delivery are called by number; a table is called by its table.
+    const orderType = input.orderType ?? (channel ? orderTypeOf(channel.kind) : "take_away");
+    const isCalled = orderType !== "dine_in";
+    const customerName = isCalled ? input.customerName?.trim() || null : null;
+    if (customerName && customerName.length > 40) throw new AppError("CUSTOMER_NAME_TOO_LONG");
+    const queue = isCalled ? nextReceiptCounter(await readState(db, "queueCounter"), date) : null;
+    if (queue) await writeState(db, "queueCounter", queue);
 
     const order: OrderRow = {
       id: deps.newId(),
@@ -90,8 +113,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       cashierId: input.cashier.id,
       cashierName: input.cashier.name,
       businessDate: date,
-      orderType: input.orderType ?? "take_away",
+      orderType,
       tableLabel: input.tableLabel ?? null,
+      channelId: channel?.id ?? null,
+      channelName: channel?.name ?? null,
+      externalRef,
+      queueNo: queue ? formatQueueNo({ deviceCode: outlet.deviceCode, seq: queue.seq }) : null,
+      customerName,
       lines: input.lines.map((l, i) => ({
         id: deps.newId(),
         productId: l.productId,
@@ -109,6 +137,7 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       ...totals,
       paidAmount: settlement.paidAmount,
       changeAmount: settlement.changeAmount,
+      rounding: settlement.rounding,
       status: "paid",
       syncStatus: "pending",
       flags: [],
@@ -132,7 +161,13 @@ export async function placeOrder(input: PlaceOrderInput, deps: PlaceOrderDeps = 
       type: "order.placed",
       aggregateId: order.id,
       occurredAt: createdAt,
-      payload: { ...toOrderPlacedPayload(order, payments), discount_approved_by: approvedBy },
+      payload: {
+        ...toOrderPlacedPayload(order, payments),
+        // P1-3: the outlet's rule as sold with (like the rates snapshot, ADR-011) and its result.
+        ...(roundingRule.unit > 0 && { cash_rounding: { unit: roundingRule.unit, mode: roundingRule.mode, amount: settlement.rounding } }),
+        discount_approved_by: approvedBy,
+        ...(input.closesBillId && { closes_bill_id: input.closesBillId }),
+      },
     });
     return order;
   });
@@ -149,12 +184,22 @@ async function checkDiscount(
   policy: { cashierMaxPercentage: number; cashierMaxAmount: number },
 ): Promise<string | null> {
   const { percentages, amount } = manualDiscounts(priced.lines, input.discount, priced.orderDiscount);
-  const role = (await db.users.get(input.cashier.id))?.role ?? "cashier";
-  if (!needsApproval({ role, manualPercentages: percentages, manualAmount: amount, limits: { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } })) {
+  const role = isManager((await db.users.get(input.cashier.id))?.role) ? "manager" : "cashier";
+  if (
+    !needsApproval({
+      role,
+      manualPercentages: percentages,
+      manualAmount: amount,
+      limits: {
+        maxPercentage: policy.cashierMaxPercentage,
+        maxAmount: policy.cashierMaxAmount,
+      },
+    })
+  ) {
     return null;
   }
   const approver = input.discountApprovedBy ? await db.users.get(input.discountApprovedBy) : undefined;
-  if (!approver || approver.role === "cashier") throw new AppError("DISCOUNT_APPROVAL_REQUIRED");
+  if (!approver || !isManager(approver.role)) throw new AppError("DISCOUNT_APPROVAL_REQUIRED");
   return approver.id;
 }
 
@@ -165,6 +210,10 @@ function toOrderPlacedPayload(order: OrderRow, payments: PaymentRow[]) {
     cashier_id: order.cashierId,
     order_type: order.orderType,
     table_label: order.tableLabel ?? null,
+    ...(order.channelId && { channel_id: order.channelId }),
+    ...(order.externalRef && { external_ref: order.externalRef }),
+    ...(order.queueNo && { queue_no: order.queueNo }),
+    ...(order.customerName && { customer_name: order.customerName }),
     lines: order.lines.map((l) => ({
       id: l.id,
       product_id: l.productId,

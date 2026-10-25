@@ -71,6 +71,9 @@ async def pull(
             await organization.dining_table_changes(
                 uow, outlet_id=device.outlet.id, cursor=cursor, limit=limit
             ),
+            await catalog.channel_changes(
+                uow, brand_id=device.outlet.brand_id, cursor=cursor, limit=limit
+            ),
             await promotion.promotion_changes(
                 uow,
                 outlet_id=device.outlet.id,

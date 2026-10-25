@@ -1,7 +1,10 @@
+from datetime import datetime
+
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.payment import api as payment
-from poslite.shared.application.ports import OutletProfile
+from poslite.shared.application.ports import ChannelInfo, OutletProfile
 from poslite.shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 from poslite.shift.api import ShiftRepository
 
@@ -75,3 +78,35 @@ class PaymentMethods:
 
     async def inactive(self, outlet_id: str, method_ids: list[str]) -> set[str]:
         return await payment.inactive_methods(self._uow, outlet_id, method_ids)
+
+
+class CatalogChannels:
+    """ChannelPort over the catalog module: channels of the outlet's brand (ADR-029)."""
+
+    def __init__(self, uow: SqlAlchemyUnitOfWork) -> None:
+        self._uow = uow
+
+    async def channel(self, outlet_id: str, channel_id: str) -> ChannelInfo | None:
+        brand_id = await organization.brand_of_outlet(self._uow, outlet_id)
+        return await catalog.channel_info(self._uow, brand_id=brand_id, channel_id=channel_id)
+
+    async def default(self, outlet_id: str, kind: str) -> ChannelInfo | None:
+        brand_id = await organization.brand_of_outlet(self._uow, outlet_id)
+        return await catalog.default_channel(self._uow, brand_id=brand_id, kind=kind)
+
+
+class CatalogAvailability:
+    """OutletAvailability over the catalog module: sold-out marks from the POS (P1-2)."""
+
+    def __init__(self, uow: SqlAlchemyUnitOfWork) -> None:
+        self._uow = uow
+
+    async def sells(self, outlet_id: str, product_id: str) -> bool:
+        outlet = await organization.get_outlet(self._uow, outlet_id)
+        return await catalog.product_in_brand(self._uow, product_id, outlet.brand_id)
+
+    async def last_change(self, outlet_id: str, product_id: str) -> datetime | None:
+        return await catalog.last_availability_change(self._uow, outlet_id, product_id)
+
+    async def apply(self, outlet_id: str, change: catalog.ChangeAvailability) -> None:
+        await catalog.apply_availability(self._uow, outlet_id, change)

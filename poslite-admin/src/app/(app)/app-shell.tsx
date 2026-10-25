@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePercent, Ban, BarChart3, Building2, CalendarCheck, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
+import { BadgePercent, Ban, BarChart3, Bike, Building2, CalendarCheck, CreditCard, LogOut, Menu, MonitorSmartphone, Receipt, Store, Tags, UtensilsCrossed, Users, Webhook } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
@@ -19,6 +19,7 @@ const NAV = [
   { href: "/menu", label: "Menu", icon: UtensilsCrossed, needs: "manageBrand", group: "Operasional" },
   { href: "/prices", label: "Harga Outlet", icon: Tags, needs: null, group: "Operasional" },
   { href: "/promotions", label: "Promo", icon: BadgePercent, needs: "manageBrand", group: "Operasional" },
+  { href: "/channels", label: "Channel Penjualan", icon: Bike, needs: "manageBrand", group: "Operasional" },
   { href: "/outlets", label: "Outlet, Meja & Perangkat", icon: MonitorSmartphone, needs: null, group: "Operasional" },
   { href: "/brands", label: "Brand", icon: Building2, needs: "company", group: "Perusahaan" },
   { href: "/payment-methods", label: "Metode Bayar", icon: CreditCard, needs: "company", group: "Perusahaan" },

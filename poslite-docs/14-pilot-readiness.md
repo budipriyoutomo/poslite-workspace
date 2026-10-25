@@ -60,11 +60,11 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 |---|---|---|---|
 | P0-1 ✅ | ADR-028 | `0023_bill_item_voids` (`bill_voids`, `bill_void_lines`, kolom void di `rpt_daily_sales`) | — (tidak perlu; event masuk `outbox`) |
 | P0-3 ✅ | ADR-030 | `0024_brand_price_includes_tax` (+ `orders.price_includes_tax`) | — (flag ikut data brand di `settings`) |
-| P0-2 | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
-| P0-4 | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
-| P1-1 | — | `0028_order_customer_queue` (`orders.customer_name`, `orders.queue_no`) | **v8**: `queueCounters: "businessDate"` |
-| P1-2 | — | `0029_product_available_until` (`outlet_products.available_until`; `is_available` sudah ada sejak `0007`) | **v8**: `availabilityOverrides: "productId"` |
-| P1-3 | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `payments.rounding_amount`, `refunds.rounding_amount`) | — (pengaturan outlet di `settings`) |
+| P0-2 ✅ | ADR-029 | `0025_sales_channels` (`sales_channels`, `channel_prices`, seed Dine In & Take Away) · `0026_order_channel` (`orders.channel_id`, `orders.external_ref`, backfill, `rpt_daily_channel_sales`) | **v6**: `salesChannels: "id, sortOrder"`, `channelPrices: "[channelId+productId], channelId"` |
+| P0-4 ✅ | ADR-031 | `0027_service_mode_open_bills` (`outlets.service_mode`, `open_bills`, `open_bill_lines`, lease, RLS) | **v7**: `openBills` + `serverVersion`, `leaseUntil`, `origin` (`local` \| `server`), index `origin` |
+| P1-1 ✅ | — | `0028_order_queue_customer` (`orders.customer_name`, `orders.queue_no`) | tidak ada (`syncState.queueCounter`) |
+| P1-2 ✅ | — | `0029_product_availability_from_pos` (`outlet_products.available_until`, `availability_changed_at`, permission `product.availability`) | **v8**: `availabilityOverrides: "productId"` |
+| P1-3 ✅ | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `orders.rounding_amount`, `rpt_daily_sales.cash_rounding`) | — (pengaturan outlet di `settings`) |
 | P1-8 | — | `0031_operator_totp` (secret TOTP terenkripsi, `operator_recovery_codes`) | — |
 
 ADR-029 dan ADR-030 dinomori sesuai urutan dokumen (channel lebih dulu dibahas), walaupun P0-3 dikerjakan lebih dulu. v8 menggabungkan perubahan P1-1 dan P1-2 karena dikerjakan di tahap yang sama.
@@ -104,7 +104,7 @@ Urutan wajib: **P0-3 dulu, baru P0-2**, karena aturan pajak per channel (ADR-029
 | Kode | Non-kode (paralel) |
 |---|---|
 | P0-3 Harga inklusif (ADR-030, migrasi `0024`) ✅ | Kumpulkan struktur komisi & harga ojol restoran pilot |
-| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) | Draf SOP Kasir |
+| P0-2 Channel penjualan (ADR-029, migrasi `0025`–`0026`, Dexie v6) ✅ | Draf SOP Kasir |
 | Fixture matriks channel × inklusif × diskon (§5, P0-2) | |
 
 **Gerbang keluar**: fixture `pricing-cases.json` (termasuk matriks) hijau di web & API; e2e jual GoFood offline → sync → laporan channel benar.
@@ -117,7 +117,7 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v7) | Draf SOP Pelayan |
+| P0-4 Mode layanan per outlet + shared open bill (ADR-031, migrasi `0027`, Dexie v7) ✅ | Draf SOP Pelayan |
 | Uji konkurensi: dua device mengedit bill yang sama, lease kedaluwarsa, device offline memegang lease | Survei alur pesanan di restoran pilot (siapa input, siapa menagih) |
 
 **Gerbang keluar**: P0-4 DoD hijau, termasuk e2e dua device; outlet counter-service tetap berperilaku sama seperti sebelum P0-4.
@@ -128,9 +128,9 @@ Dikerjakan setelah Tahap B karena bill server menyimpan harga dan channel yang s
 
 | Kode | Non-kode (paralel) |
 |---|---|
-| P1-1 Nama pelanggan & nomor antrian (migrasi `0028`, Dexie v8) | Draf SOP Gangguan & SOP Manajer |
-| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) | Checklist onboarding tenant |
-| P1-3 Pembulatan tunai (migrasi `0030`) | |
+| P1-1 Nama pelanggan & nomor antrian (migrasi `0028`) ✅ | Draf SOP Gangguan & SOP Manajer |
+| P1-2 Tandai habis dari POS (migrasi `0029`, Dexie v8) ✅ | Checklist onboarding tenant |
+| P1-3 Pembulatan tunai (migrasi `0030`) ✅ | |
 | P1-10 Uji beban device | |
 
 **Gerbang keluar**: semua DoD hijau; target P1-10 tercapai di tablet referensi (atau perangkat sejenis bila perangkat pilot belum tiba).
@@ -209,7 +209,17 @@ Minggu 1 pendampingan intensif, minggu 2 lepas tangan. **Freeze fitur**: hanya p
 
 ---
 
-### P0-2 — Channel Penjualan (ADR-029)
+### P0-2 — Channel Penjualan (ADR-029) ✅
+
+**Status 2026-10-24: selesai.** Keputusan lengkap di [01 ADR-029](./01-system-architecture.md). Bedanya dengan rancangan di bawah:
+
+- Harga price list ikut di dalam data channel saat pull dan di Dexie v6 (`salesChannels.prices`), bukan tabel `channelPrices` terpisah.
+- Server **tidak** memvalidasi harga baris terhadap katalog (sama seperti sebelumnya); yang dicek tarif efektif channel (`RATES_OUTDATED`), channel tak dikenal (`CHANNEL_UNKNOWN`), dan nomor order aplikasi (`EXTERNAL_REF_MISSING`).
+- Pemilih channel di POS hanya untuk penjualan tanpa meja; bill meja selalu di channel Dine In (tidak di-reprice saat membuka meja).
+- Matriks fixture lengkap ada di `channel-pricing-cases.json` (64 kasus), bukan di `pricing-cases.json`.
+- Belum: sheet channel di export CSV/XLSX.
+- Setelah deploy, jalankan `make report-rebuild` agar laporan channel hari-hari lama terisi.
+
 
 **Masalah.** `order_type` hanya `take_away | dine_in` (`sales/domain/entities.py`, `sync/application/events.py`). Pesanan GoFood/GrabFood/ShopeeFood biasanya memakai harga yang lebih tinggi untuk menutup komisi, dibayar oleh aggregator (bukan tunai ke kasir), dan harus direkonsiliasi terpisah.
 
@@ -298,7 +308,7 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 
 ---
 
-### P0-4 — Mode Layanan per Outlet & Shared Open Bill (ADR-031)
+### P0-4 — Mode Layanan per Outlet & Shared Open Bill (ADR-031) ✅
 
 **Masalah.** ADR-015 menyimpan open bill hanya di device yang membukanya. Itu cukup untuk counter-service, tetapi di restoran full-service pelayan mencatat pesanan di tablet masing-masing dan kasir menagih di device lain. Tanpa bill bersama, kasir tidak bisa melihat bill pelayan, dan pindah meja atau gabung bill lintas device tidak mungkin.
 
@@ -353,9 +363,11 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 
 **DoD**: owner mengganti mode outlet di back-office; di `table_service`, bill pelayan terlihat dan dibayar di device kasir tanpa input ulang; di `counter`, perilaku sama seperti sebelum P0-4.
 
+**Status (2026-10-24)**: selesai. Penyimpangan dari rencana: baris bill disimpan sebagai JSON di `open_bills.lines` (tanpa tabel `open_bill_lines`, server tidak pernah menghitung bill); `closes_bill_id` di `order.placed` menutup bill; PUT/POST menerima `release_lease`. E2E dua device ada di `tests/fullstack` (bukan `tests/e2e`, karena butuh API asli). Belum: varian e2e offline dua device (tercakup unit test `open-bill-sync`), gabung bill lintas device, void sebelum bayar di tablet pelayan tanpa shift.
+
 ---
 
-### P1-1 — Nama Pelanggan & Nomor Antrian (Take Away / Delivery)
+### P1-1 — Nama Pelanggan & Nomor Antrian (Take Away / Delivery) ✅
 
 - Field opsional `customer_name` (≤ 40 karakter) di cart untuk channel `take_away` dan `delivery`.
 - `queue_no` per device per `business_date`, dengan format `<kode device>-<nomor 3 digit>`, misalnya `A-012`. Kode device (`A`, `B`, …; unik per outlet) dipakai sebagai prefix agar nomor tidak bentrok antar tablet saat offline. Reset setiap ganti business date.
@@ -363,16 +375,18 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - Dicetak besar di struk dan tiket dapur; tampil di riwayat order.
 - API (migrasi `0028`): kolom `orders.customer_name`, `orders.queue_no`.
 - **DoD**: dua device offline menghasilkan nomor antrian yang tidak bentrok; reload aplikasi di tengah hari tidak me-reset counter.
+- **Status (2026-10-24)**: selesai. Counter disimpan di `syncState.queueCounter` (key-value yang sama dengan nomor struk), bukan tabel `queueCounters` — tidak butuh index, jadi tidak butuh Dexie v8. Nama diisi di layar bayar; dine-in tetap dipanggil per meja. Dicetak tebal di tengah ("ANTRIAN A-012 Andi") karena format struk belum punya ukuran huruf besar.
 
-### P1-2 — Tandai Menu Habis dari POS
+### P1-2 — Tandai Menu Habis dari POS ✅
 
 - Manajer atau kasir dengan izin `pos:availability` menandai produk **habis** dari grid produk (tekan lama → "Tandai habis").
 - Efek lokal langsung, termasuk saat offline (Dexie v8, `availabilityOverrides`). Event `product.availability_changed { product_id, outlet_id, is_available, until }` masuk ke outbox.
 - `until` default = akhir business date (menu otomatis tersedia lagi besok). Opsi "sampai diaktifkan lagi".
 - Server menulis `outlet_products.is_available` (kolom sudah ada sejak migrasi `0007`) dan `available_until` (migrasi `0029`); device lain mendapatkannya lewat delta pull. Konflik: event terbaru menang (berdasarkan `occurred_at` server-adjusted).
 - **DoD**: tandai habis di tablet A → tablet B ikut habis setelah pull berikutnya; besok kembali tersedia otomatis.
+- **Status (2026-10-24)**: selesai. Izin berupa permission `product.availability` (owner, manager, kasir; pelayan tidak). "Terbaru menang" memakai `occurred_at` event (jam device; belum disesuaikan dengan jam server). Pull membawa `unavailable_until` sehingga tablet lain ikut tersedia lagi tanpa pull baru. Tekan lama = `contextmenu` (Chrome Android memicunya dari tekan lama; di desktop klik kanan).
 
-### P1-3 — Pembulatan Tunai
+### P1-3 — Pembulatan Tunai ✅
 
 - Pengaturan outlet (migrasi `0030`) `cash_rounding_unit`: `0` (mati), `100`, `500`, atau `1000`, dengan `cash_rounding_mode`: `nearest` | `down`.
 - Hanya berlaku untuk bagian pembayaran **tunai**. Total order dan pajak tidak berubah; selisihnya disimpan sebagai `payments.rounding_amount` (bisa negatif).
@@ -382,8 +396,9 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - Laporan dan tutup hari menampilkan total pembulatan; `expected_cash` shift ikut memperhitungkannya.
 - Struk: baris "Pembulatan".
 - Fixture `cash-rounding-cases.json` dipakai web & API, dan wajib mencakup: tunai penuh, campuran QRIS + tunai, split bill 2 dan 3 bagian, refund parsial tunai, refund penuh, serta mode `down`.
+- **Status (2026-10-25)**: selesai untuk penjualan: fixture 18 kasus (tunai, campuran, split 2 & 3, mode `down`), panel bayar meminta tunai yang sudah dibulatkan, baris "Pembulatan" di struk, `expected_cash` shift otomatis benar (laci = tunai − kembalian), total pembulatan di laporan harian dan tutup hari, setting di halaman Outlet. Penyimpangan: pembulatan disimpan per order (`orders.rounding_amount`, satu bagian tunai per order), bukan `payments.rounding_amount`; aturan ikut payload sebagai snapshot seperti tarif. **Belum**: pembulatan refund tunai (`refunds.rounding_amount`) dan kasus refund di fixture — refund tunai masih dikembalikan persis.
 
-### P1-4 — Import Menu dari Excel/CSV
+### P1-4 — Import Menu dari Excel/CSV ✅
 
 - Template `.xlsx` yang bisa diunduh dari admin, berisi sheet `products`, `categories`, `modifier_groups`, `channel_prices`, dan `outlet_prices`.
 - Alur: unggah → validasi dengan pratinjau error per baris → konfirmasi → upsert berdasarkan `sku` atau nama.
@@ -391,8 +406,9 @@ Selisih pembulatan selalu diserap oleh `tax` dan `service`, sehingga `net + serv
 - **Alasan**: ini menghemat waktu onboarding terbesar. Saat pilot, tim POSLite yang mengisi menu restoran, dan setelah pilot owner bisa melakukannya sendiri.
 - **Status**: tidak memblok Go (Tahap E). Wajib selesai sebelum onboarding tenant kedua.
 - **DoD**: menu 200 produk + modifier masuk dalam < 5 menit dari file contoh.
+- **Status (2026-10-25)**: selesai untuk `.xlsx` (CSV belum: satu file CSV hanya memuat satu sheet). Tombol "Import Excel" di halaman Menu: unduh template → periksa (pratinjau jumlah baru/diperbarui dan error per baris) → import. 200 produk + modifier masuk dalam beberapa detik di test e2e (batas uji 30 detik). Import memakai fungsi katalog yang sama dengan edit manual, jadi setiap baris tersinkron ke device lewat versi seperti biasa.
 
-### P1-5 — Print Bridge untuk Non-Teknis
+### P1-5 — Print Bridge untuk Non-Teknis (sebagian ✅)
 
 Setup sekarang membutuhkan Node 24, token manual, dan mkcert. Untuk pilot:
 
@@ -403,6 +419,7 @@ Setup sekarang membutuhkan Node 24, token manual, dan mkcert. Untuk pilot:
 5. Halaman status lokal: daftar printer, test print, dan log error terakhir (tanpa isi struk).
 
 **DoD**: orang non-developer bisa memasang bridge dan mencetak test print dalam < 10 menit dengan mengikuti panduan bergambar.
+- **Status (2026-10-25)**: butir 2, 3, 5 selesai — bind `127.0.0.1` (sudah default), token dibuat sendiri bila tidak diisi, pairing kode 6 digit (`POST /pair`, terkunci 5 menit setelah 5 kode salah), halaman lokal `http://localhost:9180/` (kode, printer, test print, 20 error terakhir tanpa isi struk; hanya untuk PC itu), dan isian **Kode pairing** di layar Printer POS. **Belum**: butir 1 (`poslite-bridge.exe` Node SEA + installer Windows service) — perlu dibangun dan diuji di Windows; sementara memakai NSSM seperti di README. Butir 4 tetap dokumentasi teknisi.
 
 ### P1-6 — Uji Printer & Perangkat Asli (Fase 7)
 
@@ -426,13 +443,14 @@ Provisioning VPS + Vercel dimulai di Tahap A; sisanya di Tahap D.
 | Rilis | Tag versi per rilis; rilis web hanya di luar jam operasional restoran pilot; SW update tetap tidak memaksa reload (sudah ada) |
 | Rollback | Prosedur tertulis: rollback image API + `alembic downgrade` satu langkah + redeploy Vercel ke build sebelumnya. Setiap migrasi `0023`–`0031` wajib punya `downgrade()` yang diuji |
 
-### P1-8 — 2FA Konsol Operator
+### P1-8 — 2FA Konsol Operator ✅
 
 - TOTP (RFC 6238) untuk semua akun `platform_admin`; wajib saat login pertama setelah fitur aktif.
 - 10 recovery code sekali pakai (migrasi `0031`).
 - Audit log mencatat aktivasi/reset 2FA.
 - Rate limit login sudah ada (ADR-027); tambahkan juga untuk verifikasi TOTP.
 - Wajib selesai sebelum data menu restoran pilot masuk ke staging (Tahap E).
+- **Status (2026-10-25)**: selesai (migrasi `0031`). TOTP tanpa dependensi baru (stdlib, diuji dengan test vector RFC 6238). Login = password → token challenge 5 menit → kode TOTP atau kode pemulihan → sesi 8 jam. Konsol menampilkan kunci (teks + tautan `otpauth://`, belum QR) dan 10 kode pemulihan sekali. Rahasia TOTP disimpan di database tanpa enkripsi tambahan (hanya role `poslite_system` yang membacanya) — enkripsi at-rest menyusul bila ada KMS.
 
 ### P1-9 — Perbaikan Dokumen
 
@@ -446,7 +464,7 @@ Provisioning VPS + Vercel dimulai di Tahap A; sisanya di Tahap D.
 
 - ADR-028 sampai ADR-031 ke [01](./01-system-architecture.md), schema ke [06](./06-domain-and-database.md), event & endpoint ke [07](./07-api-contract.md), Dexie v6–v8 ke [03](./03-offline-sync.md), jumlah migrasi di 09.
 
-### P1-10 — Uji Beban Device
+### P1-10 — Uji Beban Device (harness ✅, target belum)
 
 Metrik pilot menuntut ≥ 30 transaksi/jam di jam puncak, dan dry run mematikan Wi-Fi selama 2 jam. Keduanya belum pernah diuji di perangkat.
 
@@ -462,6 +480,7 @@ Metrik pilot menuntut ≥ 30 transaksi/jam di jam puncak, dan dry run mematikan 
 | Ukuran IndexedDB setelah seed | Tercatat (untuk batas retensi lokal) |
 
 - Hasil dicatat di [08](./08-roadmap-and-testing.md). Bila target tidak tercapai, perbaikan masuk Tahap C sebelum gerbang keluar.
+- **Status (2026-10-25)**: `make web-load` siap (seed + ukur + cek duplikat di server). Di laptop CPU 1x semua target tercapai; di CPU 4x tiga target UI meleset (lihat 08). Belum diukur di tablet referensi; optimasi menunggu angka dari perangkat itu.
 
 ---
 
@@ -568,30 +587,30 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 
 **Tahap B — Harga & Channel**
 - [x] P0-3 Harga inklusif pajak (ADR-030, `0024`)
-- [ ] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
-- [ ] Fixture matriks channel × inklusif × diskon hijau di web & API
+- [x] P0-2 Channel penjualan (ADR-029, `0025`–`0026`, Dexie v6)
+- [x] Fixture matriks channel × inklusif × diskon hijau di web & API
 
 **Tahap B2 — Mode Layanan & Shared Open Bill**
-- [ ] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)
+- [x] P0-4 Mode layanan per outlet + shared open bill (ADR-031, `0027`, Dexie v7)
 - [ ] Uji konkurensi & e2e dua device hijau
 - [ ] Regresi mode `counter` hijau
 
 **Tahap C — Operasional Kasir**
-- [ ] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
-- [ ] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
-- [ ] P1-3 Pembulatan tunai (`0030`)
-- [ ] P1-10 Uji beban device memenuhi target
+- [x] P1-1 Nama pelanggan & nomor antrian (`0028`, Dexie v8)
+- [x] P1-2 Tandai habis dari POS (`0029`, Dexie v8)
+- [x] P1-3 (refund tunai belum dibulatkan) Pembulatan tunai (`0030`)
+- [~] P1-10 (harness siap; target UI belum di CPU 4x) Uji beban device memenuhi target
 - [ ] Checklist onboarding tenant
 
 **Tahap D — Infrastruktur, Keamanan & Hardware**
 - [ ] P1-7 Monitoring, backup off-site, uji restore, prosedur rollback
-- [ ] P1-8 2FA konsol operator (`0031`)
+- [x] P1-8 2FA konsol operator (`0031`)
 - [ ] P1-5 Print Bridge installer + pairing (bila D4 memakai LAN)
 - [ ] P1-6 Uji perangkat asli + Daftar Perangkat Teruji
 - [ ] Perjanjian pilot + syarat & privasi
 
 **Tahap E — Onboarding, Dry Run & Go/No-Go**
-- [ ] P1-4 Import menu Excel/CSV (tidak memblok Go)
+- [x] P1-4 Import menu Excel/CSV (tidak memblok Go)
 - [ ] Menu restoran pilot masuk staging
 - [ ] P1-9 bagian 2 (01/03/06/07 mutakhir)
 - [ ] SOP kasir, gangguan, manajer + training

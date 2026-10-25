@@ -9,13 +9,19 @@ import { Button } from "@/shared/ui/button";
 import { ConfirmButton } from "@/shared/ui/confirm-button";
 import { TableFrame } from "@/shared/ui/table-frame";
 
-import { useOperators, useSetOperatorDisabled } from "../application/use-operators";
+import { useOperators, useResetTwoFactor, useSetOperatorDisabled } from "../application/use-operators";
 import { NewOperatorDialog } from "./NewOperatorDialog";
 
 export function OperatorsScreen() {
   const operators = useOperators();
   const me = useMe();
   const setDisabled = useSetOperatorDisabled();
+  const resetTwoFactor = useResetTwoFactor();
+  const reset = (id: string) =>
+    resetTwoFactor.mutate(id, {
+      onSuccess: () => toast.success("2FA direset: operator mengaturnya lagi saat login"),
+      onError: () => toast.error("Gagal mereset 2FA"),
+    });
   const change = (id: string, disabled: boolean) => setDisabled.mutate({ id, disabled }, { onError: () => toast.error("Gagal mengubah status operator") });
 
   return (
@@ -56,15 +62,26 @@ export function OperatorsScreen() {
                       </Button>
                     ) : (
                       !isMe && (
-                        <ConfirmButton
-                          label={`Nonaktifkan ${o.name}`}
-                          title={`Nonaktifkan ${o.name}?`}
-                          description="Semua sesi login operator ini langsung berakhir dan ia tidak bisa login sampai diaktifkan lagi."
-                          confirm="Nonaktifkan"
-                          onConfirm={() => change(o.id, true)}
-                        >
-                          Nonaktifkan
-                        </ConfirmButton>
+                        <span className="inline-flex gap-2">
+                          <ConfirmButton
+                            label={`Reset 2FA ${o.name}`}
+                            title={`Reset 2FA ${o.name}?`}
+                            description="Untuk autentikator yang hilang. Sesi login operator ini berakhir; ia mengatur 2FA lagi saat login berikutnya."
+                            confirm="Reset 2FA"
+                            onConfirm={() => reset(o.id)}
+                          >
+                            Reset 2FA
+                          </ConfirmButton>
+                          <ConfirmButton
+                            label={`Nonaktifkan ${o.name}`}
+                            title={`Nonaktifkan ${o.name}?`}
+                            description="Semua sesi login operator ini langsung berakhir dan ia tidak bisa login sampai diaktifkan lagi."
+                            confirm="Nonaktifkan"
+                            onConfirm={() => change(o.id, true)}
+                          >
+                            Nonaktifkan
+                          </ConfirmButton>
+                        </span>
                       )
                     )}
                   </td>

@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createBridgeDriver } from "./bridge-driver";
+import { createBridgeDriver, pairBridge } from "./bridge-driver";
 
 const DEVICE = { bridgeUrl: "https://kasir-pc.local:9443", bridgeToken: "s3cret", address: "192.168.1.50:9100" };
 
@@ -65,5 +65,21 @@ describe("Print Bridge driver (raw TCP 9100 printers on the LAN)", () => {
 
     await expect(driver.connect({ address: "192.168.1.50" })).rejects.toThrow("PRINTER_NOT_PAIRED");
     await expect(driver.send(new Uint8Array([1]))).rejects.toThrow("PRINTER_NOT_CONNECTED");
+  });
+});
+
+describe("pairBridge (P1-5)", () => {
+  it("trades the 6-digit code for the bridge token", async () => {
+    const fetchFn = vi.fn(async () => new Response(JSON.stringify({ token: "t0k3n" }), { status: 200 }));
+
+    await expect(pairBridge("http://localhost:9180", " 123456 ", fetchFn)).resolves.toBe("t0k3n");
+    const [url, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+    expect([url, init.body]).toEqual(["http://localhost:9180/pair", JSON.stringify({ code: "123456" })]);
+  });
+
+  it("passes on why pairing was refused", async () => {
+    const fetchFn = vi.fn(async () => new Response(JSON.stringify({ error: "INVALID_CODE" }), { status: 401 }));
+
+    await expect(pairBridge("http://localhost:9180", "000000", fetchFn)).rejects.toThrow("INVALID_CODE");
   });
 });

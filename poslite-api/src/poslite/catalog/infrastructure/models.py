@@ -1,4 +1,6 @@
-from sqlalchemy import CHAR, BigInteger, Boolean, Integer, SmallInteger, String, Text
+from datetime import datetime
+
+from sqlalchemy import CHAR, BigInteger, Boolean, DateTime, Integer, SmallInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.columns import MasterColumns
@@ -73,3 +75,39 @@ class OutletProductModel(Base):
     product_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     price: Mapped[int | None] = mapped_column(BigInteger)
     is_available: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    # P1-2: a sold-out mark from the POS may end by itself; the latest change wins.
+    available_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    availability_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SalesChannelModel(MasterColumns, Base):
+    """ADR-029: where a sale comes from (dine-in, take-away, GoFood…) and how it is priced."""
+
+    __tablename__ = "sales_channels"
+
+    id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    brand_id: Mapped[str] = mapped_column(CHAR(26))
+    code: Mapped[str] = mapped_column(String(20))
+    name: Mapped[str] = mapped_column(String(50))
+    kind: Mapped[str] = mapped_column(String(20))
+    price_mode: Mapped[str] = mapped_column(String(20), server_default="base")
+    markup_bps: Mapped[int] = mapped_column(Integer, server_default="0")
+    markup_rounding_unit: Mapped[int] = mapped_column(Integer, server_default="100")
+    default_payment_method_id: Mapped[str | None] = mapped_column(CHAR(26))
+    applies_service: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    applies_tax: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    requires_external_ref: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    sort_order: Mapped[int] = mapped_column(Integer, server_default="0")
+
+
+class ChannelPriceModel(Base):
+    """A product's price on a `price_list` channel (link table: a change touches the channel)."""
+
+    __tablename__ = "channel_prices"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    channel_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    product_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    price: Mapped[int] = mapped_column(BigInteger)

@@ -99,7 +99,10 @@ tenants          id, slug (unik global), name, status (active|suspended), plan (
                  default_timezone, created_at, suspended_at                -- global, tanpa RLS
 outlets          id, code (unik per tenant, mis. JKT01), name, address, phone, timezone,
                  business_day_cutoff (time, default 04:00), tax_rate_bps (int, mis. 1000),
-                 service_rate_bps (int, mis. 500), receipt_header, receipt_footer, version, timestamps, deleted_at
+                 service_rate_bps (int, mis. 500), receipt_header, receipt_footer,
+                 service_mode (counter|table_service, ADR-031, migrasi 0027),
+                 cash_rounding_unit (0|100|500|1000), cash_rounding_mode (nearest|down) (P1-3, migrasi 0030),
+                 version, timestamps, deleted_at
 devices          id, outlet_id, code (A, B, …; unik per outlet), name, platform, app_version,
                  last_seen_at, activated_by, revoked_at, timestamps
 users            id, name, email (unik global, nullable untuk kasir), password_hash (argon2, nullable), pin_hash, pin_salt,
@@ -116,7 +119,7 @@ device_imports   id, device_id, imported_by, file_sha256, accepted, duplicate, f
                  rejected (jsonb [{id, code}]), created_at   -- audit import darurat (ADR-024)
 day_closings     id, outlet_id, business_date, closed_by, closed_at, notes, snapshot (jsonb)
                  -- UNIQUE (tenant_id, outlet_id, business_date); tutup hari (ADR-026)
-roles            id, name (owner|manager|cashier)
+roles            id, name (owner|manager|cashier|waiter — waiter tanpa permission, ADR-031)
 permissions      id, name (mis. order.void, discount.override, shift.close, cash.move)
 role_permissions role_id, permission_id                                    -- PK (role_id, permission_id)
 api_tokens       id, owner_type (device|user|platform_admin), owner_id, token_hash (sha256, unik), abilities (text[]),
@@ -143,6 +146,16 @@ dining_tables    id, outlet_id, label (unik per outlet), area, seats, sort_order
 promotions       id, name, type (percent_off|buy_x_get_y), percentage, buy_qty, get_qty,
                  product_ids[], category_ids[], outlet_ids[], days_of_week[], start_time, end_time,
                  starts_on, ends_on, is_active, version, deleted_at
+sales_channels   id, brand_id, code (unik per brand, huruf besar), name, kind (dine_in|take_away|delivery),
+                 price_mode (base|markup_bps|price_list), markup_bps, markup_rounding_unit (≥ 1),
+                 default_payment_method_id, applies_service, applies_tax, requires_external_ref,
+                 is_active, sort_order, version, deleted_at                     -- ADR-029, migrasi 0025
+channel_prices   channel_id, product_id (PK), price      -- link: ubah → touch sales_channels.version
+outlet_products  + available_until, availability_changed_at (P1-2, migrasi 0029: tanda habis dari POS; yang terbaru menang)
+open_bills       id, outlet_id, table_id (unik selama terbuka), table_label, lines (jsonb: baris cart device),
+                 discount (jsonb), opened_by, opened_at, version (optimistic lock, bukan sync version),
+                 lease_device_id, lease_user_id, lease_until, closed_at, closed_by_order_id, updated_at
+                 -- ADR-031, migrasi 0027; hanya outlet table_service; RLS tenant
 payment_methods  id, type (cash|debit|qris|credit_card|voucher|other), name, logo_url,
                  requires_reference (bool), sort_order, is_active, version, …
 outlet_payment_method   outlet_id, payment_method_id                      -- ubah → touch payment_methods.version
@@ -161,6 +174,9 @@ orders           id (ulid), outlet_id, device_id, shift_id, receipt_no (unik per
                  subtotal, discount_type, discount_value, discount_amount,
                  service_rate_bps, tax_rate_bps (snapshot tarif dari device),
                  price_includes_tax (snapshot mode harga, ADR-030),
+                 channel_id (ADR-029, nullable untuk data lama; diisi migrasi 0026), external_ref (no. order aplikasi),
+                 queue_no, customer_name (P1-1, migrasi 0028; hanya take away/delivery),
+                 rounding_amount (P1-3, migrasi 0030: pembulatan bagian tunai, boleh negatif; total tetap),
                  service_charge, tax, total, paid_amount, change_amount,
                  status (paid|voided), flags (text[], kosong = bersih), notes,
                  created_at (waktu device), synced_at (waktu server)

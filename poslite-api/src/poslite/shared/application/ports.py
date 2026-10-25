@@ -24,6 +24,24 @@ class OutletPort(Protocol):
     async def profile(self, outlet_id: str) -> OutletProfile: ...
 
 
+@dataclass(frozen=True, slots=True)
+class ChannelInfo:
+    """What a sale needs of its sales channel (ADR-029)."""
+
+    id: str
+    kind: str  # dine_in | take_away | delivery
+    applies_service: bool = True
+    applies_tax: bool = True
+    requires_external_ref: bool = False
+
+
+class ChannelPort(Protocol):
+    """Sales channels of the outlet's brand, implemented by catalog."""
+
+    async def channel(self, outlet_id: str, channel_id: str) -> ChannelInfo | None: ...
+    async def default(self, outlet_id: str, kind: str) -> ChannelInfo | None: ...
+
+
 class CashierPort(Protocol):
     """Whether a user may work at an outlet, implemented by identity."""
 

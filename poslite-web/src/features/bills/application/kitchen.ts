@@ -31,7 +31,12 @@ export async function sendBillToKitchen(input: { billId: string; cashierName: st
   const sent = Object.fromEntries(sentKeys.map((key) => [key, quantityOf.get(key) ?? 0]));
   await db.transaction("rw", db.openBills, async () => {
     const current = await db.openBills.get(bill.id); // may have been paid or cancelled meanwhile
-    if (current) await db.openBills.update(bill.id, { lines: markSent(current.lines, sent) });
+    // A shared bill keeps sentQuantity on the server, so no other device prints it again (ADR-031).
+    if (current)
+      await db.openBills.update(bill.id, {
+        lines: markSent(current.lines, sent),
+        ...(current.origin === "server" && { dirty: true }),
+      });
   });
   return { hasFailed };
 }

@@ -16,7 +16,10 @@
         "receipt_footer": "Terima kasih",
         "brand": { "id": "01K5ZB00000000000000000001", "code": "POSLITE", "name": "POSLite", "logo_key": null },
         "discount_policy": { "percentages": [5, 10, 15, 20], "amounts": [5000, 10000, 25000, 50000], "allow_custom": true, "cashier_max_percentage": 20, "cashier_max_amount": 50000 },
-        "price_includes_tax": false
+        "price_includes_tax": false,
+        "service_mode": "counter",
+        "cash_rounding_unit": 0,
+        "cash_rounding_mode": "nearest"
       }
     },
     {
@@ -65,6 +68,7 @@
         "price": 5000,
         "image_key": "01K5ZT00000000000000000001/products/01K5ZP00000000000000000001.jpg",
         "is_available": true,
+        "unavailable_until": null,
         "modifier_group_ids": [
           "01K5ZG00000000000000000001"
         ]
@@ -134,6 +138,26 @@
         "end_time": "17:00",
         "starts_on": "2026-09-01",
         "ends_on": "2026-12-31"
+      }
+    },
+    {
+      "entity": "sales_channel",
+      "op": "upsert",
+      "id": "01K5ZH00000000000000000003",
+      "version": 9,
+      "data": {
+        "code": "GOFOOD",
+        "name": "GoFood",
+        "kind": "delivery",
+        "price_mode": "price_list",
+        "markup_bps": 0,
+        "markup_rounding_unit": 100,
+        "default_payment_method_id": "01K5ZY00000000000000000002",
+        "applies_service": false,
+        "applies_tax": true,
+        "requires_external_ref": true,
+        "sort_order": 3,
+        "prices": [{ "product_id": "01K5ZP00000000000000000001", "price": 22000 }]
       }
     },
     {

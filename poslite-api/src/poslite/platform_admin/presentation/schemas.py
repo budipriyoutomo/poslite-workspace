@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
@@ -14,8 +14,25 @@ class LoginIn(BaseModel):
 
 
 class LoginOut(BaseModel):
+    """After the password (P1-8): only the second step is open. `setup` shows the secret once."""
+
+    challenge_token: str
+    expires_at: datetime
+    step: Literal["setup", "verify"]
+    totp_secret: str | None = None
+    otpauth_uri: str | None = None
+
+
+class TwoFactorIn(BaseModel):
+    challenge_token: str
+    code: Annotated[str, StringConstraints(pattern=r"^\d{6}$")] | None = None
+    recovery_code: Annotated[str, StringConstraints(max_length=20)] | None = None
+
+
+class SessionOut(BaseModel):
     token: str
     expires_at: datetime
+    recovery_codes: list[str] = []  # 10 one-time codes, only right after 2FA was set up
 
 
 class OperatorIn(BaseModel):

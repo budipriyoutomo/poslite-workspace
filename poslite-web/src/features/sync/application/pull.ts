@@ -9,6 +9,17 @@ const PAGE_SIZE = 500;
 type ServerDevice = Extract<DeviceState, { mode: "server" }>;
 export type BaseApi = Omit<ApiConfig, "token" | "deviceId">;
 
+/**
+ * A sold-out mark made here (P1-2) gives way to the server's product once its event was pushed;
+ * a mark still in the outbox stays, or the grid would flip back until the next sync.
+ */
+async function settleAvailability(db: PosDb, changes: Change[]): Promise<void> {
+  const products = changes.filter((c) => c.entity === "product").map((c) => c.id);
+  if (products.length === 0) return;
+  const pending = new Set((await db.outbox.filter((e) => e.type === "product.availability_changed").toArray()).map((e) => e.aggregateId));
+  await db.availabilityOverrides.bulkDelete(products.filter((id) => !pending.has(id)));
+}
+
 export async function serverDevice(db: PosDb): Promise<ServerDevice> {
   const device = await readState(db, "device");
   if (device?.mode !== "server") throw new AppError("DEVICE_NOT_ACTIVATED");
@@ -43,6 +54,8 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         return void (await db.diningTables.delete(change.id));
       case "promotion":
         return void (await db.promotions.delete(change.id));
+      case "sales_channel":
+        return void (await db.salesChannels.delete(change.id));
     }
   }
   switch (change.entity) {
@@ -71,6 +84,8 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
             cashierMaxAmount: d.discount_policy.cashier_max_amount,
           },
           priceIncludesTax: d.price_includes_tax ?? false,
+          serviceMode: d.service_mode ?? "counter",
+          cashRounding: { unit: d.cash_rounding_unit ?? 0, mode: d.cash_rounding_mode ?? "nearest" },
         },
       }));
     }
@@ -86,6 +101,7 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         price: d.price,
         imageKey: d.image_key,
         isAvailable: d.is_available,
+        unavailableUntil: d.unavailable_until ?? null,
         modifierGroupIds: d.modifier_group_ids,
       }));
     }
@@ -133,6 +149,24 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
         endsOn: d.ends_on,
       }));
     }
+    case "sales_channel": {
+      const d = change.data;
+      return void (await db.salesChannels.put({
+        id: change.id,
+        code: d.code,
+        name: d.name,
+        kind: d.kind,
+        priceMode: d.price_mode,
+        markupBps: d.markup_bps,
+        markupRoundingUnit: d.markup_rounding_unit,
+        defaultPaymentMethodId: d.default_payment_method_id,
+        appliesService: d.applies_service,
+        appliesTax: d.applies_tax,
+        requiresExternalRef: d.requires_external_ref,
+        sortOrder: d.sort_order,
+        prices: Object.fromEntries(d.prices.map((p) => [p.product_id, p.price])),
+      }));
+    }
   }
 }
 
@@ -158,10 +192,11 @@ export async function pullAll(deps: { db: PosDb; api: BaseApi }): Promise<void> 
   while (hasMore) {
     const cursor = (await readState(db, "pullCursor")) ?? 0;
     const page = await apiRequest(api, "GET", `/sync/pull?cursor=${cursor}&limit=${PAGE_SIZE}`, pullPageSchema);
-    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.diningTables, db.promotions, db.syncState], async () => {
+    await db.transaction("rw", [db.settings, db.categories, db.products, db.modifierGroups, db.modifierOptions, db.paymentMethods, db.users, db.diningTables, db.promotions, db.salesChannels, db.syncState, db.availabilityOverrides, db.outbox], async () => {
       const touchedGroups = new Set<string>();
       for (const change of page.changes) await applyChange(db, change, device, touchedGroups);
       await embedOptions(db, touchedGroups);
+      await settleAvailability(db, page.changes);
       await writeState(db, "pullCursor", page.next_cursor);
       await writeState(db, "mediaBaseUrl", page.media_base_url);
     });

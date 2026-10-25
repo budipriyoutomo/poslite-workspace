@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { openShift } from "@/features/shift";
-import type { PosDb } from "@/shared/db";
+import type { PosDb, SalesChannelRow } from "@/shared/db";
 
 import { IDS, OUTLET, seedOutlet, testDeps } from "../../../../tests/support/fixtures";
 import { createTestDb } from "../../../../tests/support/test-db";
@@ -241,7 +241,117 @@ describe("placeOrder discount approval (06 Order rule 5)", () => {
     expect(placed.status).toBe("paid");
   });
 
+  it("never takes a waiter as the approver (ADR-031)", async () => {
+    await strict();
+    await db.users.put({ ...MANAGER, role: "waiter" });
+
+    await expect(placeOrder(order({ discount: { type: "percentage", value: 15 }, discountApprovedBy: IDS.manager }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
+  });
+
   it("keeps the old 20% limit on an outlet synced before brands had a policy", async () => {
     await expect(placeOrder(order({ discount: { type: "percentage", value: 25 } }), testDeps(db))).rejects.toMatchObject({ code: "DISCOUNT_APPROVAL_REQUIRED" });
+  });
+});
+
+describe("placeOrder on a sales channel (ADR-029)", () => {
+  const channel = (over: Partial<SalesChannelRow>): SalesChannelRow => ({
+    id: "01J8Z000000000000000000CH1",
+    code: "TAKE_AWAY",
+    name: "Take Away",
+    kind: "take_away",
+    priceMode: "base",
+    markupBps: 0,
+    markupRoundingUnit: 100,
+    defaultPaymentMethodId: null,
+    appliesService: true,
+    appliesTax: true,
+    requiresExternalRef: false,
+    sortOrder: 2,
+    prices: {},
+    ...over,
+  });
+  const GOFOOD = channel({ id: "01J8Z000000000000000000CH3", code: "GOFOOD", name: "GoFood", kind: "delivery", appliesService: false, requiresExternalRef: true, sortOrder: 3 });
+
+  beforeEach(async () => {
+    await db.salesChannels.bulkPut([channel({}), GOFOOD]);
+  });
+
+  it("charges only what the channel charges and sends its channel and the app's order number", async () => {
+    // 63.000 after 10% off; no service on GoFood; PB1 6.300 → 69.300
+    const placed = await placeOrder(order({ channelId: GOFOOD.id, externalRef: "GF-881234" }), testDeps(db));
+
+    expect(placed).toMatchObject({ orderType: "take_away", rates: { serviceBps: 0, taxBps: 1_000 }, serviceCharge: 0, total: 69_300, channelId: GOFOOD.id, channelName: "GoFood", externalRef: "GF-881234" });
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect([payload.channel_id, payload.external_ref]).toEqual([GOFOOD.id, "GF-881234"]);
+  });
+
+  it("puts a sale without a chosen channel on the brand's channel of its kind", async () => {
+    const placed = await placeOrder(order(), testDeps(db));
+
+    expect([placed.channelId, placed.total]).toEqual(["01J8Z000000000000000000CH1", 72_765]);
+  });
+
+  it("needs the delivery app's order number when the channel asks for it, and writes nothing", async () => {
+    await expect(placeOrder(order({ channelId: GOFOOD.id }), testDeps(db))).rejects.toMatchObject({ code: "EXTERNAL_REF_REQUIRED" });
+    expect(await db.orders.count()).toBe(0);
+  });
+});
+
+describe("placeOrder without sales channels on the device (before ADR-029)", () => {
+  it("sends no channel, as before", async () => {
+    await placeOrder(order(), testDeps(db));
+
+    expect((await nonShiftEvents())[0]!.payload).not.toHaveProperty("channel_id");
+  });
+});
+
+describe("placeOrder queue number and customer name (P1-1)", () => {
+  it("gives a take-away sale the device's next queue number and keeps the guest's name", async () => {
+    const first = await placeOrder(order({ customerName: "  Andi  " }), testDeps(db));
+    const second = await placeOrder(order(), testDeps(db));
+
+    expect([first.queueNo, first.customerName, second.queueNo, second.customerName]).toEqual(["A-001", "Andi", "A-002", null]);
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect([payload.queue_no, payload.customer_name]).toEqual(["A-001", "Andi"]);
+  });
+
+  it("starts again at 1 on a new business day, and survives a reload (the counter is stored)", async () => {
+    await placeOrder(order(), testDeps(db, "2026-09-25T03:00:00.000Z"));
+
+    const nextDay = await placeOrder(order(), testDeps(db, "2026-09-26T03:00:00.000Z"));
+
+    expect(nextDay.queueNo).toBe("A-001");
+  });
+
+  it("calls a dine-in table by its table, not a queue number", async () => {
+    const dineIn = await placeOrder(order({ orderType: "dine_in", tableLabel: "A1", customerName: "Andi" }), testDeps(db));
+
+    expect([dineIn.queueNo, dineIn.customerName]).toEqual([null, null]);
+  });
+
+  it("refuses a name longer than 40 characters", async () => {
+    await expect(placeOrder(order({ customerName: "x".repeat(41) }), testDeps(db))).rejects.toMatchObject({ code: "CUSTOMER_NAME_TOO_LONG" });
+  });
+});
+
+describe("placeOrder with cash rounding (P1-3)", () => {
+  beforeEach(async () => {
+    const outlet = (await db.settings.get("outlet"))!.value;
+    await db.settings.put({ key: "outlet", value: { ...outlet, cashRounding: { unit: 100, mode: "nearest" } } });
+  });
+
+  it("keeps the total, records the rounding and sends the rule with it", async () => {
+    // 72.765 → cash 72.800: rounding +35, change from 100.000 = 27.200
+    const placed = await placeOrder(order(), testDeps(db));
+
+    expect([placed.total, placed.rounding, placed.changeAmount]).toEqual([72_765, 35, 27_200]);
+    const payload = (await nonShiftEvents())[0]!.payload as Record<string, unknown>;
+    expect(payload.cash_rounding).toEqual({ unit: 100, mode: "nearest", amount: 35 });
+  });
+
+  it("does not round a sale paid without cash", async () => {
+    const placed = await placeOrder(order({ payments: [{ paymentMethodId: IDS.qrisMethod, amount: 72_765 }] }), testDeps(db));
+
+    expect(placed.rounding).toBe(0);
   });
 });

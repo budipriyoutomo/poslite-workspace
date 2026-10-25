@@ -14,11 +14,13 @@ from poslite.organization.infrastructure.service import (
     get_brand,
     get_device,
     get_outlet,
+    get_outlet_settings,
     list_devices,
     list_outlets,
     outlet_changes,
     outlet_profile,
     register_device,
+    table_outlet_id,
     touch_device,
 )
 
@@ -36,10 +38,12 @@ __all__ = [
     "get_brand",
     "get_device",
     "get_outlet",
+    "get_outlet_settings",
     "list_devices",
     "list_outlets",
     "outlet_changes",
     "outlet_profile",
     "register_device",
+    "table_outlet_id",
     "touch_device",
 ]

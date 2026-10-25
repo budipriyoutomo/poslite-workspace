@@ -18,7 +18,13 @@ describe("saveBill", () => {
   it("keeps the order on this device as an open bill", async () => {
     await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
 
-    expect(await db.openBills.get("B1")).toEqual({ ...bill("B1"), lines: [kopi], discount: null, updatedAt: NOW.toISOString() });
+    expect(await db.openBills.get("B1")).toEqual({
+      ...bill("B1"),
+      lines: [kopi],
+      discount: null,
+      updatedAt: NOW.toISOString(),
+      origin: "local",
+    });
   });
 
   it("updates the same bill when saved again", async () => {

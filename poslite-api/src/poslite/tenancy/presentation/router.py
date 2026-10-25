@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from poslite.catalog import api as catalog
 from poslite.identity import api as identity
 from poslite.organization import api as organization
 from poslite.shared.application.clock import Clock
@@ -51,6 +52,7 @@ async def signup(
             code=organization.brand_code(body.slug),
             name=body.business_name[:100],
         )
+        await catalog.seed_channels(uow, new_id, brand_id=brand_id)
         await organization.create_outlet(
             uow,
             outlet_id=new_id(),

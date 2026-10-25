@@ -22,6 +22,7 @@ DAY_HEADERS = [
     "Jumlah refund",
     "Batal sebelum bayar",  # ADR-028
     "Nilai batal sebelum bayar",
+    "Pembulatan tunai",  # P1-3
 ]
 RUPIAH_FORMAT = "#,##0;-#,##0"
 

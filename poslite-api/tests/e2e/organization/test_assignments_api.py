@@ -59,6 +59,7 @@ async def test_replaces_the_assignments_of_a_user(api: AsyncClient, company: Com
     [
         ({"role": "owner", "scope_type": "brand", "brand_id": "B"}, "INVALID_ASSIGNMENT"),
         ({"role": "cashier", "scope_type": "company"}, "INVALID_ASSIGNMENT"),
+        ({"role": "waiter", "scope_type": "company"}, "INVALID_ASSIGNMENT"),
         ({"role": "manager", "scope_type": "brand"}, "INVALID_ASSIGNMENT"),
         ({"role": "manager", "scope_type": "outlet"}, "INVALID_ASSIGNMENT"),
     ],
@@ -173,6 +174,26 @@ async def test_creates_a_user_with_assignments_and_lists_them(
         {"role": "cashier", "scope_type": "brand", "brand_id": company.brand_b, "outlet_id": None}
     ]
     assert rina["outlets"] == [{"outlet_id": company.outlet_b1, "role": "cashier"}]
+
+
+async def test_a_waiter_works_at_an_outlet_and_reaches_its_devices(
+    api: AsyncClient, company: Company
+) -> None:
+    """ADR-031: a waiter takes orders on a table-service outlet's tablets."""
+    created = await api.post(
+        "/api/v1/users",
+        json={
+            "name": "Dewi",
+            "pin": "1357",
+            "outlets": [{"outlet_id": company.outlet_b1, "role": "waiter"}],
+        },
+        headers=as_user(company.owner),
+    )
+    users = (await api.get("/api/v1/users", headers=as_user(company.owner))).json()["data"]
+
+    assert created.status_code == 201, created.text
+    dewi = next(u for u in users if u["name"] == "Dewi")
+    assert dewi["outlets"] == [{"outlet_id": company.outlet_b1, "role": "waiter"}]
 
 
 async def test_a_new_user_needs_outlets_or_assignments(api: AsyncClient, company: Company) -> None:

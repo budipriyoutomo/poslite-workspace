@@ -36,6 +36,11 @@ export const changeSchema = z.union([
         .optional(),
       // ADR-030; optional for older servers (prices before tax).
       price_includes_tax: z.boolean().optional(),
+      // ADR-031; optional for older servers (counter).
+      service_mode: z.enum(["counter", "table_service"]).optional(),
+      // P1-3; optional for older servers (off).
+      cash_rounding_unit: z.number().int().optional(),
+      cash_rounding_mode: z.enum(["nearest", "down"]).optional(),
     }),
   ),
   upsert("category", z.object({ name: z.string(), sort_order: z.number().int(), print_role: z.enum(["receipt", "kitchen", "bar"]) })),
@@ -48,6 +53,8 @@ export const changeSchema = z.union([
       price: rupiah,
       image_key: z.string().nullable(),
       is_available: z.boolean(),
+      // P1-2: the outlet's sold-out mark lifts by itself then; optional for older servers.
+      unavailable_until: z.string().nullable().optional(),
       modifier_group_ids: z.array(ulid),
     }),
   ),
@@ -67,7 +74,7 @@ export const changeSchema = z.union([
     "user",
     z.object({
       name: z.string(),
-      role: z.enum(["owner", "manager", "cashier"]),
+      role: z.enum(["owner", "manager", "cashier", "waiter"]),
       pin_hash: z.string().nullable(),
       pin_salt: z.string().nullable(),
       pin_iterations: z.number().int().nullable(),
@@ -91,8 +98,25 @@ export const changeSchema = z.union([
       ends_on: isoDate.nullable(),
     }),
   ),
+  upsert(
+    "sales_channel",
+    z.object({
+      code: z.string().min(1),
+      name: z.string().min(1),
+      kind: z.enum(["dine_in", "take_away", "delivery"]),
+      price_mode: z.enum(["base", "markup_bps", "price_list"]),
+      markup_bps: z.number().int().nonnegative(),
+      markup_rounding_unit: z.number().int().positive(),
+      default_payment_method_id: ulid.nullable(),
+      applies_service: z.boolean(),
+      applies_tax: z.boolean(),
+      requires_external_ref: z.boolean(),
+      sort_order: z.number().int(),
+      prices: z.array(z.object({ product_id: ulid, price: rupiah })),
+    }),
+  ),
   z.object({
-    entity: z.enum(["outlet_setting", "category", "product", "modifier_group", "modifier_option", "payment_method", "user", "dining_table", "promotion"]),
+    entity: z.enum(["outlet_setting", "category", "product", "modifier_group", "modifier_option", "payment_method", "user", "dining_table", "promotion", "sales_channel"]),
     op: z.literal("delete"),
     id: ulid,
     version: z.number().int(),

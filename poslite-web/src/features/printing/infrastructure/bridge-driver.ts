@@ -45,3 +45,16 @@ export function createBridgeDriver(fetchFn: typeof fetch = (...args) => fetch(..
     },
   };
 }
+
+/** Pairing (P1-5): the 6-digit code shown on the bridge PC buys its token once. */
+export async function pairBridge(bridgeUrl: string, code: string, fetchFn: typeof fetch = (...args) => fetch(...args)): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetchFn(`${httpBase(bridgeUrl)}/pair`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code.trim() }) });
+  } catch {
+    throw new Error("BRIDGE_UNREACHABLE");
+  }
+  const body = (await response.json().catch(() => ({}))) as { token?: string; error?: string };
+  if (!response.ok || !body.token) throw new Error(body.error ?? `HTTP_${response.status}`);
+  return body.token;
+}

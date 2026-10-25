@@ -3,6 +3,7 @@ import type { AddressInfo } from "node:net";
 import { afterEach, describe, it } from "node:test";
 
 import type { PrinterAddress } from "./printer-address.ts";
+import { Pairing } from "./pairing.ts";
 import { type BridgeConfig, createBridgeServer } from "./server.ts";
 
 const CONFIG: BridgeConfig = { token: "s3cret", allowedOrigins: [], printers: [], version: "0.1.0" };
@@ -151,5 +152,46 @@ describe("Print Bridge server", () => {
     const { url } = await start();
 
     assert.equal((await fetch(`${url}/admin`)).status, 404);
+  });
+
+  it("pairs a POS with the 6-digit code from the local page and hands it the token (P1-5)", async () => {
+    const pairing = new Pairing({ randomCode: () => 123456 });
+    const { url } = await start({ pairing });
+
+    const wrong = await fetch(`${url}/pair`, { method: "POST", headers: { "Content-Type": "application/json", Origin: POS }, body: JSON.stringify({ code: "000000" }) });
+    const right = await fetch(`${url}/pair`, { method: "POST", headers: { "Content-Type": "application/json", Origin: POS }, body: JSON.stringify({ code: "123456" }) });
+
+    assert.equal(wrong.status, 401);
+    assert.deepEqual([right.status, await right.json()], [200, { token: "s3cret" }]);
+  });
+
+  it("shows the pairing code, the printers and the last errors on the local page, never receipt data", async () => {
+    const { url } = await start({ pairing: new Pairing({ randomCode: () => 654321 }), printers: ["192.168.1.50:9100"] }, async () => {
+      throw new Error("PRINTER_TIMEOUT");
+    });
+    await print(url, JOB);
+
+    const page = await (await fetch(`${url}/`)).text();
+
+    assert.match(page, /654321/);
+    assert.match(page, /192\.168\.1\.50:9100/);
+    assert.match(page, /PRINTER_TIMEOUT/);
+    assert.doesNotMatch(page, new RegExp(JOB.data.replace(/[+/=]/g, "\\$&")));
+  });
+
+  it("prints a test page from the local page", async () => {
+    const { url, jobs } = await start({ printers: ["192.168.1.50:9100"] });
+
+    const response = await fetch(`${url}/test-print`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ printer: "192.168.1.50:9100" }) });
+
+    assert.equal(response.status, 200);
+    assert.match(jobs[0]!.data.toString("latin1"), /POSLite Print Bridge/);
+  });
+
+  it("serves the local page and the test print to this PC only", async () => {
+    const { url } = await start({ isLocal: () => false });
+
+    assert.equal((await fetch(`${url}/`)).status, 403);
+    assert.equal((await fetch(`${url}/test-print`, { method: "POST", body: "{}" })).status, 403);
   });
 });

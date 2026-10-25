@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "@/features/auth";
-import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
+import { DEFAULT_DISCOUNT_POLICY, isManager } from "@/shared/db";
 import { useOutletSetting } from "@/shared/hooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { DiscountChooser } from "@/shared/ui/discount-chooser";
@@ -12,7 +12,7 @@ import type { LineDiscount } from "../domain/cart";
 /** Same brand presets as the order discount (06 Order rule 5). */
 export function LineDiscountDialog({ name, onChoose, onClose }: { name: string; onChoose: (discount: LineDiscount) => void; onClose: () => void }) {
   const policy = useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY;
-  const isCashier = useSession((s) => s.user?.role) === "cashier";
+  const isCashier = !isManager(useSession((s) => s.user?.role));
   const cashierLimit = isCashier ? { maxPercentage: policy.cashierMaxPercentage, maxAmount: policy.cashierMaxAmount } : undefined;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>

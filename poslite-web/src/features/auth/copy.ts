@@ -7,7 +7,7 @@ export const copy = {
   deleteDigit: "Hapus",
   back: "Ganti kasir",
   checking: "Memeriksa PIN…",
-  roles: { owner: "Pemilik", manager: "Manajer", cashier: "Kasir" },
+  roles: { owner: "Pemilik", manager: "Manajer", cashier: "Kasir", waiter: "Pelayan" },
   errors: {
     WRONG_PIN: "PIN salah",
     UNKNOWN_USER: "Kasir tidak ditemukan di perangkat ini",

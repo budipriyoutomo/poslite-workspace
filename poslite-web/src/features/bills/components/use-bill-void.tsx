@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useSession } from "@/features/auth";
 import type { VoidedLine } from "@/features/cart";
 import { useApprovers, verifyApprover } from "@/features/orders";
+import { isManager } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 
 import type { VoidApproval } from "../application/bills";
@@ -46,7 +47,7 @@ export function useBillVoid() {
       <BillVoidDialog
         tableLabel={pending.tableLabel}
         voided={pending.voided}
-        actorIsManager={user.role !== "cashier"}
+        actorIsManager={isManager(user.role)}
         approvers={approvers}
         verifyApprover={verifyApprover}
         onConfirm={confirm}

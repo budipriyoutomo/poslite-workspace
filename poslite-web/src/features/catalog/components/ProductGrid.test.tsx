@@ -45,4 +45,14 @@ describe("ProductGrid", () => {
     render(<ProductGrid catalog={{ ...catalog(null), products: [] }} onSelect={vi.fn()} />);
     expect(screen.getByText("Belum ada menu")).toBeInTheDocument();
   });
+
+  it("opens the sold-out menu on a long press, even on an item already sold out (P1-2)", async () => {
+    const onManage = vi.fn();
+    const soldOut = { ...catalog(null), products: [{ ...product("P1", "Es Teh", null), isAvailable: false }] };
+    render(<ProductGrid catalog={soldOut} onSelect={vi.fn()} onManage={onManage} />);
+
+    await userEvent.pointer({ keys: "[MouseRight]", target: screen.getByRole("listitem") });
+
+    expect(onManage).toHaveBeenCalledWith(soldOut.products[0]);
+  });
 });

@@ -100,6 +100,7 @@ Desain: [10](./10-multi-company-brand.md) dan [11](./11-trial-features.md). Urut
 - [x] Fitur konsol operator (ADR-025): ringkasan platform, cari & paginasi tenant, detail tenant, perpanjang trial, tandai tagihan lunas, cari user lintas tenant, reset password & (non)aktifkan user (lewat UoW tenant, `LAST_OWNER` tetap berlaku), kelola akun operator (`disabled_at`), audit log `platform_audit_log` (migrasi `0021`) — 30 test API baru di `tests/e2e/platform_admin/`, `make operator-e2e` (suspend + cari → reset password → perpanjang trial)
 - [x] Tutup hari (ADR-026, [13](./13-day-closing.md)): tabel `day_closings` (migrasi `0022`, RLS), `GET /day-closings/day`, `POST /day-closings`, `GET /day-closings`; peringatan `OPEN_SHIFTS` / `DEVICES_NOT_SYNCED` tidak memblok; `changed_since_close` untuk data yang datang belakangan; halaman back-office **Tutup Hari** (cetak lewat dialog browser). Belum: buka ulang tutup hari, webhook `day.closed`, e2e Playwright
 - [x] Batal item bill setelah masuk dapur (ADR-028, [14](./14-pilot-readiness.md) P0-1): alasan + PIN manajer saat mengurangi/menghapus unit terkirim atau membatalkan bill, event `bill.item_voided`, tiket BATAL, bayar bill yang mengurangi unit terkirim ditolak; `bill_voids`/`bill_void_lines` (migrasi `0023`, RLS), kolom `pre_payment_void_*` di laporan, export, dan tutup hari, `GET /reports/bill-voids`, webhook; halaman back-office **Batal Sebelum Bayar** (+ CSV). Bukti: `tests/e2e/sync/test_bill_voids.py`, `tests/e2e/bill-void.spec.ts` (4 layout)
+- [x] Channel penjualan (ADR-029, [14](./14-pilot-readiness.md) P0-2): `sales_channels`/`channel_prices` (migrasi `0025`, seed Dine In & Take Away), CRUD + daftar harga, entity pull `sales_channel` (Dexie v6), `channel_id`/`external_ref` di `order.placed` + flag `CHANNEL_UNKNOWN`/`EXTERNAL_REF_MISSING`, `orders.channel_id` + backfill + `rpt_daily_channel_sales` (migrasi `0026`), pemilih channel & harga channel di POS, nomor order aplikasi wajib, metode bayar default, struk/tiket `GOFOOD #…`, halaman back-office **Channel Penjualan** + breakdown dashboard. Bukti: `channel-pricing-cases.json` (64 kasus), `tests/e2e/catalog/test_sales_channels.py`, `tests/e2e/sync/test_channel_sales.py`, skenario full-stack GoFood
 - [x] Harga sudah termasuk pajak (ADR-030, [14](./14-pilot-readiness.md) P0-3): `brands.price_includes_tax` + `orders.price_includes_tax` (migrasi `0024`), `rates.includes_tax` di `order.placed`, `outlet_setting.price_includes_tax`, hitung mundur di `calculate()`/`PriceCalculator`, struk & ringkasan kasir "Termasuk …", toggle di halaman Brand. Bukti: 19 kasus inklusif di `pricing-cases.json`, `tests/e2e/sync/test_price_includes_tax.py`, skenario full-stack harga inklusif
 - [x] Rate limit endpoint publik (ADR-027): signup, login back-office, aktivasi device, login operator — 429 `RATE_LIMITED` + `Retry-After`, Redis di staging (`RATE_LIMIT_BACKEND=redis`), fail open; pesan di ketiga app
 - [x] Keamanan dependency (2026-10-18): `next` 16.3.8, `shadcn` CLI ke devDependencies, override `browserslist`/`handlebars`/`sharp`/`source-map-js` di `pnpm-workspace.yaml`; sisa `braces` (tooling lint, belum ada patch)
@@ -153,6 +154,20 @@ Diukur 2026-09-25 di Chrome 154 (macOS, Intel). Angka tablet = CPU di-throttle 4
 - **Kesimpulan**: skema v1 di [03](./03-offline-sync.md) layak. Semua query interaktif < 20 ms p95 bahkan di 4×, dan menulis satu transaksi penjualan < 10 ms.
 - **Aturan yang dihasilkan**: layar & laporan harus memakai index (`shiftId`, range `createdAt`, `syncStatus`), jangan scan seluruh `orders` (±0,5 detik di 4×, tumbuh linear). Laporan lintas hari yang besar lebih baik memakai ringkasan per shift yang disimpan saat tutup shift.
 - Batch outbox saat spike memindai urut `seq` lalu filter status. Rekomendasi compound index `[status+seq]` sudah diterapkan di skema v1 ([03](./03-offline-sync.md)), jadi batch push tetap cepat walau device offline berhari-hari.
+
+## Hasil Uji Beban Device (P1-10, 2026-10-25)
+
+`make web-load` (Playwright, full stack, Chrome): 3.000 order historis (30 hari), 5 open bill, outbox 500 event pending (shift + 499 order, 2 jam offline), lalu satu penjualan tunai offline dan kembali online. Waktu diukur dari aksi sampai hasil tampil (termasuk overhead Playwright, jadi batas atas). Laptop pengembang; **tablet referensi belum diuji**.
+
+| Metrik | CPU 1x | CPU 4x (≈ tablet menengah) | Target |
+|---|---|---|---|
+| Tambah item ke cart (tap → tampil) | 66 ms | 440 ms | < 100 ms |
+| Bayar tunai sampai transaksi tersimpan | 132 ms | 1.553 ms | < 500 ms |
+| Buka riwayat order hari ini | 644 ms | 3.575 ms | < 1 detik |
+| Push 501 event setelah online | 9,1 detik | 24,4 detik | < 60 detik, tanpa duplikat ✅ |
+| Ukuran IndexedDB setelah seed | 13,4 MB | 13,4 MB | dicatat |
+
+Server menerima tepat 500 order hari itu (499 seed + 1), tanpa duplikat. Di CPU 4x tiga target UI meleset; perlu diukur di tablet referensi sebelum gerbang Tahap C. Temuan yang sudah diperbaiki: tap sebelum cart tersimpan selesai dimuat bisa hilang (hidrasi zustand menimpa cart) — sekarang cart yang sudah terisi tidak ditimpa.
 
 ## Strategi Testing
 

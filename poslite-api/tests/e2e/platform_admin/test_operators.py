@@ -3,7 +3,7 @@
 from httpx import AsyncClient
 
 from ..identity.helpers import bearer
-from .helpers import ADMIN, operator_login, ops_get, ops_post
+from .helpers import ADMIN, operator_login, ops_get, ops_post, sign_in
 
 NEW = {"email": "Rina@POSLite.id", "name": "Rina", "password": "rina-rahasia-123"}
 
@@ -45,7 +45,7 @@ async def test_a_disabled_operator_is_signed_out_and_cannot_sign_in(
     api: AsyncClient, admin_token: str
 ) -> None:
     rina_id = (await ops_post(api, admin_token, "/operators", NEW)).json()["data"]["id"]
-    rina_token = (await operator_login(api, NEW["email"], NEW["password"])).json()["data"]["token"]
+    rina_token = (await sign_in(api, NEW["email"], NEW["password"]))["token"]
 
     disabled = await ops_post(api, admin_token, f"/operators/{rina_id}/disable")
 
@@ -78,7 +78,9 @@ async def test_operator_changes_are_audited(api: AsyncClient, admin_token: str) 
 
     entries = (await ops_get(api, admin_token, "/audit"))["data"]
 
+    me = (await ops_get(api, admin_token, "/me"))["data"]["id"]
     assert [(e["action"], e["target_id"], e["operator_name"]) for e in entries] == [
         ("operator.disable", rina_id, "Ops"),
         ("operator.create", rina_id, "Ops"),
+        ("operator.2fa_enabled", me, "Ops"),  # the fixture's first sign-in (P1-8)
     ]

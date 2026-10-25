@@ -25,6 +25,7 @@ class DailySalesModel(Base):
     refund_count: Mapped[int] = mapped_column(Integer, server_default="0")
     pre_payment_void_count: Mapped[int] = mapped_column(Integer, server_default="0")
     pre_payment_void_amount: Mapped[int] = mapped_column(BigInteger, server_default="0")
+    cash_rounding: Mapped[int] = mapped_column(BigInteger, server_default="0")  # P1-3
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -74,6 +75,18 @@ class DailyCashierSalesModel(Base):
     business_date: Mapped[date] = mapped_column(Date, primary_key=True)
     cashier_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
     order_count: Mapped[int] = mapped_column(Integer)
+    net: Mapped[int] = mapped_column(BigInteger)
+
+
+class DailyChannelSalesModel(Base):
+    __tablename__ = "rpt_daily_channel_sales"
+
+    tenant_id: Mapped[str] = mapped_column(CHAR(26))
+    outlet_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    business_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    channel_id: Mapped[str] = mapped_column(CHAR(26), primary_key=True)
+    order_count: Mapped[int] = mapped_column(Integer)
+    gross: Mapped[int] = mapped_column(BigInteger)
     net: Mapped[int] = mapped_column(BigInteger)
 
 

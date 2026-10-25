@@ -1,6 +1,6 @@
 // Roles over the company, a brand, or an outlet (ADR-022), as edited in the user form.
 
-export type Role = "owner" | "manager" | "cashier";
+export type Role = "owner" | "manager" | "cashier" | "waiter";
 export type ScopeType = "company" | "brand" | "outlet";
 
 export interface Assignment {
@@ -25,7 +25,7 @@ interface OutletNamed extends Named {
   brand_id: string;
 }
 
-const ROLE_LABELS: Record<Role, string> = { owner: "Pemilik", manager: "Manajer", cashier: "Kasir" };
+const ROLE_LABELS: Record<Role, string> = { owner: "Pemilik", manager: "Manajer", cashier: "Kasir", waiter: "Pelayan" };
 const COMPANY_LABEL = "Seluruh perusahaan";
 
 export function scopeOptions(brands: Named[], outlets: OutletNamed[]): { value: string; label: string }[] {
@@ -56,6 +56,7 @@ export function toRow(a: Assignment): AssignmentRow {
 export function problem({ role, scope }: AssignmentRow): string | null {
   if (role === "owner" && scope !== "company") return "Pemilik selalu untuk seluruh perusahaan";
   if (role === "cashier" && scope === "company") return "Kasir bekerja di brand atau outlet";
+  if (role === "waiter" && scope === "company") return "Pelayan bekerja di brand atau outlet";
   return null;
 }
 

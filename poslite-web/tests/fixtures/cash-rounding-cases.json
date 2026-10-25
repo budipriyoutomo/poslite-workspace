@@ -1,0 +1,218 @@
+[
+  {
+    "name": "rounding off: cash pays the exact total",
+    "total": 72765,
+    "non_cash_paid": 0,
+    "unit": 0,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 72765,
+      "cash_charged": 72765,
+      "rounding": 0
+    }
+  },
+  {
+    "name": "nearest 100 rounds up",
+    "total": 72765,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 72765,
+      "cash_charged": 72800,
+      "rounding": 35
+    }
+  },
+  {
+    "name": "nearest 100 rounds down",
+    "total": 72749,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 72749,
+      "cash_charged": 72700,
+      "rounding": -49
+    }
+  },
+  {
+    "name": "nearest 100: exactly half goes up",
+    "total": 72750,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 72750,
+      "cash_charged": 72800,
+      "rounding": 50
+    }
+  },
+  {
+    "name": "nearest 500 rounds up",
+    "total": 20790,
+    "non_cash_paid": 0,
+    "unit": 500,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 20790,
+      "cash_charged": 21000,
+      "rounding": 210
+    }
+  },
+  {
+    "name": "nearest 500 rounds down",
+    "total": 20749,
+    "non_cash_paid": 0,
+    "unit": 500,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 20749,
+      "cash_charged": 20500,
+      "rounding": -249
+    }
+  },
+  {
+    "name": "nearest 500: exactly half goes up",
+    "total": 20750,
+    "non_cash_paid": 0,
+    "unit": 500,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 20750,
+      "cash_charged": 21000,
+      "rounding": 250
+    }
+  },
+  {
+    "name": "nearest 1000",
+    "total": 63500,
+    "non_cash_paid": 0,
+    "unit": 1000,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 63500,
+      "cash_charged": 64000,
+      "rounding": 500
+    }
+  },
+  {
+    "name": "a total already on the unit is not rounded",
+    "total": 72700,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 72700,
+      "cash_charged": 72700,
+      "rounding": 0
+    }
+  },
+  {
+    "name": "down 100",
+    "total": 72799,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "down",
+    "expected": {
+      "cash_due": 72799,
+      "cash_charged": 72700,
+      "rounding": -99
+    }
+  },
+  {
+    "name": "down 1000",
+    "total": 20790,
+    "non_cash_paid": 0,
+    "unit": 1000,
+    "mode": "down",
+    "expected": {
+      "cash_due": 20790,
+      "cash_charged": 20000,
+      "rounding": -790
+    }
+  },
+  {
+    "name": "QRIS + cash: only the cash part is rounded",
+    "total": 72765,
+    "non_cash_paid": 50000,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 22765,
+      "cash_charged": 22800,
+      "rounding": 35
+    }
+  },
+  {
+    "name": "QRIS + cash in down mode",
+    "total": 20790,
+    "non_cash_paid": 10000,
+    "unit": 500,
+    "mode": "down",
+    "expected": {
+      "cash_due": 10790,
+      "cash_charged": 10500,
+      "rounding": -290
+    }
+  },
+  {
+    "name": "non-cash pays everything: nothing to round",
+    "total": 72765,
+    "non_cash_paid": 72765,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 0,
+      "cash_charged": 0,
+      "rounding": 0
+    }
+  },
+  {
+    "name": "split bill in 2, part 1",
+    "total": 36383,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 36383,
+      "cash_charged": 36400,
+      "rounding": 17
+    }
+  },
+  {
+    "name": "split bill in 2, part 2",
+    "total": 36382,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 36382,
+      "cash_charged": 36400,
+      "rounding": 18
+    }
+  },
+  {
+    "name": "split bill in 3, each part",
+    "total": 24255,
+    "non_cash_paid": 0,
+    "unit": 100,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 24255,
+      "cash_charged": 24300,
+      "rounding": 45
+    }
+  },
+  {
+    "name": "split bill in 3 with QRIS on one part",
+    "total": 24255,
+    "non_cash_paid": 20000,
+    "unit": 500,
+    "mode": "nearest",
+    "expected": {
+      "cash_due": 4255,
+      "cash_charged": 4500,
+      "rounding": 245
+    }
+  }
+]
