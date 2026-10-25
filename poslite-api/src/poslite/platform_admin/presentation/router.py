@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from poslite.billing import api as billing
 from poslite.identity import api as identity
+from poslite.platform_admin.domain.totp import otpauth_uri
 from poslite.platform_admin.infrastructure import audit, service, tenants
 from poslite.platform_admin.presentation.schemas import (
     AuditEntryOut,
@@ -21,10 +22,12 @@ from poslite.platform_admin.presentation.schemas import (
     OperatorIn,
     OperatorOut,
     PasswordResetOut,
+    SessionOut,
     SummaryOut,
     TenantDetailOut,
     TenantListItem,
     TenantSubscriptionOut,
+    TwoFactorIn,
     UserHitOut,
 )
 from poslite.shared.application.clock import Clock
@@ -64,17 +67,51 @@ def _page[T](data: list[T], *, total: int, limit: int, offset: int) -> ApiRespon
 # --- Auth & operators --------------------------------------------------------------------
 
 
-@router.post("/auth/login")
+@router.post("/auth/login", response_model_exclude_none=True)
 async def login(body: LoginIn, request: Request, system: System, now: Now) -> ApiResponse[LoginOut]:
     await rate_limit.enforce(
         request,
         (rate_limit.OPERATOR_LOGIN_IP, rate_limit.client_address(request)),
         (rate_limit.OPERATOR_LOGIN_EMAIL, rate_limit.email_subject(body.email)),
     )
-    token, expires_at = await service.login(
-        system, email=body.email, password=body.password, now=now.now()
+    challenge = await service.login(system, email=body.email, password=body.password, now=now.now())
+    return ok(
+        LoginOut(
+            challenge_token=challenge.token,
+            expires_at=challenge.expires_at,
+            step=challenge.step,
+            totp_secret=challenge.secret,
+            otpauth_uri=challenge.secret and otpauth_uri(challenge.secret, challenge.account),
+        )
     )
-    return ok(LoginOut(token=token, expires_at=expires_at))
+
+
+@router.post("/auth/2fa")
+async def second_factor(
+    body: TwoFactorIn, request: Request, system: System, now: Now
+) -> ApiResponse[SessionOut]:
+    """A TOTP code (or a recovery code) after the password opens the console (P1-8)."""
+    await rate_limit.enforce(
+        request, (rate_limit.OPERATOR_2FA_IP, rate_limit.client_address(request))
+    )
+    admin_id, signed_in = await service.complete_login(
+        system,
+        challenge=body.challenge_token,
+        code=body.code,
+        recovery_code=body.recovery_code,
+        now=now.now(),
+    )
+    if signed_in.recovery_codes:
+        await audit.record(
+            system, admin_id=admin_id, action="operator.2fa_enabled", target_id=admin_id
+        )
+    return ok(
+        SessionOut(
+            token=signed_in.token,
+            expires_at=signed_in.expires_at,
+            recovery_codes=signed_in.recovery_codes,
+        )
+    )
 
 
 @router.get("/me")
@@ -135,6 +172,16 @@ async def disable_operator(
 ) -> ApiResponse[OperatorOut]:
     """The operator is signed out everywhere and cannot sign in until enabled again."""
     return ok(await _set_operator(system, admin, operator_id, disabled=True))
+
+
+@router.post("/operators/{operator_id}/reset-2fa")
+async def reset_two_factor(operator_id: Ulid, system: System, admin: Admin) -> ApiResponse[None]:
+    """A lost authenticator: the operator sets 2FA up again at the next sign-in."""
+    if operator_id == admin:
+        raise DomainError("CANNOT_RESET_SELF", "Ask another operator to reset your 2FA")
+    await service.reset_two_factor(system, operator_id)
+    await audit.record(system, admin_id=admin, action="operator.2fa_reset", target_id=operator_id)
+    return ok(None)
 
 
 @router.post("/operators/{operator_id}/enable")

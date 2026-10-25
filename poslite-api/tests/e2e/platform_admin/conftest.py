@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from poslite.platform_admin.api import create_admin
 
-from .helpers import ADMIN, operator_login
+from .helpers import ADMIN, SECRETS, sign_in
 
 
 @pytest.fixture
@@ -15,7 +15,6 @@ async def admin_token(api: AsyncClient, system_engine: AsyncEngine) -> str:
         name="Ops",
         password=ADMIN["password"],
     )
-    response = await operator_login(api, ADMIN["email"], ADMIN["password"])
-    assert response.status_code == 200, response.text
-    token: str = response.json()["data"]["token"]
+    SECRETS.clear()  # a fresh database: every operator sets 2FA up again
+    token: str = (await sign_in(api, ADMIN["email"], ADMIN["password"]))["token"]
     return token

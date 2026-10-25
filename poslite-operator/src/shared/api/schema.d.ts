@@ -377,6 +377,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/open-bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Open Bills
+         * @description The outlet's open bills; devices poll this every few seconds while online.
+         */
+        get: operations["list_open_bills_api_v1_open_bills_get"];
+        put?: never;
+        /** Open Bill */
+        post: operations["open_bill_api_v1_open_bills_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/open-bills/{bill_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Bill
+         * @description Saves over `version`; an older version is 409 BILL_VERSION_CONFLICT (never merged).
+         */
+        put: operations["save_bill_api_v1_open_bills__bill_id__put"];
+        post?: never;
+        /** Cancel Bill */
+        delete: operations["cancel_bill_api_v1_open_bills__bill_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/open-bills/{bill_id}/lease": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lease Bill
+         * @description Takes the bill for editing, or renews the lease while it stays on screen.
+         */
+        post: operations["lease_bill_api_v1_open_bills__bill_id__lease_post"];
+        /** Release Lease */
+        delete: operations["release_lease_api_v1_open_bills__bill_id__lease_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders": {
         parameters: {
             query?: never;
@@ -661,6 +724,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/auth/2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Second Factor
+         * @description A TOTP code (or a recovery code) after the password opens the console (P1-8).
+         */
+        post: operations["second_factor_api_v1_platform_auth_2fa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/auth/login": {
         parameters: {
             query?: never;
@@ -764,6 +847,26 @@ export interface paths {
         put?: never;
         /** Enable Operator */
         post: operations["enable_operator_api_v1_platform_operators__operator_id__enable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/operators/{operator_id}/reset-2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Two Factor
+         * @description A lost authenticator: the operator sets 2FA up again at the next sign-in.
+         */
+        post: operations["reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1462,7 +1565,7 @@ export interface components {
              * Role
              * @description Role over the whole brand; null = access to some of its outlets only
              */
-            role: ("owner" | "manager" | "cashier") | null;
+            role: ("owner" | "manager" | "cashier" | "waiter") | null;
         };
         /** AccessOutlet */
         AccessOutlet: {
@@ -1476,7 +1579,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
         };
         /** AccessTenant */
         AccessTenant: {
@@ -1779,6 +1882,22 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[OpenBillOut] */
+        ApiResponse_OpenBillOut_: {
+            data: components["schemas"]["OpenBillOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[OperatorOut] */
         ApiResponse_OperatorOut_: {
             data: components["schemas"]["OperatorOut"];
@@ -2006,6 +2125,22 @@ export interface components {
         /** ApiResponse[SalesSummaryOut] */
         ApiResponse_SalesSummaryOut_: {
             data: components["schemas"]["SalesSummaryOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[SessionOut] */
+        ApiResponse_SessionOut_: {
+            data: components["schemas"]["SessionOut"];
             /**
              * Message
              * @default OK
@@ -2304,6 +2439,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ApiResponse[list[OpenBillOut]] */
+        ApiResponse_list_OpenBillOut__: {
+            /** Data */
+            data: components["schemas"]["OpenBillOut"][];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
         /** ApiResponse[list[OperatorOut]] */
         ApiResponse_list_OperatorOut__: {
             /** Data */
@@ -2555,7 +2707,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
             /**
              * Scope Type
              * @enum {string}
@@ -2572,7 +2724,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
             /**
              * Scope Type
              * @enum {string}
@@ -2996,6 +3148,8 @@ export interface components {
              * Format: date
              */
             business_date: string;
+            /** Cash Rounding */
+            cash_rounding: number;
             /** Discount */
             discount: number;
             /** Gross */
@@ -3297,6 +3451,26 @@ export interface components {
             /** Unit Price */
             unit_price: number;
         };
+        JsonValue: unknown;
+        /** LeaseIn */
+        LeaseIn: {
+            /** User Id */
+            user_id: string;
+        };
+        /** LeaseOut */
+        LeaseOut: {
+            /** Device Id */
+            device_id: string;
+            /** Device Name */
+            device_name: string;
+            /**
+             * Until
+             * Format: date-time
+             */
+            until: string;
+            /** User Id */
+            user_id: string;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -3304,15 +3478,27 @@ export interface components {
             /** Password */
             password: string;
         };
-        /** LoginOut */
+        /**
+         * LoginOut
+         * @description After the password (P1-8): only the second step is open. `setup` shows the secret once.
+         */
         LoginOut: {
+            /** Challenge Token */
+            challenge_token: string;
             /**
              * Expires At
              * Format: date-time
              */
             expires_at: string;
-            /** Token */
-            token: string;
+            /** Otpauth Uri */
+            otpauth_uri?: string | null;
+            /**
+             * Step
+             * @enum {string}
+             */
+            step: "setup" | "verify";
+            /** Totp Secret */
+            totp_secret?: string | null;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -3364,6 +3550,37 @@ export interface components {
             name: string;
             /** Price */
             price: number;
+        };
+        /** NewBillIn */
+        NewBillIn: {
+            /** Discount */
+            discount?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /**
+             * Release Lease
+             * @default false
+             */
+            release_lease: boolean;
+            /** Table Id */
+            table_id?: string | null;
+            /** Table Label */
+            table_label: string;
+            /** User Id */
+            user_id: string;
         };
         /** NewOutlet */
         NewOutlet: {
@@ -3417,6 +3634,39 @@ export interface components {
              * @enum {string}
              */
             type: "cash" | "debit" | "qris" | "credit_card" | "voucher" | "other";
+        };
+        /** OpenBillOut */
+        OpenBillOut: {
+            /** Discount */
+            discount: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Id */
+            id: string;
+            /** @description null when nobody is editing the bill */
+            lease: components["schemas"]["LeaseOut"] | null;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Opened By */
+            opened_by: string;
+            /** Table Id */
+            table_id: string | null;
+            /** Table Label */
+            table_label: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
         };
         /** OperatorIn */
         OperatorIn: {
@@ -3482,6 +3732,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Customer Name */
+            customer_name: string | null;
             /** Device Id */
             device_id: string;
             /** Discount Amount */
@@ -3504,10 +3756,14 @@ export interface components {
             payments: components["schemas"]["OrderPaymentOut"][];
             /** Price Includes Tax */
             price_includes_tax: boolean;
+            /** Queue No */
+            queue_no: string | null;
             /** Receipt No */
             receipt_no: string;
             /** Refunds */
             refunds: components["schemas"]["RefundRef"][];
+            /** Rounding Amount */
+            rounding_amount: number;
             /** Service Charge */
             service_charge: number;
             /** Shift Id */
@@ -3638,12 +3894,24 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "owner" | "manager" | "cashier";
+            role: "owner" | "manager" | "cashier" | "waiter";
         };
         /** OutletSettingsIn */
         OutletSettingsIn: {
             /** Business Day Cutoff */
             business_day_cutoff: string;
+            /**
+             * Cash Rounding Mode
+             * @default nearest
+             * @enum {string}
+             */
+            cash_rounding_mode: "nearest" | "down";
+            /**
+             * Cash Rounding Unit
+             * @default 0
+             * @enum {integer}
+             */
+            cash_rounding_unit: 0 | 100 | 500 | 1000;
             /** Name */
             name: string;
             /**
@@ -3656,6 +3924,12 @@ export interface components {
              * @default
              */
             receipt_header: string;
+            /**
+             * Service Mode
+             * @default counter
+             * @enum {string}
+             */
+            service_mode: "counter" | "table_service";
             /** Service Rate Bps */
             service_rate_bps: number;
             /** Tax Rate Bps */
@@ -3667,6 +3941,18 @@ export interface components {
         OutletSettingsOut: {
             /** Business Day Cutoff */
             business_day_cutoff: string;
+            /**
+             * Cash Rounding Mode
+             * @default nearest
+             * @enum {string}
+             */
+            cash_rounding_mode: "nearest" | "down";
+            /**
+             * Cash Rounding Unit
+             * @default 0
+             * @enum {integer}
+             */
+            cash_rounding_unit: 0 | 100 | 500 | 1000;
             /** Code */
             code: string;
             /** Id */
@@ -3683,6 +3969,12 @@ export interface components {
              * @default
              */
             receipt_header: string;
+            /**
+             * Service Mode
+             * @default counter
+             * @enum {string}
+             */
+            service_mode: "counter" | "table_service";
             /** Service Rate Bps */
             service_rate_bps: number;
             /** Tax Rate Bps */
@@ -4241,6 +4533,45 @@ export interface components {
             products: components["schemas"]["ProductSales"][];
             totals: components["schemas"]["Totals"];
         };
+        /** SaveBillIn */
+        SaveBillIn: {
+            /** Discount */
+            discount?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            } | null;
+            /** Lines */
+            lines: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
+             * Release Lease
+             * @default false
+             */
+            release_lease: boolean;
+            /** Table Id */
+            table_id?: string | null;
+            /** Table Label */
+            table_label: string;
+            /** User Id */
+            user_id: string;
+            /** Version */
+            version: number;
+        };
+        /** SessionOut */
+        SessionOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Recovery Codes
+             * @default []
+             */
+            recovery_codes: string[];
+            /** Token */
+            token: string;
+        };
         /** ShiftDetailOut */
         ShiftDetailOut: {
             /**
@@ -4588,6 +4919,8 @@ export interface components {
         };
         /** Totals */
         Totals: {
+            /** Cash Rounding */
+            cash_rounding: number;
             /** Discount */
             discount: number;
             /** Gross */
@@ -4610,6 +4943,15 @@ export interface components {
             tax: number;
             /** Void Count */
             void_count: number;
+        };
+        /** TwoFactorIn */
+        TwoFactorIn: {
+            /** Challenge Token */
+            challenge_token: string;
+            /** Code */
+            code?: string | null;
+            /** Recovery Code */
+            recovery_code?: string | null;
         };
         /** UserHitOut */
         UserHitOut: {
@@ -5546,6 +5888,193 @@ export interface operations {
             };
         };
     };
+    list_open_bills_api_v1_open_bills_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_OpenBillOut__"];
+                };
+            };
+        };
+    };
+    open_bill_api_v1_open_bills_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewBillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_bill_api_v1_open_bills__bill_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveBillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_bill_api_v1_open_bills__bill_id__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lease_bill_api_v1_open_bills__bill_id__lease_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_OpenBillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_lease_api_v1_open_bills__bill_id__lease_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     orders_api_v1_orders_get: {
         parameters: {
             query: {
@@ -6203,6 +6732,39 @@ export interface operations {
             };
         };
     };
+    second_factor_api_v1_platform_auth_2fa_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SessionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_platform_auth_login_post: {
         parameters: {
             query?: never;
@@ -6389,6 +6951,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operator_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
                 };
             };
             /** @description Validation Error */

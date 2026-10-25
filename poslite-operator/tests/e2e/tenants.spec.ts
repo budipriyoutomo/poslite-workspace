@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { API_ORIGIN } from "../../playwright.config";
-import { createOperator, uniq } from "./support";
+import { createOperator, totp, uniq } from "./support";
 
 async function signUpTenant(request: import("@playwright/test").APIRequestContext, id: string) {
   const signup = await request.post(`${API_ORIGIN}/api/v1/tenants/signup`, {
@@ -24,6 +24,11 @@ async function signInOperator(page: Page, id: string) {
   await page.getByLabel("Email").fill(`ops-${id}@poslite.id`);
   await page.getByLabel("Password").fill("operator-rahasia-123");
   await page.getByRole("button", { name: "Masuk" }).click();
+  // First sign-in sets 2FA up (P1-8): the authenticator's code, then the recovery codes.
+  const secret = (await page.getByText(/^[A-Z2-7]{32}$/).textContent())!;
+  await page.getByLabel("Kode autentikator").fill(totp(secret));
+  await page.getByRole("button", { name: "Verifikasi" }).click();
+  await page.getByRole("button", { name: "Sudah saya simpan, buka konsol" }).click();
   await expect(page.getByRole("heading", { name: "Ringkasan Platform" })).toBeVisible();
 }
 

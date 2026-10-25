@@ -30,6 +30,16 @@ describe("OperatorsScreen", () => {
     expect((await row("old@poslite.id")).getByText("Nonaktif")).toBeInTheDocument();
   });
 
+  it("resets another operator's 2FA after asking (P1-8)", async () => {
+    const { calls } = server(() => envelope(null));
+
+    await userEvent.click((await row("rina@poslite.id")).getByRole("button", { name: "Reset 2FA Rina" }));
+    await userEvent.click(screen.getByRole("button", { name: "Reset 2FA" }));
+
+    await waitFor(() => expect(calls.find((c) => c.method === "POST")).toMatchObject({ path: "/api/v1/platform/operators/01K5ZX00000000000000000002/reset-2fa" }));
+    expect((await row("ops@poslite.id")).queryByRole("button", { name: /Reset 2FA/ })).not.toBeInTheDocument();
+  });
+
   it("adds an operator", async () => {
     const { calls } = server();
     await row("ops@poslite.id");

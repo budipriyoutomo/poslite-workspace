@@ -932,6 +932,29 @@
         "title": "ApiResponse[SalesSummaryOut]",
         "type": "object"
       },
+      "ApiResponse_SessionOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[SessionOut]",
+        "type": "object"
+      },
       "ApiResponse_ShiftDetailOut_": {
         "properties": {
           "data": {
@@ -3706,20 +3729,52 @@
         "type": "object"
       },
       "LoginOut": {
+        "description": "After the password (P1-8): only the second step is open. `setup` shows the secret once.",
         "properties": {
+          "challenge_token": {
+            "title": "Challenge Token",
+            "type": "string"
+          },
           "expires_at": {
             "format": "date-time",
             "title": "Expires At",
             "type": "string"
           },
-          "token": {
-            "title": "Token",
+          "otpauth_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Otpauth Uri"
+          },
+          "step": {
+            "enum": [
+              "setup",
+              "verify"
+            ],
+            "title": "Step",
             "type": "string"
+          },
+          "totp_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Secret"
           }
         },
         "required": [
-          "token",
-          "expires_at"
+          "challenge_token",
+          "expires_at",
+          "step"
         ],
         "title": "LoginOut",
         "type": "object"
@@ -6422,6 +6477,33 @@
         "title": "SaveBillIn",
         "type": "object"
       },
+      "SessionOut": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "recovery_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recovery Codes",
+            "type": "array"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expires_at"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
       "ShiftDetailOut": {
         "properties": {
           "business_date": {
@@ -7513,6 +7595,43 @@
           "cash_rounding"
         ],
         "title": "Totals",
+        "type": "object"
+      },
+      "TwoFactorIn": {
+        "properties": {
+          "challenge_token": {
+            "title": "Challenge Token",
+            "type": "string"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "recovery_code": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Code"
+          }
+        },
+        "required": [
+          "challenge_token"
+        ],
+        "title": "TwoFactorIn",
         "type": "object"
       },
       "UserHitOut": {
@@ -10659,6 +10778,48 @@
         ]
       }
     },
+    "/api/v1/platform/auth/2fa": {
+      "post": {
+        "description": "A TOTP code (or a recovery code) after the password opens the console (P1-8).",
+        "operationId": "second_factor_api_v1_platform_auth_2fa_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_SessionOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Second Factor",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/platform/auth/login": {
       "post": {
         "operationId": "login_api_v1_platform_auth_login_post",
@@ -10937,6 +11098,55 @@
           }
         ],
         "summary": "Enable Operator",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/operators/{operator_id}/reset-2fa": {
+      "post": {
+        "description": "A lost authenticator: the operator sets 2FA up again at the next sign-in.",
+        "operationId": "reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "operator_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+              "title": "Operator Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reset Two Factor",
         "tags": [
           "platform"
         ]

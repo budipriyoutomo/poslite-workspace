@@ -724,6 +724,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/auth/2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Second Factor
+         * @description A TOTP code (or a recovery code) after the password opens the console (P1-8).
+         */
+        post: operations["second_factor_api_v1_platform_auth_2fa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/auth/login": {
         parameters: {
             query?: never;
@@ -827,6 +847,26 @@ export interface paths {
         put?: never;
         /** Enable Operator */
         post: operations["enable_operator_api_v1_platform_operators__operator_id__enable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/operators/{operator_id}/reset-2fa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Two Factor
+         * @description A lost authenticator: the operator sets 2FA up again at the next sign-in.
+         */
+        post: operations["reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2085,6 +2125,22 @@ export interface components {
         /** ApiResponse[SalesSummaryOut] */
         ApiResponse_SalesSummaryOut_: {
             data: components["schemas"]["SalesSummaryOut"];
+            /**
+             * Message
+             * @default OK
+             */
+            message: string;
+            /**
+             * Meta
+             * @default {}
+             */
+            meta: {
+                [key: string]: unknown;
+            };
+        };
+        /** ApiResponse[SessionOut] */
+        ApiResponse_SessionOut_: {
+            data: components["schemas"]["SessionOut"];
             /**
              * Message
              * @default OK
@@ -3422,15 +3478,27 @@ export interface components {
             /** Password */
             password: string;
         };
-        /** LoginOut */
+        /**
+         * LoginOut
+         * @description After the password (P1-8): only the second step is open. `setup` shows the secret once.
+         */
         LoginOut: {
+            /** Challenge Token */
+            challenge_token: string;
             /**
              * Expires At
              * Format: date-time
              */
             expires_at: string;
-            /** Token */
-            token: string;
+            /** Otpauth Uri */
+            otpauth_uri?: string | null;
+            /**
+             * Step
+             * @enum {string}
+             */
+            step: "setup" | "verify";
+            /** Totp Secret */
+            totp_secret?: string | null;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -4489,6 +4557,21 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** SessionOut */
+        SessionOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Recovery Codes
+             * @default []
+             */
+            recovery_codes: string[];
+            /** Token */
+            token: string;
+        };
         /** ShiftDetailOut */
         ShiftDetailOut: {
             /**
@@ -4860,6 +4943,15 @@ export interface components {
             tax: number;
             /** Void Count */
             void_count: number;
+        };
+        /** TwoFactorIn */
+        TwoFactorIn: {
+            /** Challenge Token */
+            challenge_token: string;
+            /** Code */
+            code?: string | null;
+            /** Recovery Code */
+            recovery_code?: string | null;
         };
         /** UserHitOut */
         UserHitOut: {
@@ -6640,6 +6732,39 @@ export interface operations {
             };
         };
     };
+    second_factor_api_v1_platform_auth_2fa_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_SessionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_platform_auth_login_post: {
         parameters: {
             query?: never;
@@ -6826,6 +6951,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_OperatorOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_two_factor_api_v1_platform_operators__operator_id__reset_2fa_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operator_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
                 };
             };
             /** @description Validation Error */
