@@ -517,6 +517,29 @@
         "title": "ApiResponse[LoginOut]",
         "type": "object"
       },
+      "ApiResponse_MenuImportOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MenuImportOut"
+          },
+          "message": {
+            "default": "OK",
+            "title": "Message",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[MenuImportOut]",
+        "type": "object"
+      },
       "ApiResponse_ModifierGroupOut_": {
         "properties": {
           "data": {
@@ -2683,6 +2706,24 @@
         "title": "CloseDayIn",
         "type": "object"
       },
+      "CountsOut": {
+        "properties": {
+          "create": {
+            "title": "Create",
+            "type": "integer"
+          },
+          "update": {
+            "title": "Update",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "create",
+          "update"
+        ],
+        "title": "CountsOut",
+        "type": "object"
+      },
       "CreatedEndpointOut": {
         "properties": {
           "brand_ids": {
@@ -3797,6 +3838,49 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "MenuImportOut": {
+        "properties": {
+          "applied": {
+            "title": "Applied",
+            "type": "boolean"
+          },
+          "categories": {
+            "$ref": "#/components/schemas/CountsOut"
+          },
+          "channel_prices": {
+            "title": "Channel Prices",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RowErrorOut"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "modifier_groups": {
+            "$ref": "#/components/schemas/CountsOut"
+          },
+          "outlet_prices": {
+            "title": "Outlet Prices",
+            "type": "integer"
+          },
+          "products": {
+            "$ref": "#/components/schemas/CountsOut"
+          }
+        },
+        "required": [
+          "errors",
+          "categories",
+          "modifier_groups",
+          "products",
+          "channel_prices",
+          "outlet_prices",
+          "applied"
+        ],
+        "title": "MenuImportOut",
         "type": "object"
       },
       "MethodOutletsIn": {
@@ -6146,6 +6230,29 @@
           "code"
         ],
         "title": "RejectedEventOut",
+        "type": "object"
+      },
+      "RowErrorOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "integer"
+          },
+          "sheet": {
+            "title": "Sheet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sheet",
+          "row",
+          "message"
+        ],
+        "title": "RowErrorOut",
         "type": "object"
       },
       "SalesChannelIn": {
@@ -9067,6 +9174,130 @@
           }
         ],
         "summary": "Upload Image",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/menu-import": {
+      "post": {
+        "description": "The filled workbook as the raw body (max 5 MB). `dry_run` previews; otherwise every row is\nupserted in one transaction, or none when any row has an error.",
+        "operationId": "import_menu_api_v1_menu_import_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_MenuImportOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Menu",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/menu-import/template": {
+      "get": {
+        "description": "The workbook to fill in (P1-4): one sheet per part of the menu, with an example row.",
+        "operationId": "menu_template_api_v1_menu_import_template_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Brand-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Brand-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Menu Template",
         "tags": [
           "catalog"
         ]

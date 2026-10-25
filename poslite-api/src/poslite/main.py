@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from poslite.billing.presentation.router import router as billing_router
 from poslite.catalog.presentation.channels import router as channels_router
+from poslite.catalog.presentation.menu_import import router as menu_import_router
 from poslite.catalog.presentation.router import router as catalog_router
 from poslite.gateway.presentation.router import router as gateway_router
 from poslite.identity.api import SqlTokenResolver
@@ -79,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         organization_router,
         catalog_router,
         channels_router,
+        menu_import_router,
         payment_router,
         promotion_router,
         integration_router,
