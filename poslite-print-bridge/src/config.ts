@@ -16,8 +16,9 @@ const list = (value: string | undefined) => (value ?? "").split(",").map((s) => 
  * needs `BRIDGE_HOST=0.0.0.0` plus TLS, because an HTTPS POS page may only call another host over HTTPS.
  */
 export function loadConfig(env: Record<string, string | undefined>): ListenConfig {
+  // Empty = the bridge makes its own and POS devices pair with a code (P1-5).
   const token = env.BRIDGE_TOKEN ?? "";
-  if (token.length < MIN_TOKEN_LENGTH) throw new Error(`BRIDGE_TOKEN must be set (at least ${MIN_TOKEN_LENGTH} characters)`);
+  if (token !== "" && token.length < MIN_TOKEN_LENGTH) throw new Error(`BRIDGE_TOKEN must be at least ${MIN_TOKEN_LENGTH} characters`);
   const port = Number(env.BRIDGE_PORT ?? 9180);
   if (!Number.isInteger(port) || port < 1 || port > 65_535) throw new Error("BRIDGE_PORT must be a port number");
   const certFile = env.BRIDGE_TLS_CERT;

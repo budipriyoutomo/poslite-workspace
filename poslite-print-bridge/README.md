@@ -7,15 +7,19 @@ Tanpa dependency runtime — hanya Node.js ≥ 24 (TypeScript dijalankan langsun
 ## Menjalankan
 
 ```bash
-BRIDGE_TOKEN=$(openssl rand -hex 16) node src/main.ts
+node src/main.ts
 # POSLite Print Bridge 0.1.0 on http://127.0.0.1:9180
+# Pairing code and test print: http://localhost:9180/ (this PC only)
 ```
 
-Di POS: menu **Printer** → pilih *Printer LAN lewat Print Bridge* → isi alamat bridge, token, dan alamat printer (`192.168.1.50:9100`) → **Simpan alamat** → **Test print**.
+Tanpa `BRIDGE_TOKEN`, bridge membuat token sendiri sekali dan menyimpannya di `~/.poslite-bridge-token` (hanya bisa dibaca user itu). Buka **http://localhost:9180/** di PC yang sama: halaman itu menampilkan **kode pairing 6 digit** (berganti tiap 5 menit, satu kode untuk satu perangkat; 5 kode salah mengunci pairing 5 menit), daftar printer, tombol test print, dan error cetak terakhir (tanpa isi struk). Halaman dan test print hanya melayani PC itu sendiri.
+
+Di POS: menu **Printer** → pilih *Printer LAN lewat Print Bridge* → isi alamat bridge → isi **Kode pairing** → **Pasangkan** (token terisi sendiri) → isi alamat printer (`192.168.1.50:9100`) → **Simpan alamat** → **Test print**.
 
 | Variabel | Default | Arti |
 |---|---|---|
-| `BRIDGE_TOKEN` | — (wajib, ≥ 16 karakter) | Rahasia per outlet; POS mengirimnya sebagai `Authorization: Bearer …` |
+| `BRIDGE_TOKEN` | dibuat sendiri | Rahasia per outlet (≥ 16 karakter bila diisi); POS mengirimnya sebagai `Authorization: Bearer …`, didapat lewat pairing |
+| `BRIDGE_TOKEN_FILE` | `~/.poslite-bridge-token` | Tempat token buatan bridge disimpan |
 | `BRIDGE_HOST` | `127.0.0.1` | `0.0.0.0` agar tablet lain di LAN bisa memakai bridge |
 | `BRIDGE_PORT` | `9180` | Port bridge |
 | `BRIDGE_TLS_CERT`, `BRIDGE_TLS_KEY` | — | File PEM; bila diisi bridge melayani HTTPS |
