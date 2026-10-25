@@ -19,6 +19,18 @@ describe("cart store", () => {
     expect(useCart.getState()).toMatchObject({ lines: [], discount: null });
   });
 
+  it("keeps an item tapped before the stored cart finished loading (P1-10: a busy device)", async () => {
+    let release = () => {};
+    const slow = { getItem: () => new Promise<string | null>((resolve) => (release = () => resolve(JSON.stringify({ state: { lines: [] }, version: 0 })))), setItem: () => {}, removeItem: () => {} };
+    const useCart = createCartStore(slow);
+    useCart.getState().add(gudeg);
+
+    release();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(useCart.getState().lines).toMatchObject([{ productId: "P1" }]);
+  });
+
   it("restores the cart after a reload from IndexedDB", async () => {
     const db = createTestDb();
     const before = createCartStore(cartStorage(() => db));

@@ -88,6 +88,8 @@ export function createCartStore(storage: StateStorage) {
         name: "cart",
         storage: createJSONStorage(() => storage),
         partialize: (s) => ({ lines: s.lines, discount: s.discount, promotionIds: s.promotionIds, bill: s.bill, channelId: s.channelId, externalRef: s.externalRef, customerName: s.customerName }),
+        // A tap that lands before the stored cart loaded (a busy device) is newer: keep it.
+        merge: (stored, current) => (current.lines.length > 0 ? current : { ...current, ...(stored as Partial<CartState>) }),
       },
     ),
   );

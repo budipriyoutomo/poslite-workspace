@@ -30,7 +30,7 @@ BRIDGE := pnpm --dir $(BRIDGE_DIR)
 	dev-operator operator-install operator-test operator-check operator-types operator-e2e \
 	dev-bridge bridge-install bridge-test bridge-check \
 	dev-api worker openapi report-rebuild billing-run platform-admin api-install api-test api-check api-fmt env db-setup db-drop db-reset migrate migrate-down migration \
-	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-spike-dexie repos-remotes repos-push
+	dev-web web-install web-test web-check web-build web-e2e e2e-fullstack web-load web-spike-dexie repos-remotes repos-push
 
 help: ## Show available targets
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -169,6 +169,10 @@ web-e2e: ## Playwright e2e (once: playwright install chromium; macOS 13: make we
 e2e-fullstack: ## Browser + real API: activate, sell offline, sync (fresh poslite_e2e DB; needs uv + pnpm)
 	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_E2E_NAME) WITH (FORCE)" -c "CREATE DATABASE $(DB_E2E_NAME) OWNER $(DB_USER)"
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config playwright.fullstack.config.ts
+
+web-load: ## P1-10 device load: 3,000 orders, 5 open bills, 500 pending events at 4x CPU (fresh poslite_e2e DB)
+	$(PSQL_ADMIN) -c "DROP DATABASE IF EXISTS $(DB_E2E_NAME) WITH (FORCE)" -c "CREATE DATABASE $(DB_E2E_NAME) OWNER $(DB_USER)"
+	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config playwright.load.config.ts
 
 web-spike-dexie: ## Fase 0 spike: Dexie with 5,000 orders in real Chrome at 1x and 4x CPU
 	PW_CHANNEL=$(PW_CHANNEL) $(PNPM) exec playwright test --config tests/spikes/playwright.config.ts
