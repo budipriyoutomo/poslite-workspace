@@ -20,14 +20,16 @@ async function addGudeg(page: Page) {
   }
 }
 
-async function approveVoid(page: Page, reason: string) {
-  const dialog = page.getByRole("dialog", { name: /^Batalkan item meja/ });
+async function approveVoid(page: Page, title: string, reason: string, confirm: RegExp) {
+  const dialog = page.getByRole("dialog", { name: title });
+  // 15 · UX-05: the warning names what already went out and that a BATAL ticket follows.
+  await expect(dialog.getByRole("note")).toContainText("sudah dikirim ke dapur/bar");
   await dialog.getByLabel("Alasan").selectOption(reason);
   await dialog.getByLabel("Manajer yang menyetujui").selectOption({ label: "Budi" });
   await dialog.getByLabel("PIN manajer").fill("9999");
   await dialog.getByRole("button", { name: "Setujui" }).click();
   await expect(dialog.getByText("Disetujui Budi")).toBeVisible();
-  await dialog.getByRole("button", { name: "Batalkan item" }).click();
+  await dialog.getByRole("button", { name: confirm }).click();
   await expect(dialog).toHaveCount(0);
 }
 
@@ -70,8 +72,8 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
   await expect(page.getByText("2 sudah ke dapur")).toBeVisible();
   await page.getByRole("button", { name: "Kurangi jumlah Nasi Gudeg" }).click();
   await page.getByRole("button", { name: "Simpan bill" }).click();
-  await expect(page.getByRole("dialog", { name: /^Batalkan item meja A1/ })).toContainText("1x Nasi Gudeg");
-  await approveVoid(page, "Pelanggan batal");
+  await expect(page.getByRole("dialog", { name: "Batalkan 1× Nasi Gudeg" })).toContainText("1x Nasi Gudeg");
+  await approveVoid(page, "Batalkan 1× Nasi Gudeg", "Tamu batal/pergi", /^Batalkan item · Rp/);
   await expectOrderEmpty(page);
 
   await page.getByRole("link", { name: "Bill" }).click();
@@ -79,7 +81,7 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
 
   // Then the table leaves: cancelling the bill needs the same approval
   await page.getByRole("button", { name: "Batalkan A1" }).click();
-  await approveVoid(page, "Salah input");
+  await approveVoid(page, "Batalkan bill meja A1", "Salah input", /^Batalkan bill · Rp/);
   await expect(page.getByText("Tidak ada bill terbuka")).toBeVisible();
 
   expect(await queuedBillVoids(page)).toBe(2);

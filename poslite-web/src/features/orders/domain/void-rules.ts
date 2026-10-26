@@ -18,7 +18,7 @@ export function voidBlocker(
 }
 
 /** The reason text to record, or null while it is incomplete ("Lainnya" needs 1–200 chars). */
-export function checkReason(reason: Reason, other: string): string | null {
+export function checkReason(reason: string, other: string): string | null {
   if (reason !== "Lainnya") return reason;
   const text = other.trim();
   return text.length > 0 && text.length <= 200 ? text : null;

@@ -59,6 +59,7 @@ export function BillsScreen() {
     const voided = voidedUnits(bill.lines, []);
     if (voided.length > 0)
       return billVoid.ask({
+        scope: "bill",
         billId: id,
         tableLabel: bill.tableLabel,
         voided,

@@ -81,7 +81,7 @@ export function DineInBar() {
     // Sent items taken off need a manager's approval first (ADR-028).
     const saved = bills.find((b) => b.id === bill.id);
     const voided = saved ? voidedUnits(saved.lines, lines) : [];
-    if (voided.length > 0) return billVoid.ask({ billId: bill.id, tableLabel: bill.tableLabel, voided, run: persist });
+    if (voided.length > 0) return billVoid.ask({ scope: "line", billId: bill.id, tableLabel: bill.tableLabel, voided, run: persist });
     try {
       await persist();
     } catch (e) {

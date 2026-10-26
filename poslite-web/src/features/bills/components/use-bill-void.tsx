@@ -12,9 +12,10 @@ import { AppError } from "@/shared/errors";
 import type { VoidApproval } from "../application/bills";
 import { sendVoidToKitchen } from "../application/kitchen";
 import { copy } from "../copy";
-import { BillVoidDialog } from "./BillVoidDialog";
+import { BillVoidDialog, type VoidScope } from "./BillVoidDialog";
 
 interface Pending {
+  scope: VoidScope;
   billId: string;
   tableLabel: string;
   voided: VoidedLine[];
@@ -45,7 +46,9 @@ export function useBillVoid() {
   const dialog =
     pending && user ? (
       <BillVoidDialog
+        scope={pending.scope}
         tableLabel={pending.tableLabel}
+        cashierName={user.name}
         voided={pending.voided}
         actorIsManager={isManager(user.role)}
         approvers={approvers}
