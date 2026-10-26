@@ -18,6 +18,7 @@ import { suggestCashAmounts } from "../domain/cash-suggestions";
 import { cashRounding, type CashRoundingRule } from "../domain/cash-rounding";
 import { NO_ROUNDING, remainingDue, settle } from "../domain/payment";
 import { DynamicQrisDialog } from "./DynamicQrisDialog";
+import { PaymentMethodPicker } from "./PaymentMethodPicker";
 
 export interface TenderedInput {
   paymentMethodId: string;
@@ -70,17 +71,15 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
     setAmount(0);
   };
 
+  // 15 · UX-03: from a panel 448px wide (@md), the keypad sits beside the methods and quick amounts, so the
+  // keypad and "Selesaikan" fit a 1024×640 tablet without scrolling.
   return (
-    <div className="@container space-y-4 [@media(max-height:760px)]:space-y-3">
-      <div className="grid grid-cols-3 gap-2">
-        {methods.map((m) => (
-          <Button key={m.id} variant="outline" className={cn("h-auto min-h-11 px-2 leading-tight whitespace-normal", m.id === method.id && "border-primary bg-accent font-semibold text-accent-foreground")} onClick={() => choose(m)}>
-            {m.name}
-          </Button>
-        ))}
-      </div>
+    <div className="@container">
+      <div className="space-y-4 [@media(max-height:760px)]:space-y-3 @md:grid @md:grid-cols-2 @md:gap-x-4 @md:space-y-0">
+      <div className="space-y-4 [@media(max-height:760px)]:space-y-3">
+      <PaymentMethodPicker methods={methods} selectedId={method.id} onChoose={choose} />
       {method.type === "cash" && (
-        <div className="grid grid-cols-2 gap-2 @sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 @sm:grid-cols-4 @md:grid-cols-2">
           {suggestCashAmounts(cashRemaining).map((a) => (
             <Button key={a} variant="secondary" className="h-11" onClick={() => setAmount(a)}>
               {formatRupiah(a)}
@@ -88,7 +87,6 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
           ))}
         </div>
       )}
-      <MoneyKeypad label={`${copy.amount} · ${method.name}`} value={amount} onChange={setAmount} />
       {method.type === "qris" &&
         (qris ? (
           <Button variant="outline" className="h-11 w-full" disabled={remaining <= 0} onClick={() => setIsShowingQr(true)}>
@@ -133,13 +131,19 @@ export function PaymentPanel({ total, methods, onConfirm, isBusy = false, qris =
           })}
         </ul>
       )}
-      {/* Change due and the actions stick to the bottom of the screen: both stay in view while keying the amount. */}
-      <div className="sticky bottom-0 -mx-3 grid grid-cols-2 gap-2 rounded-b-xl border-t bg-card/95 px-3 py-3 backdrop-blur sm:-mx-4 sm:px-4">
+      </div>
+      <div className="max-@md:mt-4">
+        <MoneyKeypad label={`${copy.amount} · ${method.name}`} value={amount} onChange={setAmount} />
+      </div>
+      </div>
+      {/* Change due and the actions stick to the bottom of the screen: both stay in view while keying the amount.
+          Wide panels put them in one row, at most 96px tall (UX-03). */}
+      <div className="sticky bottom-0 -mx-3 mt-4 grid grid-cols-2 gap-2 rounded-b-xl border-t bg-card/95 px-3 py-3 backdrop-blur sm:-mx-4 sm:px-4 [@media(max-height:760px)]:mt-3 @md:grid-cols-[1fr_auto_auto] @md:items-center">
         <PaymentSummary total={total} rounding={roundingNow} paid={sumOf(all)} />
-        <Button variant="outline" className="h-12" disabled={amount <= 0 || amount >= remaining || !hasReference} onClick={split}>
+        <Button variant="outline" className="h-12 @md:px-4" disabled={amount <= 0 || amount >= remaining || !hasReference} onClick={split}>
           {copy.split}
         </Button>
-        <Button className="h-12 text-base" disabled={!settlement.ok || !hasReference || isBusy} onClick={() => onConfirm(all)}>
+        <Button className="h-12 text-base @md:px-8" disabled={!settlement.ok || !hasReference || isBusy} onClick={() => onConfirm(all)}>
           {copy.confirm}
         </Button>
       </div>
@@ -152,7 +156,7 @@ const sumOf = (list: TenderedInput[]) => list.reduce((s, p) => s + p.amount, 0);
 function PaymentSummary({ total, rounding, paid }: { total: number; rounding: number; paid: number }) {
   const diff = paid - (total + rounding);
   return (
-    <output role="status" aria-label={copy.paymentSummary} className="col-span-2 flex items-center justify-between gap-3 rounded-lg bg-slate-900 px-3 py-2 text-white dark:ring-1 dark:ring-white/10">
+    <output role="status" aria-label={copy.paymentSummary} className="col-span-2 @md:col-span-1 flex items-center justify-between gap-3 rounded-lg bg-slate-900 px-3 py-2 text-white dark:ring-1 dark:ring-white/10">
       <span className="text-xs leading-snug text-slate-400">
         <span className="block">
           {copy.total} <span className="font-semibold text-white">{formatRupiah(total)}</span>

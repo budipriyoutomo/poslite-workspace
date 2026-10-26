@@ -102,13 +102,27 @@ export function CheckoutScreen() {
 
   if (!outlet || !methods) return null;
   return (
-    <div className="grid flex-1 content-start gap-3 p-3 sm:gap-4 sm:p-4 lg:grid-cols-[1fr_28rem] lg:content-stretch">
+    // 15 · UX-03: a narrow order column and a wide payment panel, so the keypad fits beside the methods.
+    <div className="grid flex-1 content-start gap-3 p-3 sm:gap-4 sm:p-4 lg:grid-cols-[380px_1fr] lg:content-stretch">
       <section className="rounded-xl border bg-card p-3 sm:p-4">
         <Button asChild variant="ghost" size="sm" className="mb-2">
           <Link href="/sell">
             <ArrowLeft /> {copy.back}
           </Link>
         </Button>
+        {/* Who the order is for sits with the order, leaving the payment panel to the payment (UX-03). */}
+        {!bill && (
+          <label className="mb-3 block space-y-1 text-sm font-medium">
+            <span>{copy.customerName}</span>
+            <Input aria-label={copy.customerName} maxLength={40} value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+          </label>
+        )}
+        {channel?.requiresExternalRef && (
+          <label className="mb-3 block space-y-1 text-sm font-medium">
+            <span>{copy.externalRef(channel.name)}</span>
+            <Input aria-label={copy.externalRef(channel.name)} maxLength={50} value={externalRef} onChange={(e) => setExternalRef(e.target.value)} />
+          </label>
+        )}
         {bill && (
           <div className="mb-2 flex items-center gap-2">
             <h2 className="text-lg font-semibold">{copy.tableBill(bill.tableLabel)}</h2>
@@ -147,18 +161,6 @@ export function CheckoutScreen() {
         <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
         <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
         {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}
-        {!bill && (
-          <label className="mb-3 block space-y-1 text-sm font-medium">
-            <span>{copy.customerName}</span>
-            <Input aria-label={copy.customerName} maxLength={40} value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-          </label>
-        )}
-        {channel?.requiresExternalRef && (
-          <label className="mb-3 block space-y-1 text-sm font-medium">
-            <span>{copy.externalRef(channel.name)}</span>
-            <Input aria-label={copy.externalRef(channel.name)} maxLength={50} value={externalRef} onChange={(e) => setExternalRef(e.target.value)} />
-          </label>
-        )}
         {paying.length > 0 && (!needsManager || discountApprovedBy) && !needsRef && (
           <PaymentPanel
             key={`${totals.total}-${channel?.id ?? ""}`}
