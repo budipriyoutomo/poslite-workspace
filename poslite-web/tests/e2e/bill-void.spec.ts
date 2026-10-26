@@ -13,7 +13,9 @@ async function logIn(page: Page, name: string, pin: string) {
 async function addGudeg(page: Page) {
   await page.getByRole("button", { name: /^Nasi Gudeg/ }).click();
   const add = page.getByRole("button", { name: /^Tambah ·/ });
-  if (await add.isVisible()) {
+  // Wait briefly for the options dialog: an instant isVisible() can run before it opens.
+  const hasOptions = await add.waitFor({ state: "visible", timeout: 2_000 }).then(() => true, () => false);
+  if (hasOptions) {
     const firstRadio = page.getByRole("radio").first();
     if (await firstRadio.isVisible()) await firstRadio.click();
     await add.click();

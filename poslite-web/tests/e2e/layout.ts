@@ -30,3 +30,15 @@ export async function expectOrderEmpty(page: Page) {
 export async function showOrderDetails(page: Page) {
   if (isPhone()) await page.getByRole("button", { name: /Rincian pesanan/ }).click();
 }
+
+/**
+ * 15 · UX-07: a toast never covers the screen's main controls. From a tablet up it sits above the
+ * bottom 96px (checkout summary, cart buttons); on a phone it sits below the 56px header.
+ */
+export async function expectToastClear(page: Page, text: string | RegExp) {
+  const toast = page.locator("[data-sonner-toast]").filter({ hasText: text });
+  const viewport = page.viewportSize()!;
+  // Polled: the toast slides in, so its box moves for a few hundred milliseconds.
+  if (isPhone()) await expect.poll(async () => (await toast.boundingBox())?.y ?? -1).toBeGreaterThanOrEqual(56);
+  else await expect.poll(async () => { const box = await toast.boundingBox(); return box ? box.y + box.height : Infinity; }).toBeLessThanOrEqual(viewport.height - 96);
+}

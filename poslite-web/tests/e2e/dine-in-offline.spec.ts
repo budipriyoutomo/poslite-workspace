@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { expectOrderEmpty, openOrder } from "./layout";
+import { expectOrderEmpty, openOrder, expectToastClear } from "./layout";
 
 // Fase 4 DoD (ADR-015): open a table's bill, add to it later, then guests pay separately by item — all offline.
 
@@ -12,7 +12,9 @@ async function logIn(page: Page, name: string, pin: string) {
 async function addPlain(page: Page, product: RegExp) {
   await page.getByRole("button", { name: product }).click();
   const add = page.getByRole("button", { name: /^Tambah ·/ });
-  if (await add.isVisible()) {
+  // Wait briefly for the options dialog: an instant isVisible() can run before it opens.
+  const hasOptions = await add.waitFor({ state: "visible", timeout: 2_000 }).then(() => true, () => false);
+  if (hasOptions) {
     const firstRadio = page.getByRole("radio").first();
     if (await firstRadio.isVisible()) await firstRadio.click();
     await add.click();
@@ -36,6 +38,7 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await page.getByRole("button", { name: /A1/ }).click();
   await expect(page.getByText("Meja A1").first()).toBeVisible();
   await page.getByRole("button", { name: "Simpan bill" }).click();
+  await expectToastClear(page, "Bill meja A1 disimpan");
   await expectOrderEmpty(page);
 
   // The guests change tables (A1 → A2) and back again: the bill follows, offline (doc 11 §2)
