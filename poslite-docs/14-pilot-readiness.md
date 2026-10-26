@@ -183,7 +183,7 @@ Minggu 1 pendampingan intensif, minggu 2 lepas tangan. **Freeze fitur**: hanya p
 2. `voidedUnits(saved, next)` (`cart/domain/kitchen.ts`): unit terkirim yang tidak ada lagi di bill = void. Mengubah pilihan/catatan baris terkirim menghasilkan key baru, jadi dihitung void (item baru bagi dapur).
 3. `saveBill` dan `cancelBill` menolak void tanpa approval (`VOID_APPROVAL_REQUIRED`). Dengan approval: `checkApproval` (ADR-023 — kasir butuh manajer; manajer sendiri → `approved_by` null), satu event `bill.item_voided` per aksi (`scope: line | bill_cancelled`), lalu `reconcileSent` menurunkan `sentQuantity` ke sisa unit. Semua dalam satu transaksi Dexie.
 4. `payBill` menolak bill yang mengurangi unit terkirim tanpa disimpan dulu (`VOID_APPROVAL_REQUIRED`), sehingga void tidak bisa lolos lewat pembayaran.
-5. Alasan memakai daftar void yang sudah ada (`Salah input`, `Pelanggan batal`, `Lainnya` + teks).
+5. Alasan memakai daftar void yang sudah ada (`Salah input`, `Pelanggan batal`, `Lainnya` + teks). Sejak 15 · UX-05, batal sebelum bayar memakai daftar sendiri: `Tamu batal/pergi`, `Salah input`, `Menu habis`, `Kualitas/komplain`, `Lainnya` + teks. Void dan refund order yang sudah dibayar tetap memakai daftar lama.
 6. Nilai void = (harga + pilihan) × unit, sebelum diskon. Hanya laporan; tidak menyentuh kas atau pajak.
 7. Tiket **BATAL** ke stasiun dapur/bar (alasan + penyetuju), best effort; gagal cetak → toast "beri tahu dapur langsung".
 8. Server tidak pernah menolak karena alasan bisnis (ADR-003); hanya kontrak, `CASHIER_NOT_IN_OUTLET`, `APPROVER_NOT_ALLOWED` (`order.void`), `SHIFT_NOT_FOUND`.

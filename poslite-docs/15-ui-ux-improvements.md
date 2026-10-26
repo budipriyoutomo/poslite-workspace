@@ -268,6 +268,13 @@ Prinsip ini dipakai untuk menilai semua layar di dokumen ini dan layar baru ke d
 
 Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya sudah selesai. Aturan domain dan event ada di dokumen 14.
 
+**Status: selesai** (branch `feat/ux-05-cancel-bill-dialog`). Catatan implementasi:
+
+- `ManagerApproval` (`features/auth`) memakai `checkManagerPin`, satu-satunya pengecek PIN manajer: diskon, void, refund, batal bill, dan export darurat. PIN salah dihitung ke lockout device, dan saat terkunci pesannya sama dengan layar kunci.
+- `BillVoidDialog` tetap menerima daftar penyetuju dan pengecek lewat props (mudah dites); `useBillVoid` mengisinya dengan `checkManagerPin`.
+- Daftar alasan batal sebelum bayar (`bills/domain/void-reasons.ts`) terpisah dari alasan void/refund order yang sudah dibayar. Server tidak berubah karena `reason` tetap teks bebas.
+- Bill tanpa item terkirim sudah memakai konfirmasi sederhana sejak P0-1, jadi tidak diubah.
+
 **Usulan**
 
 ![Usulan: dialog batal bill](./assets/15-ui-ux/mockup-05-cancel-bill-dialog.png)
@@ -455,7 +462,7 @@ Tambahkan di `globals.css` dan `shared/ui` supaya warna status konsisten di semu
 | `--status-new` (info) | Tag "Baru", meja tagihan dicetak | Token baru: biru, AA di atas putih |
 | `--status-late` (destructive) | Meja > 90 menit, sync gagal | Pakai `--destructive` |
 | `StatusPill` | Badge sync, status printer, status meja | Satu komponen dengan varian `ok / wait / error / neutral` |
-| `ManagerApproval` | Batal bill, void, refund, diskon di atas batas, rincian tutup shift | Ekstrak dari `DiscountApproval.tsx` di UX-05 |
+| `ManagerApproval` | Batal bill, void, refund, diskon di atas batas, rincian tutup shift | Sudah ada di `features/auth` (UX-05) |
 | `DenominationCounter` | Tutup shift (opsional juga buka shift) | Daftar pecahan dari pengaturan (default Rupiah) |
 | `SegmentedControl` | Jenis pesanan, mode tampilan, area meja | Satu komponen yang jelas status aktifnya, dengan overflow "Lainnya ▸" |
 
@@ -490,7 +497,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 ## 6. Checklist
 
 - [x] UX-01 Badge status sync selalu tampil (dengan urutan kondisi) + banner mode demo + demo dimatikan di produksi
-- [ ] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
+- [x] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
 - [ ] UX-07 Toast tidak menutupi konten
 - [ ] UX-02 API: migrasi `0032`, `denominations` di payload dan `ShiftOut`, `blind_close`, permission `shift.variance.view`
 - [ ] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
