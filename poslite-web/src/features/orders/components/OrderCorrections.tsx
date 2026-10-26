@@ -2,7 +2,7 @@
 
 import { RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { printRefundSlip, printVoidSlip } from "@/features/printing";

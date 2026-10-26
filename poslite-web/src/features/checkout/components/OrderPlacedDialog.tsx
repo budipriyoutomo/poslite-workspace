@@ -3,7 +3,7 @@
 import { CheckCircle2, Plus, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { printReceipt, ReceiptPreview } from "@/features/printing";
 import type { OrderRow } from "@/shared/db";

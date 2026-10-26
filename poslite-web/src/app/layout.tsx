@@ -41,7 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ServiceWorkerProvider>
             <DeviceBootstrap />
             {children}
-            <Toaster position="top-center" offset={72} duration={2500} richColors />
+            <Toaster />
           </ServiceWorkerProvider>
         </ThemeProvider>
       </body>

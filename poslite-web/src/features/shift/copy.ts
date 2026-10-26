@@ -4,7 +4,6 @@ export const copy = {
   openHint: "Hitung uang di laci kas sebelum mulai berjualan.",
   openingCash: "Modal awal",
   open: "Buka Shift",
-  opened: "Shift dibuka",
   currentTitle: "Shift Berjalan",
   businessDate: "Tanggal operasional",
   openedAt: "Dibuka",

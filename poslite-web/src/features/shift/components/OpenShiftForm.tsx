@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { Button } from "@/shared/ui/button";
@@ -24,7 +24,7 @@ export function OpenShiftForm() {
     setIsSaving(true);
     try {
       await openShift({ cashierId: user.id, openingCash });
-      toast.success(copy.opened);
+      // No toast: the Sell screen opening says it, and a toast would cover the first menu dialog (UX-07).
       router.push("/sell");
     } catch (e) {
       toast.error(errorMessage(e));

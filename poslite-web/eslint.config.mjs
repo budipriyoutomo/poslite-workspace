@@ -58,8 +58,14 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/ban-ts-comment": ["error", { "ts-expect-error": "allow-with-description" }],
-      "no-restricted-globals": ["error", { name: "alert", message: "Use a sonner toast." }, { name: "confirm", message: "Use a shadcn Dialog." }],
+      "no-restricted-globals": ["error", { name: "alert", message: "Use toast from @/shared/ui/toast." }, { name: "confirm", message: "Use a shadcn Dialog." }],
+      // 15 · UX-07: one place sets how long successes and errors stay.
+      "no-restricted-imports": ["error", { paths: [{ name: "sonner", importNames: ["toast"], message: "Use toast from @/shared/ui/toast." }] }],
     },
+  },
+  {
+    files: ["src/shared/ui/toast.ts", "src/shared/ui/*.test.ts", "src/shared/ui/*.test.tsx"],
+    rules: { "no-restricted-imports": "off" },
   },
   globalIgnores(["public/sw.js", ".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**", "next-env.d.ts", "src/shared/api/schema.d.ts"]),
 ]);

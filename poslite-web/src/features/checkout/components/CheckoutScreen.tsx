@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { useCart } from "@/features/cart";

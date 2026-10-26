@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { formatRupiah } from "@/shared/money";

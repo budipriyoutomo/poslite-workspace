@@ -2,7 +2,7 @@
 
 import { CloudCheck, CloudUpload, History, Printer } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { printReceipt, ReceiptPreview } from "@/features/printing";
 import { useMediaQuery } from "@/shared/hooks";

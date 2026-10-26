@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/shared/ui/toast";
 
 import { useCart, voidedUnits } from "@/features/cart";
 import { getDb, type OpenBillRow } from "@/shared/db";
