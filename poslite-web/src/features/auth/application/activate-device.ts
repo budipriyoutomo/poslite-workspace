@@ -43,7 +43,7 @@ async function wipeLocalData(db: PosDb): Promise<void> {
  */
 export async function activateDevice(
   input: Credentials & { outletId: string; deviceName: string },
-  deps: { db: PosDb; api: BaseApi },
+  deps: { db: PosDb; api: BaseApi; now?: () => Date },
 ): Promise<void> {
   const { db } = deps;
   const activated = await apiRequest(deps.api, "POST", "/devices/activate", activationSchema, {
@@ -62,6 +62,8 @@ export async function activateDevice(
     token: activated.token,
   });
   await pullAll({ db, api: deps.api });
+  // The first pull is a sync: the header badge must not call a fresh device "never synced".
+  await writeState(db, "lastSyncAt", (deps.now ?? (() => new Date()))().toISOString());
 }
 
 /** Offline demo without a server: the prototype menu and demo cashiers (Siti 1234, Budi 9999). */

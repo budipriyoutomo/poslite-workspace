@@ -60,6 +60,14 @@ describe("activateDevice", () => {
     expect((await db.categories.toArray()).map((c) => c.name)).toEqual(["Minuman"]);
   });
 
+  it("counts the first pull as a sync, so a device that goes offline right away is not shown as never synced (15 · UX-01)", async () => {
+    const db = createTestDb();
+
+    await activateDevice({ ...CREDENTIALS, outletId: OUTLET, deviceName: "Kasir 2" }, { db, api: api(server()), now: () => new Date("2026-09-26T03:00:05.000Z") });
+
+    expect(await readState(db, "lastSyncAt")).toBe("2026-09-26T03:00:05.000Z");
+  });
+
   it("wipes demo data so nothing from the demo is ever synced", async () => {
     const db = createTestDb();
     await startDemo({ db });
