@@ -189,6 +189,16 @@ Catatan implementasi backend:
 
 ### UX-03 — Layar Bayar
 
+**Status: selesai** (branch `feat/ux-03-checkout`). Catatan implementasi:
+
+- Viewport project Playwright `tablet` (Galaxy Tab S9) adalah **1024×640** CSS px, bukan 1280×800. Layout diukur di ukuran itu, termasuk banner demo.
+- Grup dengan satu metode memakai nama metodenya (mis. "GrabFood Voucher"); grup berisi beberapa metode memakai "Kartu ▸" / "Lainnya ▸" dan menyebut metode yang dipilih ("Kartu · Debit Mandiri").
+- Nama pelanggan dan nomor pesanan ojol pindah ke kolom pesanan (kiri), supaya panel bayar cukup untuk keypad.
+- Dua kolom di panel bayar aktif lewat container query mulai lebar 448 px (`@md`), bukan breakpoint `lg`, sehingga tablet portrait juga mendapatkannya. HP tetap bertumpuk; di sana hanya "Selesaikan" yang dijamin terlihat.
+- "Pisah bayar" tetap di baris ringkasan, tidak dipindah ke grid keypad.
+- Nominal cepat tidak diubah: tetap 4 tombol (uang pas lalu pembulatan ke 5.000/10.000/20.000/50.000/100.000, diisi kelipatan 50.000), karena 2×2 pas di kolom kiri.
+- Cetak otomatis disimpan di `syncState.autoPrintReceipt` (tanpa versi Dexie baru), default mati.
+
 **Masalah**
 
 - Di tablet landscape (target utama), **keypad tunai terpotong** oleh panel ringkasan yang menempel di bawah. Hanya baris "1 2 3" yang terlihat setengah, sehingga kasir harus scroll untuk mengetik nominal yang tidak tersedia di tombol cepat.
@@ -500,7 +510,7 @@ Item P0 dan sebagian besar P1 di dokumen 14 sudah selesai, sehingga sebagian bes
 | 3 | UX-07 Toast | web | Paralel Tahap C/D | 0,5 hari; bisa diselipkan kapan saja |
 | 4 | UX-02 bagian API: migrasi `0032`, payload, `blind_close`, admin ✅ | api, admin | Tahap D | Deploy ke staging sebelum langkah 5 |
 | 5 | UX-02 bagian web: hitung buta per pecahan ✅ | web | Tahap D | Memakai `ManagerApproval` dari langkah 2 |
-| 6 | UX-03 Layar Bayar | web | Tahap D | |
+| 6 | UX-03 Layar Bayar ✅ | web | Tahap D | |
 | 7 | UX-04 bagian API: migrasi `0033`, field open bill | api | Tahap D | Deploy ke staging sebelum langkah 8 |
 | 8 | UX-04 bagian web: layar Meja | web | Tahap D | |
 | 9 | UX-06 Layar Jual | web | Tahap D | |
@@ -520,7 +530,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-07 Toast tidak menutupi konten
 - [x] UX-02 API: migrasi `0032`, `denominations` di payload dan detail shift, `blind_close`, toggle dan rincian di admin
 - [x] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
-- [ ] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
+- [x] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
 - [ ] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
 - [ ] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
 - [ ] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
