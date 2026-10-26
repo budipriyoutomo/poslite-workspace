@@ -238,11 +238,25 @@ Catatan implementasi backend:
 
 ### UX-04 — Layar Meja dengan Status Meja
 
-**Status: API selesai** (branch `feat/ux-04-tables-api`). Catatan implementasi:
+**Status: selesai** (API di branch `feat/ux-04-tables-api`, POS di `feat/ux-04-tables-pos`). Catatan implementasi:
 
-- `guest_count` (1–999) dan `printed_at` ikut di body POST/PUT `/open-bills` dan di respons. Keduanya bagian dari draft bill: device mengirim nilai terakhirnya di setiap simpan, jadi mencetak tagihan berarti menyimpan bill (versi naik).
-- Server menyimpan `printed_at` apa adanya dan tidak mengosongkannya bila item berubah setelah dicetak; aturan itu milik POS.
-- `orders.guest_count` dan rata-rata per tamu di laporan belum dibuat; rencananya ada di **UX-04b** (setelah pilot).
+- **API**: `guest_count` (1–999) dan `printed_at` ikut di body POST/PUT `/open-bills` dan di respons. Keduanya bagian dari draft bill, jadi mencetak tagihan berarti menyimpan bill (versi naik). `orders.guest_count` dan rata-rata per tamu belum dibuat; rencananya ada di **UX-04b** (setelah pilot).
+- **Rute dan menu**: rute `/bills` menjadi `/tables`, dan menu "Bill" menjadi "Meja". Pelayan yang membuka layar terlarang diarahkan ke `/tables`.
+- **Status meja**: dihitung di `bills/domain/table-status.ts`. Ambang **90 menit masih konstanta** (`LATE_AFTER_MINUTES`). Supaya bisa diatur per outlet, perlu kolom pengaturan outlet di API; belum dibuat. Meja yang tagihannya dicetak lalu lewat ambang tetap merah, dengan ikon struk.
+- **Jumlah tamu**: diisi lewat penghitung `− Tamu +` di bar pesanan setelah meja dipilih. Boleh dikosongkan.
+- **Cetak tagihan**: memakai dokumen baru `guest_check` di printer struk ("** TAGIHAN **", tanpa nomor struk dan pembayaran, dengan catatan "Bukan bukti pembayaran"). Baris item dan total dipakai bersama struk.
+  - Total dihitung dengan tarif channel Dine In **tanpa promosi**, karena promosi dipilih saat bayar. Total di kartu meja dihitung dengan cara yang sama.
+  - Status "Tagihan dicetak" hanya diset bila cetak berhasil, dan hilang otomatis bila isi pesanan berubah setelah dicetak.
+- **Pisah bill**: membuka layar bayar dengan "Pisah per item" sudah aktif (`/checkout?split=1`).
+- **Pelayan**: tidak melihat tombol Bayar dan Pisah bill (ADR-031). Cetak tagihan tetap boleh.
+- **Batalkan bill**: berada di bawah garis putus-putus, berwarna merah, dengan teks "Butuh PIN manajer" bila dapur sudah menerima item. Bila belum, cukup konfirmasi.
+- **Komponen dan token baru**: `SegmentedControl` (tab area), token `--info` (biru), dan `useMinuteClock` (dipakai bersama badge sync).
+- **HP**: panel detail tampil di bawah grid. Mode daftar untuk HP dikerjakan di UX-09.
+- **Test**:
+  - e2e `dine-in-offline` dan `bill-void` memakai layar Meja.
+  - Fullstack dua device memeriksa jumlah tamu dan total dari tablet pelayan di layar kasir.
+  - Status "Tagihan dicetak" lintas device belum dicek di fullstack karena test tidak punya printer. Yang menjaganya: e2e API (`test_open_bills`) dan test sync di POS.
+- **Bug UX-01 ikut diperbaiki**: aktivasi kini mencatat `lastSyncAt`. Sebelumnya, device yang langsung offline setelah aktivasi menampilkan badge merah "belum pernah sync" pada penjualan pertamanya.
 
 **Masalah**
 
@@ -556,7 +570,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
 - [x] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
 - [x] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
-- [ ] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
+- [x] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
 - [ ] UX-04b (setelah pilot) Rata-rata per tamu: `orders.guest_count`, `guest_count` di `OrderPlacedPayload`, laporan dan dashboard
 - [ ] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
 - [ ] UX-10 Label laporan & ringkasan kas
