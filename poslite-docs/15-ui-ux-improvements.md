@@ -342,6 +342,13 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 
 ### UX-07 — Toast
 
+**Status: selesai** (branch `feat/ux-07-toast`). Catatan implementasi:
+
+- Semua toast lewat `shared/ui/toast.ts` (sukses 2 detik, error sampai ditutup dengan tombol tutup); ESLint menolak `toast` langsung dari `sonner`.
+- Posisi diatur di `shared/ui/sonner.tsx`: lebar ≥ 768 px di bawah tengah dengan offset 120 px, HP di atas dengan offset 72 px.
+- Toast "Shift dibuka" dihapus. Penyembunyian toast sukses saat dialog terbuka tidak dibuat sebagai aturan umum; yang dibuang hanya toast yang memang menutupi dialog pertama.
+- e2e `dine-in-offline.spec.ts` memeriksa posisi toast di keempat layout (`expectToastClear` di `tests/e2e/layout.ts`).
+
 **Masalah**: `<Toaster position="top-center" offset={72} duration={2500} />` di `app/layout.tsx` menutupi judul dan harga di dialog modifier, teks penjelasan di layar Bill, dan header layar Bayar. Toast "Shift dibuka" bahkan masih tampil saat kasir sudah membuka dialog menu pertama.
 
 <img src="./assets/15-ui-ux/before-toast-overlap.png" width="640" alt="Sekarang: toast menutupi judul dialog">
@@ -498,7 +505,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 
 - [x] UX-01 Badge status sync selalu tampil (dengan urutan kondisi) + banner mode demo + demo dimatikan di produksi
 - [x] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
-- [ ] UX-07 Toast tidak menutupi konten
+- [x] UX-07 Toast tidak menutupi konten
 - [ ] UX-02 API: migrasi `0032`, `denominations` di payload dan `ShiftOut`, `blind_close`, permission `shift.variance.view`
 - [ ] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
 - [ ] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
