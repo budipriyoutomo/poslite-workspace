@@ -152,7 +152,16 @@ Prinsip ini dipakai untuk menilai semua layar di dokumen ini dan layar baru ke d
 
 **Backend** (detail di §1.1)
 
-**Status bagian backend: selesai** (branch `feat/ux-02-blind-close-api`). Bagian web (POS) belum.
+**Status: selesai.** Backend di branch `feat/ux-02-blind-close-api`, POS di `feat/ux-02-blind-close-pos`. Catatan implementasi POS:
+
+- Dalam hitung buta, kasir juga tidak melihat **penjualan tunai** dan **kembalian**, karena dari keduanya ditambah modal dan kas masuk/keluar, kas seharusnya bisa dihitung. Layar Shift kasir menampilkan modal awal, jumlah transaksi, kas masuk, kas keluar, dan refund tunai.
+- Manajer yang login melihat semuanya. Kasir bisa membuka kas seharusnya lewat tombol "Lihat kas seharusnya" dan PIN manajer (`ManagerApproval`).
+- Brand dengan `blind_close` mati tetap memakai satu total (keypad) dengan kas seharusnya dan selisih.
+- Slip cetak tutup shift belum ada di kode, jadi tidak ada yang perlu disembunyikan di sana.
+- Fixture bersama `sync-events.json` belum memuat `denominations` (event `shift.closed` yang sama dipakai test API untuk kasus tanpa pecahan); kontraknya dites di masing-masing sisi.
+- e2e baru: `tests/e2e/shift-close-blind.spec.ts` di keempat layout.
+
+Catatan implementasi backend:
 
 - `poslite-api`, migrasi `0032_blind_close`:
   - `shifts.denominations` JSONB nullable.
@@ -490,7 +499,7 @@ Item P0 dan sebagian besar P1 di dokumen 14 sudah selesai, sehingga sebagian bes
 | 2 | UX-05 Dialog batal bill + ekstrak `ManagerApproval` | web | Paralel Tahap C/D | Backend sudah ada |
 | 3 | UX-07 Toast | web | Paralel Tahap C/D | 0,5 hari; bisa diselipkan kapan saja |
 | 4 | UX-02 bagian API: migrasi `0032`, payload, `blind_close`, admin ✅ | api, admin | Tahap D | Deploy ke staging sebelum langkah 5 |
-| 5 | UX-02 bagian web: hitung buta per pecahan | web | Tahap D | Memakai `ManagerApproval` dari langkah 2 |
+| 5 | UX-02 bagian web: hitung buta per pecahan ✅ | web | Tahap D | Memakai `ManagerApproval` dari langkah 2 |
 | 6 | UX-03 Layar Bayar | web | Tahap D | |
 | 7 | UX-04 bagian API: migrasi `0033`, field open bill | api | Tahap D | Deploy ke staging sebelum langkah 8 |
 | 8 | UX-04 bagian web: layar Meja | web | Tahap D | |
@@ -510,7 +519,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
 - [x] UX-07 Toast tidak menutupi konten
 - [x] UX-02 API: migrasi `0032`, `denominations` di payload dan detail shift, `blind_close`, toggle dan rincian di admin
-- [ ] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
+- [x] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
 - [ ] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
 - [ ] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
 - [ ] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
