@@ -256,7 +256,8 @@ export type SyncStateRow =
   | { key: "lastSyncAt"; value: string }
   | { key: "mediaBaseUrl"; value: string } // from every pull page: follows an S3 vendor switch
   | { key: "recentLogins"; value: string[] } // user ids, most recent first: the lock screen opens on the first
-  | { key: "serviceMode"; value: ServiceMode }; // the mode this device works in (ADR-031 rule 1)
+  | { key: "serviceMode"; value: ServiceMode } // the mode this device works in (ADR-031 rule 1)
+  | { key: "autoPrintReceipt"; value: boolean }; // print the receipt right after each sale (15 · UX-03)
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =

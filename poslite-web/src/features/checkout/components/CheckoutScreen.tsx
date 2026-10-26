@@ -8,6 +8,7 @@ import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { useCart } from "@/features/cart";
+import { printReceipt } from "@/features/printing";
 import { DEFAULT_DISCOUNT_POLICY, getDb, isManager, type OrderRow, readState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 import { useOutletSetting } from "@/shared/hooks";
@@ -15,6 +16,7 @@ import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 
+import { printIfAuto } from "../application/auto-print";
 import { payBill } from "../application/pay-bill";
 import { placeOrder } from "../application/place-order";
 import { sendPaidToKitchen } from "../application/send-to-kitchen";
@@ -25,6 +27,7 @@ import { useQrisClient } from "../application/use-qris-client";
 import { copy } from "../copy";
 import { manualDiscounts, needsApproval } from "../domain/discount-policy";
 import { canSplit, splitLines } from "../domain/split";
+import { AutoPrintToggle } from "./AutoPrintToggle";
 import { DiscountApproval } from "./DiscountApproval";
 import { PromotionPicker } from "./PromotionPicker";
 import { OrderPlacedDialog } from "./OrderPlacedDialog";
@@ -90,6 +93,8 @@ export function CheckoutScreen() {
       setTake(null);
       setDiscountApprovedBy(null);
       setPlaced(order);
+      // The success dialog still shows the change while the receipt prints (UX-03).
+      void printIfAuto(order.id, { db: getDb(), print: printReceipt }).then((r) => r === "failed" && toast.error(copy.printFailed));
       void sendPaidToKitchen({ order, lines: paying, tableLabel: bill?.tableLabel ?? null, cashierName: user.name }).then(
         ({ hasFailed }) => hasFailed && toast.error(copy.kitchenFailed),
       );
@@ -158,7 +163,10 @@ export function CheckoutScreen() {
         </OrderReview>
       </section>
       <section className="self-start rounded-xl border bg-card p-3 pb-0 sm:p-4 sm:pb-0">
-        <h2 className="mb-3 text-lg font-semibold">{copy.checkoutTitle}</h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">{copy.checkoutTitle}</h2>
+          <AutoPrintToggle />
+        </div>
         <PromotionPicker available={promotions} chosenIds={promotionIds} onToggle={togglePromotion} />
         {needsManager && <DiscountApproval approvedBy={discountApprovedBy} onApproved={setDiscountApprovedBy} />}
         {paying.length > 0 && (!needsManager || discountApprovedBy) && !needsRef && (

@@ -33,6 +33,7 @@ export const copy = {
   removePayment: (name: string) => `Hapus pembayaran ${name}`,
   back: "Kembali ke pesanan",
   checkoutTitle: "Pembayaran",
+  autoPrint: "Cetak struk otomatis",
   methods: "Metode bayar",
   methodGroups: { cash: "Tunai", qris: "QRIS", card: "Kartu", other: "Lainnya" },
   chosenInGroup: (group: string, method: string) => `${group} · ${method}`,
