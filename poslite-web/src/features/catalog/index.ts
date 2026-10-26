@@ -1,6 +1,7 @@
 // Public API of the catalog feature.
 export { markAvailability } from "./application/availability";
 export { type Catalog, useCatalog } from "./application/use-catalog";
+export { useMenuView } from "./application/use-menu-view";
 export { AvailabilityDialog } from "./components/AvailabilityDialog";
 export { type LineChoice, LineEditorDialog } from "./components/LineEditorDialog";
 export { ProductGrid, ProductGridSkeleton } from "./components/ProductGrid";

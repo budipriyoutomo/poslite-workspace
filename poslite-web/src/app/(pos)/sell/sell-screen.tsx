@@ -7,9 +7,9 @@ import { toast } from "@/shared/ui/toast";
 import { useSession } from "@/features/auth";
 import { DineInBar } from "@/features/bills";
 import { CartLines, useCart } from "@/features/cart";
-import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog } from "@/features/catalog";
+import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog, useMenuView } from "@/features/catalog";
 import { ChannelPicker, OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
-import type { ProductRow } from "@/shared/db";
+import { isManager, type ProductRow } from "@/shared/db";
 import { useMediaQuery } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
@@ -31,6 +31,7 @@ export function SellScreen() {
   const menu = useCatalog();
   const user = useSession((s) => s.user);
   const isWaiter = user?.role === "waiter";
+  const [menuView, setMenuView] = useMenuView();
   // P1-2: a cashier or manager marks an item sold out with a long press; a waiter may not.
   const [managing, setManaging] = useState<ProductRow | null>(null);
   const chooseAvailability = async (choice: { isAvailable: boolean; untilEndOfDay: boolean }) => {
@@ -107,7 +108,7 @@ export function SellScreen() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <ProductGrid catalog={catalog} quantities={quantities} onSelect={select} {...(user && !isWaiter && { onManage: setManaging })} />
+      <ProductGrid catalog={catalog} quantities={quantities} view={menuView} {...(isManager(user?.role) && { onViewChange: setMenuView })} onSelect={select} {...(user && !isWaiter && { onManage: setManaging })} />
       {managing && (
         <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
       )}

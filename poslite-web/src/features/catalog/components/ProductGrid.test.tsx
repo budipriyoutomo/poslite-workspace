@@ -10,7 +10,7 @@ import { ProductGrid } from "./ProductGrid";
 const product = (id: string, name: string, imageKey: string | null): ProductRow => ({ id, categoryId: "C1", sku: id, name, price: 5_000, imageKey, isAvailable: true, modifierGroupIds: [] });
 
 const catalog = (mediaBaseUrl: string | null): Catalog => ({
-  categories: [],
+  categories: [{ id: "C1", name: "Minuman", sortOrder: 1, printRole: "bar" }],
   products: [product("P1", "Es Teh", "T1/products/P1.jpg"), product("P2", "Kopi", null)],
   groupsById: new Map(),
   categoryNameById: new Map(),
@@ -19,7 +19,7 @@ const catalog = (mediaBaseUrl: string | null): Catalog => ({
 
 describe("ProductGrid", () => {
   it("shows product photos from the server's current media base URL", () => {
-    render(<ProductGrid catalog={catalog("https://is3.cloudhost.id/poslite")} onSelect={vi.fn()} />);
+    render(<ProductGrid catalog={catalog("https://is3.cloudhost.id/poslite")} view="photo" onSelect={vi.fn()} />);
 
     // Photos are decorative (alt=""): the product name is the button's label.
     const photo = (name: string) => screen.getByRole("button", { name: new RegExp(name) }).querySelector("img");
@@ -54,5 +54,41 @@ describe("ProductGrid", () => {
     await userEvent.pointer({ keys: "[MouseRight]", target: screen.getByRole("listitem") });
 
     expect(onManage).toHaveBeenCalledWith(soldOut.products[0]);
+  });
+
+  describe("view (15 · UX-06)", () => {
+    it("shows compact text tiles with the category's colour and no photos", () => {
+      render(<ProductGrid catalog={catalog("https://is3.cloudhost.id/poslite")} view="compact" onSelect={vi.fn()} />);
+      const teh = screen.getByRole("button", { name: /Es Teh/ });
+      expect(teh.querySelector("img")).toBeNull();
+      expect(teh).toHaveAttribute("data-tone", "emerald");
+      expect(teh).toHaveTextContent("Rp 5.000");
+    });
+
+    it("greys out a sold-out item, labelled Habis, in either view", () => {
+      const soldOut = { ...catalog(null), products: [{ ...product("P1", "Es Teh", null), isAvailable: false }] };
+      for (const view of ["compact", "photo"] as const) {
+        const { unmount } = render(<ProductGrid catalog={soldOut} view={view} onSelect={vi.fn()} />);
+        expect(screen.getByRole("button", { name: /Es Teh/ })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /Es Teh/ })).toHaveTextContent("Habis");
+        unmount();
+      }
+    });
+
+    it("shows an item without a photo by its initials, not a broken image", () => {
+      render(<ProductGrid catalog={catalog(null)} view="photo" onSelect={vi.fn()} />);
+      expect(screen.getByRole("button", { name: /Kopi/ })).toHaveTextContent("KO");
+    });
+
+    it("lets a manager switch the view; others never see the switch", async () => {
+      const onViewChange = vi.fn();
+      const { unmount } = render(<ProductGrid catalog={catalog(null)} view="compact" onViewChange={onViewChange} onSelect={vi.fn()} />);
+      await userEvent.click(screen.getByRole("button", { name: "Foto" }));
+      expect(onViewChange).toHaveBeenCalledWith("photo");
+      unmount();
+
+      render(<ProductGrid catalog={catalog(null)} view="compact" onSelect={vi.fn()} />);
+      expect(screen.queryByRole("group", { name: "Tampilan menu" })).not.toBeInTheDocument();
+    });
   });
 });

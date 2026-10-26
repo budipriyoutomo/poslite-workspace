@@ -257,7 +257,10 @@ export type SyncStateRow =
   | { key: "mediaBaseUrl"; value: string } // from every pull page: follows an S3 vendor switch
   | { key: "recentLogins"; value: string[] } // user ids, most recent first: the lock screen opens on the first
   | { key: "serviceMode"; value: ServiceMode } // the mode this device works in (ADR-031 rule 1)
-  | { key: "autoPrintReceipt"; value: boolean }; // print the receipt right after each sale (15 · UX-03)
+  | { key: "autoPrintReceipt"; value: boolean } // print the receipt right after each sale (15 · UX-03)
+  | { key: "menuView"; value: MenuView }; // the sell screen's menu tiles (15 · UX-06)
+
+export type MenuView = "compact" | "photo";
 
 /** How this device talks to the server: an activated device, or the offline demo (no server). */
 export type DeviceState =
