@@ -27,7 +27,7 @@ Dokumen ini khusus perbaikan **UI/UX aplikasi kasir**. Perbaikan fungsional dan 
 |---|---|---|---|---|---|
 | UX-01 | Status sync selalu terlihat + banner mode demo | **Tinggi** | 1–2 hari | Tidak ada | P1-7 |
 | UX-05 | Dialog batal bill dengan alasan + PIN manajer | **Tinggi** | 1–1,5 hari | Tidak ada (sudah di P0-1) | P0-1 ✅ |
-| UX-02 | Tutup shift dengan hitung buta (blind count) per pecahan | **Tinggi** | 2 hari | **Ada**: migrasi `0032`, payload `shift.closed`, izin baru (±1,5 hari) | P1-3 ✅ |
+| UX-02 | Tutup shift dengan hitung buta (blind count) per pecahan | **Tinggi** | 2 hari | **Ada**: migrasi `0032`, payload `shift.closed`, `blind_close` (±1,5 hari) ✅ | P1-3 ✅ |
 | UX-03 | Layar Bayar: keypad selalu terlihat, metode bayar dikelompokkan, cetak otomatis | **Tinggi** | 2 hari | Tidak ada | P1-3 ✅, P0-2 ✅ |
 | UX-04 | Layar Meja dengan status meja | **Tinggi** | 2–3 hari | **Ada**: migrasi `0033`, field open bill (±1 hari) | P0-4 ✅ |
 | UX-06 | Layar Jual: mode ringkas, jenis pesanan di awal, status baris dapur | Menengah | 3 hari | Tidak ada | P0-2 ✅, P1-1 ✅, P1-2 ✅ |
@@ -45,7 +45,7 @@ Tabel di atas sudah diurutkan menurut urutan pengerjaan yang disarankan. Detail 
 
 | Item | Repo | Perubahan | Urutan deploy |
 |---|---|---|---|
-| UX-02 | `poslite-api` | Migrasi `0032_shift_close_denominations`: kolom `shifts.denominations` (JSONB, nullable), kolom `brands.blind_close` (boolean, default `true`), permission `shift.variance.view` untuk owner dan manajer. Field opsional `denominations` di `ShiftClosedPayload`. `denominations` di `ShiftOut`. `blind_close` ikut delta pull brand. | **API dulu.** `ShiftClosedPayload` memakai `extra="forbid"`, jadi POS yang mengirim `denominations` ke API lama akan ditolak dan event-nya menjadi `dead` di outbox. |
+| UX-02 | `poslite-api` | Migrasi `0032_blind_close`: kolom `shifts.denominations` (JSONB, nullable) dan `brands.blind_close` (boolean, default `true`). Field opsional `denominations` di `ShiftClosedPayload` (total ≠ `counted_cash` → `DENOMINATIONS_MISMATCH`). `denominations` di detail shift (`ShiftDetailOut`). `blind_close` ikut `outlet_setting`. ✅ | **API dulu.** `ShiftClosedPayload` memakai `extra="forbid"`, jadi POS yang mengirim `denominations` ke API lama akan ditolak dan event-nya menjadi `dead` di outbox. |
 | UX-02 | `poslite-admin` | Toggle "Hitung buta saat tutup shift" di pengaturan brand; rincian pecahan di detail shift. | Setelah API. |
 | UX-04 | `poslite-api` | Migrasi `0033_open_bill_guests_printed`: kolom `open_bills.guest_count` dan `open_bills.printed_at`, ikut di API open bill. Bila rata-rata per tamu masuk laporan: `orders.guest_count` dan field opsional `guest_count` di `OrderPlacedPayload` (juga `extra="forbid"`). | **API dulu**, alasan sama. |
 | UX-08 | `poslite-print-bridge` | Endpoint baru `GET /discover` (pindai port 9100 di subnet lokal, butuh pairing). Bridge sekarang hanya punya `/health`, `/pair`, `/print`. | Bridge dulu; POS menyembunyikan tombol "Cari printer" bila bridge tidak punya endpoint ini. |
@@ -152,12 +152,15 @@ Prinsip ini dipakai untuk menilai semua layar di dokumen ini dan layar baru ke d
 
 **Backend** (detail di §1.1)
 
-- `poslite-api`, migrasi `0032_shift_close_denominations`:
+**Status bagian backend: selesai** (branch `feat/ux-02-blind-close-api`). Bagian web (POS) belum.
+
+- `poslite-api`, migrasi `0032_blind_close`:
   - `shifts.denominations` JSONB nullable.
   - `brands.blind_close` boolean default `true`, ikut delta pull brand dan bisa diubah di back-office.
-  - Permission baru `shift.variance.view` untuk owner dan manajer. Izin `shift.close` tidak bisa dipakai karena kasir juga memilikinya (seed migrasi `0002`).
+  - **Tidak ada permission baru.** Usulan awal `shift.variance.view` dibatalkan: back-office hanya untuk owner/manajer, dan di POS rincian dibuka dengan PIN manajer lewat `ManagerApproval` (UX-05), yang memeriksa peran secara lokal. Permission itu tidak akan diperiksa di mana pun.
+  - Koin dikirim sebagai `"1": <total koin dalam Rupiah>`, karena form POS meminta total koin, bukan jumlah keping.
 - `ShiftClosedPayload` di `sync/application/events.py`: field opsional `denominations` (key = nominal pecahan, value = jumlah lembar ≥ 0). Validasi: total pecahan sama dengan `counted_cash`.
-- `ShiftOut` / `ShiftDetailOut` di `shift/presentation/router.py`: tambah `denominations`.
+- `ShiftDetailOut` di `shift/presentation/router.py`: tambah `denominations` (daftar shift tidak berubah).
 - `poslite-admin`: toggle `blind_close` dan tampilan rincian pecahan di detail shift.
 - **Urutan deploy**: API dulu, baru POS. Payload memakai `extra="forbid"`.
 - Webhook integrasi `shift.closed` tidak berubah.
@@ -171,7 +174,7 @@ Prinsip ini dipakai untuk menilai semua layar di dokumen ini dan layar baru ke d
 **DoD**
 
 - Test komponen memastikan kasir **tidak** melihat expected/variance di mana pun (layar, dialog, toast "Shift ditutup", slip). Toast sekarang (`copy.closed(variance)`) juga membocorkan selisih, jadi ganti menjadi "Shift ditutup".
-- Test API: push `shift.closed` dengan dan tanpa `denominations` diterima; total pecahan yang tidak sama dengan `counted_cash` ditolak; kasir tanpa `shift.variance.view` tidak bisa membuka rincian di POS.
+- Test API: push `shift.closed` dengan dan tanpa `denominations` diterima; total pecahan yang tidak sama dengan `counted_cash` ditolak (`DENOMINATIONS_MISMATCH`); di POS, rincian hanya terbuka setelah PIN manajer.
 
 ---
 
@@ -486,7 +489,7 @@ Item P0 dan sebagian besar P1 di dokumen 14 sudah selesai, sehingga sebagian bes
 | 1 | UX-01 Status sync + banner demo | web, deploy | Paralel Tahap C/D | Tidak bergantung pada apa pun |
 | 2 | UX-05 Dialog batal bill + ekstrak `ManagerApproval` | web | Paralel Tahap C/D | Backend sudah ada |
 | 3 | UX-07 Toast | web | Paralel Tahap C/D | 0,5 hari; bisa diselipkan kapan saja |
-| 4 | UX-02 bagian API: migrasi `0032`, payload, permission, `blind_close`, admin | api, admin | Tahap D | Deploy ke staging sebelum langkah 5 |
+| 4 | UX-02 bagian API: migrasi `0032`, payload, `blind_close`, admin ✅ | api, admin | Tahap D | Deploy ke staging sebelum langkah 5 |
 | 5 | UX-02 bagian web: hitung buta per pecahan | web | Tahap D | Memakai `ManagerApproval` dari langkah 2 |
 | 6 | UX-03 Layar Bayar | web | Tahap D | |
 | 7 | UX-04 bagian API: migrasi `0033`, field open bill | api | Tahap D | Deploy ke staging sebelum langkah 8 |
@@ -506,7 +509,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-01 Badge status sync selalu tampil (dengan urutan kondisi) + banner mode demo + demo dimatikan di produksi
 - [x] UX-05 Dialog batal bill dengan alasan + PIN; `ManagerApproval` diekstrak
 - [x] UX-07 Toast tidak menutupi konten
-- [ ] UX-02 API: migrasi `0032`, `denominations` di payload dan `ShiftOut`, `blind_close`, permission `shift.variance.view`
+- [x] UX-02 API: migrasi `0032`, `denominations` di payload dan detail shift, `blind_close`, toggle dan rincian di admin
 - [ ] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
 - [ ] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
 - [ ] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
