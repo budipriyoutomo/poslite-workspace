@@ -15,8 +15,11 @@ import { copy } from "../copy";
 import type { Rates } from "../domain/pricing";
 import { DiscountPicker } from "./DiscountPicker";
 
-/** Totals of the active cart; `children` is the call to action (e.g. the Bayar button). */
-export function OrderSummary({ rates, children }: { rates: Rates; children?: ReactNode }) {
+/**
+ * Totals of the active cart; `children` is the call to action (e.g. the Bayar button).
+ * `discountAsLink`: a table's bill keeps the order discount to a small link (15 · UX-06).
+ */
+export function OrderSummary({ rates, discountAsLink = false, children }: { rates: Rates; discountAsLink?: boolean; children?: ReactNode }) {
   const totals = useCartTotals(rates);
   const setDiscount = useCart((s) => s.setDiscount);
   const [isPicking, setIsPicking] = useState(false);
@@ -40,7 +43,7 @@ export function OrderSummary({ rates, children }: { rates: Rates; children?: Rea
         </Button>
       ) : (
         canDiscount && (
-          <Button variant="outline" size="sm" disabled={totals.isEmpty} onClick={() => setIsPicking(true)}>
+          <Button variant={discountAsLink ? "link" : "outline"} size="sm" className={discountAsLink ? "h-auto p-0 text-xs" : undefined} disabled={totals.isEmpty} onClick={() => setIsPicking(true)}>
             <Percent /> {copy.addDiscount}
           </Button>
         )

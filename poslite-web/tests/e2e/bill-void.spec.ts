@@ -64,7 +64,7 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
   await openOrder(page);
   await page.getByRole("button", { name: "Makan di tempat" }).click();
   await page.getByRole("button", { name: /A1/ }).click();
-  await page.getByRole("button", { name: "Simpan bill" }).click();
+  await page.getByRole("button", { name: "Kirim ke dapur (2 baru)" }).click();
   await expectOrderEmpty(page);
 
   // The guest drops one: saving asks for a reason and a manager's PIN

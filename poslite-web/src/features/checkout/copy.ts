@@ -5,7 +5,6 @@ export const copy = {
   itemDiscount: "Diskon item",
   service: (bps: number) => `Service ${bps / 100}%`,
   tax: (bps: number) => `PB1 ${bps / 100}%`,
-  channel: "Channel penjualan",
   notOnChannel: (name: string) => `Ada menu di keranjang yang tidak dijual di ${name}`,
   externalRef: (name: string) => `Nomor order ${name}`,
   customerName: "Nama pelanggan (opsional)",

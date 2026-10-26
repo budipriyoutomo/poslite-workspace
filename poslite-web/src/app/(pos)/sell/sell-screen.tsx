@@ -5,10 +5,10 @@ import { useState } from "react";
 import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
-import { DineInBar } from "@/features/bills";
+import { BillCartActions, OrderTypeBar } from "@/features/bills";
 import { CartLines, LineDiscountField, useCart } from "@/features/cart";
 import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog, useMenuView } from "@/features/catalog";
-import { ChannelPicker, OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
+import { OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
 import { isManager, type ProductRow } from "@/shared/db";
 import { useMediaQuery } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
@@ -84,23 +84,20 @@ export function SellScreen() {
 
   const cartPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
-      {!cart.bill && (
-        <ChannelPicker
-          channels={sale.channels}
-          activeId={sale.channel?.id ?? null}
-          onChoose={(c) => cart.setChannel(c.id, sale.priceById(c)) || toast.error(`Ada menu di keranjang yang tidak dijual di ${c.name}`)}
-        />
-      )}
-      <DineInBar />
+      <OrderTypeBar />
       <CartLines onEdit={editLine} applied={totals.lines.map(appliedLabel)} />
-      <OrderSummary rates={rates}>
-        {/* A waiter saves the bill; the cashier takes the money (ADR-031). */}
-        {!isWaiter && (
+      <OrderSummary rates={rates} discountAsLink={cart.bill !== null}>
+        {/* A table's bill goes to the kitchen first (15 · UX-06); a waiter never takes money (ADR-031). */}
+        {cart.bill ? (
+          <BillCartActions total={totals.total} />
+        ) : (
+          !isWaiter && (
           <Button asChild size="lg" className="h-12 w-full text-base" disabled={totals.isEmpty}>
             <Link href="/checkout" aria-disabled={totals.isEmpty} onClick={(e) => totals.isEmpty && e.preventDefault()}>
               Bayar · {formatRupiah(totals.total)}
             </Link>
           </Button>
+          )
         )}
       </OrderSummary>
     </div>

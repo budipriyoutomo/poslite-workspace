@@ -125,7 +125,7 @@ test("a back-office promotion the cashier chooses at payment applies offline on 
   await expect(page).toHaveURL(/\/sell$/);
 
   await context.setOffline(true);
-  await page.getByRole("button", { name: "Makan di tempat" }).click();
+  await page.getByRole("button", { name: "Dine In" }).click();
   await page.getByRole("button", { name: /A1/ }).click();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /^Kopi Susu E2E/ }).click();
   // No promotion until the cashier chooses it: 54.000; service 2.700; PB1 5.670 → 62.370
@@ -336,7 +336,7 @@ test("a GoFood sale offline is priced on its channel and reaches the server on t
   await expect(page).toHaveURL(/\/sell$/);
 
   await context.setOffline(true);
-  await page.getByRole("group", { name: "Channel penjualan" }).getByRole("button", { name: "GoFood" }).click();
+  await page.getByRole("group", { name: "Jenis pesanan" }).getByRole("button", { name: "GoFood" }).click();
   await page.getByRole("button", { name: /Kopi Susu E2E/ }).click();
   // 18.000 + 20% = 21.600 → up to 22.000; no service on GoFood; PB1 2.200 → 24.200
   await page.getByRole("link", { name: /Bayar · Rp 24\.200/ }).click();
@@ -398,11 +398,11 @@ test("a waiter's bill is paid on the cashier's device without typing it again", 
   const waiter = await device("Dewi", "1357");
   await nav(waiter, "Jual");
   await expect(waiter.getByRole("link", { name: /Bayar/ })).toHaveCount(0); // a waiter never takes money
-  await waiter.getByRole("button", { name: "Makan di tempat" }).click();
+  await waiter.getByRole("button", { name: "Dine In" }).click();
   await waiter.getByRole("button", { name: /A1/ }).click();
   await waiter.getByRole("button", { name: /^Kopi Susu E2E/ }).click();
   for (let i = 0; i < 3; i++) await waiter.getByRole("button", { name: "Tambah tamu" }).click();
-  await waiter.getByRole("button", { name: "Simpan bill" }).click();
+  await waiter.getByRole("button", { name: "Kirim ke dapur (1 baru)" }).click();
 
   const cashier = await device("Rina", "2468");
   await nav(cashier, "Shift");

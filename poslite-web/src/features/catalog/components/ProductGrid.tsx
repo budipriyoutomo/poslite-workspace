@@ -20,7 +20,7 @@ import { categoryTone, initials, type Tone } from "../domain/menu-tile";
 // Columns follow the space the grid gets (rail and cart panel vary by device), not the viewport.
 const gridClass = "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3";
 // Compact (15 · UX-06): text tiles, five across beside the cart on a tablet.
-const compactGridClass = "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2";
+const compactGridClass = "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2";
 
 const STRIP: Record<Tone, string> = {
   emerald: "bg-emerald-500",
@@ -157,7 +157,7 @@ function ProductTile({ product: p, tone, quantity, onSelect }: CardProps) {
       )}
     >
       <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1.5", STRIP[tone])} />
-      <span className="line-clamp-2 text-sm leading-tight font-semibold">{p.name}</span>
+      <span className={cn("line-clamp-2 text-sm leading-tight font-semibold", quantity > 0 && "pr-6")}>{p.name}</span>
       <span className={cn("mt-auto pt-1 text-sm font-bold", p.isAvailable ? "text-primary" : "text-muted-foreground")}>{p.isAvailable ? formatRupiah(p.price) : copy.unavailable}</span>
       {quantity > 0 && <QuantityBadge quantity={quantity} className="top-1 right-1 size-6 text-xs" />}
       {quantity > 0 && <span className="sr-only">{copy.inOrder(quantity)}</span>}

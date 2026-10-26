@@ -9,4 +9,4 @@ export { useBillPricing } from "./application/use-bill-pricing";
 export { CheckoutScreen } from "./components/CheckoutScreen";
 export { OrderSummary } from "./components/OrderSummary";
 export { useSaleChannel } from "./application/use-sale-channel";
-export { ChannelPicker } from "./components/ChannelPicker";
+export { activeOrderType, type OrderType, orderTypes } from "./domain/order-types";

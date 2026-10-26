@@ -45,7 +45,7 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await expect(page.getByText("Meja A1").first()).toBeVisible();
   await page.getByRole("button", { name: "Tambah tamu" }).click();
   await page.getByRole("button", { name: "Tambah tamu" }).click();
-  await page.getByRole("button", { name: "Simpan bill" }).click();
+  await page.getByRole("button", { name: "Kirim ke dapur (2 baru)" }).click();
   await expectToastClear(page, "Bill meja A1 disimpan");
   await expectOrderEmpty(page);
 
@@ -72,7 +72,10 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await expect(page).toHaveURL(/\/sell$/);
   await addPlain(page, /^Es Teh Manis/);
   await openOrder(page);
-  await page.getByRole("button", { name: "Simpan bill" }).click();
+  // 15 · UX-06: the bill's lines say what the kitchen has and what is new.
+  await expect(page.getByText("Di dapur 2")).toBeVisible();
+  await expect(page.getByText("Baru 1")).toBeVisible();
+  await page.getByRole("button", { name: "Kirim ke dapur (1 baru)" }).click();
   await expectOrderEmpty(page);
 
   // Guest 1 pays one Nasi Gudeg ("Pisah bill"); the rest stays open
