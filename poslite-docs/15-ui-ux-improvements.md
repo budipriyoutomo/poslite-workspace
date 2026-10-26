@@ -361,6 +361,34 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 
 ### UX-06 — Layar Jual
 
+**Status: selesai** (branch `feat/ux-06-sell`). Catatan implementasi:
+
+- **Tampilan Ringkas / Foto**:
+  - Pilihan disimpan per device (`syncState.menuView`, default Ringkas). Hanya owner/manajer yang melihat tombolnya.
+  - Tile ringkas memakai strip warna kategori (8 warna mengikuti urutan kategori, karena kategori belum punya warna di master data) dan muat 5 kolom di samping keranjang pada tablet 1024 px.
+  - Di mode Foto, menu tanpa foto memakai blok warna kategori dan inisial nama.
+- **Menu habis**: tile abu-abu berlabel "Habis" di kedua mode. Tekan lama untuk menandai habis atau tersedia (sudah ada sejak P1-2).
+- **Pencarian kode menu (`sku`)**: sudah berjalan sebelum UX-06.
+- **Status baris**:
+  - Tag "Di dapur n" dan "Baru n" hanya muncul pada keranjang bill meja, karena penjualan biasa tidak ke dapur sebelum dibayar.
+  - Mengurangi item yang sudah di dapur tetap meminta alasan dan PIN saat bill disimpan (dialog UX-05), **bukan** saat tombol − ditekan. Ini disengaja: kasir bisa salah tekan lalu mengembalikan jumlahnya tanpa dialog.
+- **Diskon per item**: pindah ke dialog edit baris (ikon pensil). Baris di keranjang tetap menampilkan diskon yang berlaku.
+- **Jenis pesanan**:
+  - Satu `SegmentedControl` di atas keranjang, diambil dari master channel (urut `sortOrder`). Device tanpa channel (demo) memakai "Makan di tempat / Bawa pulang".
+  - Lebih dari 4 jenis → 3 tampil, sisanya di balik "Lainnya ▸". Jenis yang aktif selalu terlihat.
+  - Memilih Dine In membuka pemilih meja. Bill yang sudah disimpan mengunci pilihan ini.
+  - `ChannelPicker` lama dihapus.
+- **Aksi dine-in**:
+  - "Kirim ke dapur (n baru)" (atau "Simpan bill" bila tidak ada item baru) dan "Bayar" ada dalam satu baris.
+  - Diskon order dan "Batalkan bill" menjadi tautan kecil. Pelayan tidak melihat Bayar.
+- **Belum**:
+  - Field nama pelanggan / nomor antrian tetap di layar Bayar (dipindah ke sana di UX-03), belum di atas keranjang.
+  - Di tablet 1024×640, keranjang bill hanya menampilkan ±1–2 baris sebelum perlu scroll, karena jenis pesanan, meja/tamu, ringkasan, dan aksi memakan tinggi layar. Perlu dicek dengan kasir pilot.
+- **Test**:
+  - e2e baru `menu-view.spec.ts`: manajer mengganti ke Foto, lalu kasir berjualan di mode itu.
+  - e2e lain berjalan di mode Ringkas, termasuk tag "Di dapur / Baru" di `dine-in-offline`.
+  - Fullstack memakai "Dine In" dan "Jenis pesanan".
+
 **Masalah**
 
 - Grid menu hanya **3 kolom × 2 baris (6 menu per layar)** di tablet landscape karena foto sangat besar. Restoran umumnya punya 50–200 menu, sehingga kasir harus banyak scroll.
@@ -572,7 +600,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
 - [x] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
 - [ ] UX-04b (setelah pilot) Rata-rata per tamu: `orders.guest_count`, `guest_count` di `OrderPlacedPayload`, laporan dan dashboard
-- [ ] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
+- [x] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
 - [ ] UX-10 Label laporan & ringkasan kas
 - [ ] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
 - [ ] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
