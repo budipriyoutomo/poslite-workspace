@@ -44,6 +44,8 @@ const access = {
 
 type Day = { day_ended: boolean; current: typeof SNAPSHOT; closing: typeof CLOSING | null; changed_since_close: boolean };
 
+let detail: Record<string, number> | null = null;
+
 function server(day: Day) {
   let state = day;
   return renderWithApi(<DayClosingScreen />, ({ method, path, body }) => {
@@ -57,12 +59,14 @@ function server(day: Day) {
     }
     if (path.startsWith("/api/v1/day-closings?")) return envelope([]);
     if (path.startsWith("/api/v1/shifts?")) return envelope([SHIFT]);
+    if (path === "/api/v1/shifts/S1") return envelope({ ...SHIFT, cash_movements: [], denominations: detail });
     return undefined;
   });
 }
 
 beforeEach(() => {
   localStorage.clear();
+  detail = null;
   // 26 Sep 10:00 WIB: business date 26 Sep, so the default day to close is the 25th.
   vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date("2026-09-26T03:00:00Z") });
 });
@@ -77,6 +81,25 @@ describe("DayClosingScreen", () => {
     expect(screen.getByRole("status", { name: "Selisih kas" })).toHaveTextContent("-Rp 2.765");
     const shifts = await screen.findByRole("table", { name: "Shift" });
     expect(within(shifts).getByRole("row", { name: /Kasir 1.*Siti.*Rp 250\.000.*-Rp 2\.765/ })).toBeInTheDocument();
+  });
+
+  it("shows a blind-close count per denomination for a closed shift (15 · UX-02)", async () => {
+    detail = { "100000": 2, "50000": 1, "1": 0 };
+    server({ day_ended: true, current: SNAPSHOT, closing: null, changed_since_close: false });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Rincian shift Kasir 1" }));
+
+    const count = await screen.findByRole("table", { name: "Hitungan per pecahan" });
+    expect(within(count).getByRole("row", { name: /Rp 100\.000.*2.*Rp 200\.000/ })).toBeInTheDocument();
+    expect(within(count).getByRole("row", { name: /Rp 50\.000.*1.*Rp 50\.000/ })).toBeInTheDocument();
+  });
+
+  it("says when a shift was closed without a count per denomination", async () => {
+    server({ day_ended: true, current: SNAPSHOT, closing: null, changed_since_close: false });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Rincian shift Kasir 1" }));
+
+    expect(await screen.findByText(/tanpa hitungan per pecahan/)).toBeInTheDocument();
   });
 
   it("shows bill items cancelled after the kitchen had them, apart from sales (ADR-028)", async () => {

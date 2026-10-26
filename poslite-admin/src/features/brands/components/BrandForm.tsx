@@ -26,6 +26,7 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
   const [footer, setFooter] = useState(brand?.receipt_footer ?? "");
   const [isActive, setIsActive] = useState(brand?.is_active ?? true);
   const [includesTax, setIncludesTax] = useState(brand?.price_includes_tax ?? false);
+  const [blindClose, setBlindClose] = useState(brand?.blind_close ?? true);
   const [policy, setPolicy] = useState(toDraft(brand?.discount ?? DEFAULT_POLICY));
   const discount = fromDraft(policy);
   const canSave = /^[A-Z0-9]{2,20}$/.test(code) && name.trim() !== "" && discount !== null;
@@ -33,7 +34,7 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canSave || !discount) return;
-    const body = { code, name: name.trim(), logo_key: logo?.key ?? null, receipt_header: header, receipt_footer: footer, is_active: isActive, discount, price_includes_tax: includesTax };
+    const body = { code, name: name.trim(), logo_key: logo?.key ?? null, receipt_header: header, receipt_footer: footer, is_active: isActive, discount, price_includes_tax: includesTax, blind_close: blindClose };
     save.mutate(
       { id: brand?.id, body },
       {
@@ -71,6 +72,17 @@ export function BrandForm({ brand, onDone }: { brand?: Brand; onDone: () => void
         {includesTax !== (brand?.price_includes_tax ?? false) && (
           <p className="text-xs text-warning">Berlaku hanya untuk transaksi baru setelah perangkat sinkron; transaksi lama tetap dengan cara hitungnya.</p>
         )}
+      </div>
+      <div className="space-y-1">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox aria-label="Kasir menutup shift tanpa melihat kas seharusnya" checked={blindClose} onCheckedChange={(on) => setBlindClose(on === true)} /> Kasir menutup shift
+          tanpa melihat kas seharusnya
+        </label>
+        <p className={blindClose ? "text-xs text-muted-foreground" : "text-xs text-warning"}>
+          {blindClose
+            ? "Kasir hanya menghitung uang per pecahan. Kas seharusnya dan selisih hanya terlihat oleh manajer."
+            : "Saat menutup shift, kasir melihat kas seharusnya dan selisihnya. Kasir bisa menyesuaikan hitungan agar selisih nol."}
+        </p>
       </div>
       {brand && (
         <label className="flex items-center gap-2 text-sm">

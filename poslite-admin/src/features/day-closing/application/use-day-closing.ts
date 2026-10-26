@@ -44,3 +44,12 @@ export function useShifts(outletId: string | undefined, businessDate: string) {
     queryFn: () => unwrap(api.GET("/api/v1/shifts", { params: { query: { outlet_id: outletId!, business_date: businessDate } } })),
   });
 }
+
+/** One shift with its cash movements and blind-close count; fetched when its details open. */
+export function useShiftDetail(shiftId: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["shift", shiftId],
+    queryFn: () => unwrap(api.GET("/api/v1/shifts/{shift_id}", { params: { path: { shift_id: shiftId } } })),
+  });
+}

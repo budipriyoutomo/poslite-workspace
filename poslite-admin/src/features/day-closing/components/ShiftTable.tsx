@@ -6,6 +6,7 @@ import { cn } from "@/shared/ui/utils";
 
 import { useShifts } from "../application/use-day-closing";
 import { dateTime } from "../domain/dates";
+import { ShiftDetailDialog } from "./ShiftDetailDialog";
 
 const time = (iso: string, timeZone: string) => dateTime(iso, timeZone).split(", ").at(-1);
 
@@ -32,6 +33,9 @@ export function ShiftTable({ outletId, businessDate, timezone }: { outletId: str
                 <TableHead className="text-right">Seharusnya</TableHead>
                 <TableHead className="text-right">Terhitung</TableHead>
                 <TableHead className="text-right">Selisih</TableHead>
+                <TableHead>
+                  <span className="sr-only">Rincian</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -46,6 +50,9 @@ export function ShiftTable({ outletId, businessDate, timezone }: { outletId: str
                   <TableCell className="text-right tabular-nums">{s.expected_cash === null ? "—" : formatRupiah(s.expected_cash)}</TableCell>
                   <TableCell className="text-right tabular-nums">{s.counted_cash === null ? "—" : formatRupiah(s.counted_cash)}</TableCell>
                   <TableCell className={cn("text-right tabular-nums", (s.variance ?? 0) < 0 && "text-destructive")}>{s.variance === null ? "—" : formatRupiah(s.variance)}</TableCell>
+                  <TableCell className="text-right">
+                    {s.status === "closed" && <ShiftDetailDialog shiftId={s.id} deviceName={s.device_name} cashierName={s.closed_by_name ?? s.opened_by_name} />}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

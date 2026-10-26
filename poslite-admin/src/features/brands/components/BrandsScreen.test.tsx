@@ -6,7 +6,7 @@ import { envelope, renderWithApi } from "../../../../tests/support/render";
 import { BrandsScreen } from "./BrandsScreen";
 
 const POLICY = { percentages: [5, 10, 15, 20], amounts: [5000, 10000, 25000, 50000], allow_custom: true, cashier_max_percentage: 20, cashier_max_amount: 50000 };
-const MAHARASA = { id: "01K5ZB00000000000000000001", code: "MAHARASA", name: "Warung Maharasa", logo_key: null, logo_url: null, receipt_header: "", receipt_footer: "", is_active: true, discount: POLICY, price_includes_tax: false };
+const MAHARASA = { id: "01K5ZB00000000000000000001", code: "MAHARASA", name: "Warung Maharasa", logo_key: null, logo_url: null, receipt_header: "", receipt_footer: "", is_active: true, discount: POLICY, price_includes_tax: false, blind_close: true };
 
 function server(reply: (method: string, path: string, body: unknown) => { status?: number; body: unknown } | undefined = () => undefined) {
   return renderWithApi(<BrandsScreen />, ({ method, path, body }) => reply(method, path, body) ?? (path === "/api/v1/brands" && method === "GET" ? envelope([MAHARASA]) : undefined));
@@ -39,6 +39,7 @@ describe("BrandsScreen (ADR-022)", () => {
         is_active: true,
         discount: POLICY,
         price_includes_tax: false,
+        blind_close: true,
       }),
     );
   });
@@ -72,6 +73,20 @@ describe("BrandsScreen (ADR-022)", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Simpan" }));
 
     await waitFor(() => expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ price_includes_tax: true }));
+  });
+
+  it("lets the owner turn off the blind shift close, explaining what cashiers then see (15 · UX-02)", async () => {
+    const { calls } = server((method) => (method === "PUT" ? envelope(MAHARASA) : undefined));
+    await userEvent.click(await screen.findByRole("button", { name: "Ubah Warung Maharasa" }));
+    const dialog = await screen.findByRole("dialog");
+
+    const blind = within(dialog).getByRole("checkbox", { name: "Kasir menutup shift tanpa melihat kas seharusnya" });
+    expect(blind).toBeChecked();
+    await userEvent.click(blind);
+    expect(within(dialog).getByText(/kasir melihat kas seharusnya dan selisihnya/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Simpan" }));
+
+    await waitFor(() => expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ blind_close: false }));
   });
 
   it("explains why a brand with outlets cannot be deleted", async () => {
