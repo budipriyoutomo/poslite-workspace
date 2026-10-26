@@ -15,7 +15,7 @@ export function GuestCount({ value, onChange }: { value: number | null; onChange
       <Button variant="ghost" size="icon-sm" aria-label={copy.fewerGuests} disabled={value === null || value <= 1} onClick={() => onChange((value ?? 1) - 1)}>
         <Minus />
       </Button>
-      <span className="flex min-w-16 items-center justify-center gap-1 px-1 text-sm tabular-nums">
+      <span className="flex min-w-16 items-center justify-center gap-1 px-1 text-sm whitespace-nowrap tabular-nums">
         <Users aria-hidden className="size-3.5 text-muted-foreground" />
         {value === null ? copy.noGuests : copy.guests(value)}
       </span>
