@@ -26,10 +26,17 @@ describe("CartLines", () => {
     expect(within(line).getByText("Rp 70.000")).toBeInTheDocument();
   });
 
-  it("marks how many units of a bill line the kitchen already has (ADR-028)", () => {
+  it("tags a bill line with what the kitchen already has and what is new (ADR-028, 15 · UX-06)", () => {
     useCart.getState().loadBill({ id: "B1", tableId: null, tableLabel: "A1", openedBy: "U1", openedAt: "2026-09-25T02:00:00.000Z" }, [{ ...gudeg, key: "g", quantity: 3, sentQuantity: 2 }], null);
     render(<CartLines onEdit={() => undefined} />);
-    expect(screen.getByRole("listitem")).toHaveTextContent("2 sudah ke dapur");
+    expect(screen.getByText("Di dapur 2")).toBeInTheDocument();
+    expect(screen.getByText("Baru 1")).toBeInTheDocument();
+  });
+
+  it("tags nothing on a sale without a bill: nothing goes to the kitchen before payment", () => {
+    useCart.getState().add(gudeg);
+    render(<CartLines onEdit={() => undefined} />);
+    expect(screen.queryByText(/^Baru/)).not.toBeInTheDocument();
   });
 
   it("changes the quantity and removes the line at zero", async () => {
@@ -50,15 +57,9 @@ describe("CartLines", () => {
     expect(within(screen.getByRole("listitem")).getByText("-Rp 7.000")).toBeInTheDocument();
   });
 
-  it("gives one line a manual discount and removes it", async () => {
+  it("keeps the line discount out of the list: it lives in the line's edit dialog (15 · UX-06)", () => {
     useCart.getState().add(gudeg);
     render(<CartLines onEdit={() => undefined} />);
-
-    await userEvent.click(screen.getByRole("button", { name: "Diskon item Nasi Gudeg" }));
-    await userEvent.click(await screen.findByRole("button", { name: "10%" }));
-    expect(useCart.getState().lines[0]!.discount).toEqual({ type: "percentage", value: 10 });
-
-    await userEvent.click(screen.getByRole("button", { name: "Hapus diskon Nasi Gudeg" }));
-    expect(useCart.getState().lines[0]!.discount).toBeNull();
+    expect(screen.queryByRole("button", { name: /Diskon item/ })).not.toBeInTheDocument();
   });
 });

@@ -72,7 +72,7 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
   await page.getByRole("button", { name: /^Meja A1/ }).click();
   await page.getByRole("button", { name: "Tambah pesanan" }).click();
   await openOrder(page);
-  await expect(page.getByText("2 sudah ke dapur")).toBeVisible();
+  await expect(page.getByText("Di dapur 2")).toBeVisible();
   await page.getByRole("button", { name: "Kurangi jumlah Nasi Gudeg" }).click();
   await page.getByRole("button", { name: "Simpan bill" }).click();
   await expect(page.getByRole("dialog", { name: "Batalkan 1× Nasi Gudeg" })).toContainText("1x Nasi Gudeg");

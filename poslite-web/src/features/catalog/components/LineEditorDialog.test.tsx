@@ -55,4 +55,13 @@ describe("LineEditorDialog", () => {
     expect(screen.getByLabelText("Catatan")).toHaveValue("tanpa es");
     expect(screen.getByRole("button", { name: /Simpan/ })).toBeEnabled();
   });
+
+  it("shows what the caller adds for a line being edited, e.g. its discount (15 · UX-06)", () => {
+    render(
+      <LineEditorDialog open product={esTeh} groups={groups} initial={{ optionIds: ["less"], note: "" }} onConfirm={vi.fn()} onOpenChange={vi.fn()}>
+        <button type="button">Diskon item Es Teh Manis</button>
+      </LineEditorDialog>,
+    );
+    expect(screen.getByRole("button", { name: "Diskon item Es Teh Manis" })).toBeInTheDocument();
+  });
 });

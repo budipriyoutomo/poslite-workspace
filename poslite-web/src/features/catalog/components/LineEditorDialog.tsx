@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import type { ModifierGroupRow, ProductRow } from "@/shared/db";
 import { formatRupiah } from "@/shared/money";
@@ -27,6 +27,8 @@ interface Props {
   initial?: { optionIds: string[]; note: string };
   onConfirm: (choice: LineChoice) => void;
   onOpenChange: (open: boolean) => void;
+  /** More about the line, shown above the confirm button (e.g. its discount, 15 · UX-06). */
+  children?: ReactNode;
 }
 
 export function LineEditorDialog({ open, onOpenChange, ...props }: Props) {
@@ -37,7 +39,7 @@ export function LineEditorDialog({ open, onOpenChange, ...props }: Props) {
   );
 }
 
-function EditorBody({ product, groups, initial, onConfirm }: Omit<Props, "open" | "onOpenChange">) {
+function EditorBody({ product, groups, initial, onConfirm, children }: Omit<Props, "open" | "onOpenChange">) {
   const [selected, setSelected] = useState<string[]>(initial?.optionIds ?? []);
   const [note, setNote] = useState(initial?.note ?? "");
   const isValid = validateSelection(groups, selected).length === 0;
@@ -77,6 +79,7 @@ function EditorBody({ product, groups, initial, onConfirm }: Omit<Props, "open" 
         <Label htmlFor="line-note">{copy.note}</Label>
         <Textarea id="line-note" value={note} maxLength={200} placeholder={copy.notePlaceholder} onChange={(e) => setNote(e.target.value)} />
       </div>
+      {children}
       <DialogFooter>
         <Button className="h-11 w-full" disabled={!isValid} onClick={() => onConfirm({ modifiers: choices, note: note.trim() })}>
           {initial ? copy.save : copy.add} · {formatRupiah(unitPrice)}

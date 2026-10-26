@@ -6,7 +6,7 @@ import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
 import { DineInBar } from "@/features/bills";
-import { CartLines, useCart } from "@/features/cart";
+import { CartLines, LineDiscountField, useCart } from "@/features/cart";
 import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog, useMenuView } from "@/features/catalog";
 import { ChannelPicker, OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
 import { isManager, type ProductRow } from "@/shared/db";
@@ -137,7 +137,9 @@ export function SellScreen() {
           initial={editingLine && { optionIds: editingLine.modifiers.map((m) => m.optionId), note: editingLine.note }}
           onConfirm={confirm}
           onOpenChange={(open) => !open && setEditing(null)}
-        />
+        >
+          {editing.lineKey && <LineDiscountField lineKey={editing.lineKey} />}
+        </LineEditorDialog>
       )}
     </div>
   );

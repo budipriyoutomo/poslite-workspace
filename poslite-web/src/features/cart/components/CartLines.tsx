@@ -1,18 +1,13 @@
 "use client";
 
-import { Minus, Pencil, Percent, Plus, ShoppingCart, X } from "lucide-react";
-import { useState } from "react";
+import { Minus, Pencil, Plus, ShoppingCart } from "lucide-react";
 
-import { DEFAULT_DISCOUNT_POLICY } from "@/shared/db";
-import { useOutletSetting } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
 import { Button } from "@/shared/ui/button";
-import { hasDiscountChoices } from "@/shared/ui/discount-chooser";
 
 import { useCart } from "../application/cart-store";
 import { copy } from "../copy";
 import { cartLines } from "../domain/cart";
-import { LineDiscountDialog } from "./LineDiscountDialog";
 
 /** `applied[i]`: the discount on line i (promotion name or "Diskon …"), priced by checkout. */
 export interface AppliedLineDiscount {
@@ -23,10 +18,8 @@ export interface AppliedLineDiscount {
 export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; applied?: (AppliedLineDiscount | null)[] }) {
   const lines = useCart((s) => s.lines);
   const changeQuantity = useCart((s) => s.changeQuantity);
-  const setLineDiscount = useCart((s) => s.setLineDiscount);
-  const [discounting, setDiscounting] = useState<string | null>(null);
-  const discountingLine = lines.find((l) => l.key === discounting);
-  const canDiscount = hasDiscountChoices(useOutletSetting()?.discountPolicy ?? DEFAULT_DISCOUNT_POLICY);
+  // Only a table's bill goes to the kitchen before payment: its lines say how much already went.
+  const isBill = useCart((s) => s.bill !== null);
 
   if (lines.length === 0) {
     return (
@@ -54,24 +47,13 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
               </p>
             ))}
             {line.note && <p className="text-xs text-warning italic">“{line.note}”</p>}
-            {(line.sentQuantity ?? 0) > 0 && <p className="text-xs text-muted-foreground">{copy.sent(line.sentQuantity!)}</p>}
+            {isBill && <KitchenTags quantity={line.quantity} sent={line.sentQuantity ?? 0} />}
             <p className="mt-1 text-sm font-medium">{formatRupiah((priced[i]!.unitPrice + priced[i]!.modifiersTotal) * line.quantity)}</p>
             {applied?.[i] && applied[i]!.amount > 0 && (
               <p className="flex justify-between text-xs text-success">
                 <span>{applied[i]!.label}</span>
                 <span className="tabular-nums">{formatRupiah(-applied[i]!.amount)}</span>
               </p>
-            )}
-            {line.discount ? (
-              <Button variant="link" size="sm" className="h-auto p-0 text-xs text-destructive" aria-label={copy.removeLineDiscount(line.name)} onClick={() => setLineDiscount(line.key, null)}>
-                <X className="size-3" /> Hapus diskon
-              </Button>
-            ) : (
-              canDiscount && (
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs" aria-label={copy.lineDiscount(line.name)} onClick={() => setDiscounting(line.key)}>
-                  <Percent className="size-3" /> Diskon item
-                </Button>
-              )
             )}
           </div>
           <div className="flex items-center gap-1 self-center">
@@ -87,13 +69,18 @@ export function CartLines({ onEdit, applied }: { onEdit: (key: string) => void; 
           </div>
         </li>
       ))}
-      {discountingLine && (
-        <LineDiscountDialog
-          name={discountingLine.name}
-          onChoose={(discount) => (setLineDiscount(discountingLine.key, discount), setDiscounting(null))}
-          onClose={() => setDiscounting(null)}
-        />
-      )}
     </ul>
+  );
+}
+
+/** "Di dapur 2" (yellow) and "Baru 1" (blue): what the kitchen has and what goes with the next send (15 · UX-06). */
+function KitchenTags({ quantity, sent }: { quantity: number; sent: number }) {
+  const inKitchen = Math.min(sent, quantity);
+  const fresh = quantity - inKitchen;
+  return (
+    <p className="mt-1 flex flex-wrap gap-1 text-xs font-medium">
+      {inKitchen > 0 && <span className="rounded-full bg-warning/10 px-2 py-0.5 text-warning">{copy.inKitchen(inKitchen)}</span>}
+      {fresh > 0 && <span className="rounded-full bg-info/10 px-2 py-0.5 text-info">{copy.fresh(fresh)}</span>}
+    </p>
   );
 }
