@@ -18,12 +18,14 @@ Json = dict[str, Any]  # the device's JSON, stored as sent
 
 @dataclass(frozen=True, slots=True)
 class BillDraft:
-    """What a device saves: the table and the cart."""
+    """What a device saves: the table, the cart, the guests and when the bill was printed."""
 
     table_id: str | None
     table_label: str
     lines: list[Json]
     discount: Json | None
+    guest_count: int | None = None
+    printed_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +35,8 @@ class OpenBill:
     table_label: str
     lines: list[Json]
     discount: Json | None
+    guest_count: int | None
+    printed_at: datetime | None
     opened_by: str
     opened_at: datetime
     version: int
@@ -53,6 +57,8 @@ def _bill(m: OpenBillModel) -> OpenBill:
         table_label=m.table_label,
         lines=m.lines,
         discount=m.discount,
+        guest_count=m.guest_count,
+        printed_at=m.printed_at,
         opened_by=m.opened_by,
         opened_at=m.opened_at,
         version=m.version,
@@ -123,6 +129,8 @@ async def open_bill(
         table_label=draft.table_label,
         lines=draft.lines,
         discount=draft.discount,
+        guest_count=draft.guest_count,
+        printed_at=draft.printed_at,
         opened_by=opened_by,
         opened_at=opened_at,
         version=1,
@@ -219,6 +227,8 @@ async def save_bill(
                     table_label=draft.table_label,
                     lines=draft.lines,
                     discount=draft.discount,
+                    guest_count=draft.guest_count,
+                    printed_at=draft.printed_at,
                     version=OpenBillModel.version + 1,
                     lease_device_id=lease and lease.device_id,
                     lease_user_id=lease and lease.user_id,

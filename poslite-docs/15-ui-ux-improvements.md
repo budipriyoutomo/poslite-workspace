@@ -47,7 +47,7 @@ Tabel di atas sudah diurutkan menurut urutan pengerjaan yang disarankan. Detail 
 |---|---|---|---|
 | UX-02 | `poslite-api` | Migrasi `0032_blind_close`: kolom `shifts.denominations` (JSONB, nullable) dan `brands.blind_close` (boolean, default `true`). Field opsional `denominations` di `ShiftClosedPayload` (total ≠ `counted_cash` → `DENOMINATIONS_MISMATCH`). `denominations` di detail shift (`ShiftDetailOut`). `blind_close` ikut `outlet_setting`. ✅ | **API dulu.** `ShiftClosedPayload` memakai `extra="forbid"`, jadi POS yang mengirim `denominations` ke API lama akan ditolak dan event-nya menjadi `dead` di outbox. |
 | UX-02 | `poslite-admin` | Toggle "Hitung buta saat tutup shift" di pengaturan brand; rincian pecahan di detail shift. | Setelah API. |
-| UX-04 | `poslite-api` | Migrasi `0033_open_bill_guests_printed`: kolom `open_bills.guest_count` dan `open_bills.printed_at`, ikut di API open bill. Bila rata-rata per tamu masuk laporan: `orders.guest_count` dan field opsional `guest_count` di `OrderPlacedPayload` (juga `extra="forbid"`). | **API dulu**, alasan sama. |
+| UX-04 | `poslite-api` | Migrasi `0033_open_bill_guests_printed`: kolom `open_bills.guest_count` dan `open_bills.printed_at`, ikut di API open bill. ✅ Bila rata-rata per tamu masuk laporan: `orders.guest_count` dan field opsional `guest_count` di `OrderPlacedPayload` (juga `extra="forbid"`), ditunda setelah pilot. | **API dulu**: body open bill tidak `extra="forbid"`, jadi API lama tidak menolak, tetapi diam-diam membuang jumlah tamu dan waktu cetak. |
 | UX-08 | `poslite-print-bridge` | Endpoint baru `GET /discover` (pindai port 9100 di subnet lokal, butuh pairing). Bridge sekarang hanya punya `/health`, `/pair`, `/print`. | Bridge dulu; POS menyembunyikan tombol "Cari printer" bila bridge tidak punya endpoint ini. |
 
 Yang **sudah ada** di backend dan tidak perlu diubah:
@@ -237,6 +237,12 @@ Catatan implementasi backend:
 ---
 
 ### UX-04 — Layar Meja dengan Status Meja
+
+**Status: API selesai** (branch `feat/ux-04-tables-api`). Catatan implementasi:
+
+- `guest_count` (1–999) dan `printed_at` ikut di body POST/PUT `/open-bills` dan di respons. Keduanya bagian dari draft bill: device mengirim nilai terakhirnya di setiap simpan, jadi mencetak tagihan berarti menyimpan bill (versi naik).
+- Server menyimpan `printed_at` apa adanya dan tidak mengosongkannya bila item berubah setelah dicetak; aturan itu milik POS.
+- `orders.guest_count` belum dibuat (ditunda setelah pilot).
 
 **Masalah**
 
@@ -531,14 +537,14 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-02 API: migrasi `0032`, `denominations` di payload dan detail shift, `blind_close`, toggle dan rincian di admin
 - [x] UX-02 Web: hitung buta per pecahan; kasir tidak pernah melihat expected/selisih
 - [x] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
-- [ ] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
+- [x] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
 - [ ] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
 - [ ] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
 - [ ] UX-10 Label laporan & ringkasan kas
 - [ ] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
 - [ ] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
 - [ ] UX-09 Mode daftar HP pelayan
-- [ ] Nomor migrasi `0032` dan `0033` dicatat di 14 §3.1
+- [x] Nomor migrasi `0032` dan `0033` dicatat di 14 §3.1
 - [ ] Semua e2e hijau di `chromium`, `tablet`, `tablet-portrait`, `phone`; `make api-check` hijau
 - [ ] Uji langsung dengan 2 kasir restoran pilot (lihat 14 §7.3) sebelum Go/No-Go
 

@@ -4022,6 +4022,19 @@
             ],
             "title": "Discount"
           },
+          "guest_count": {
+            "anyOf": [
+              {
+                "maximum": 999.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Count"
+          },
           "id": {
             "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
             "title": "Id",
@@ -4048,6 +4061,18 @@
             "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
             "title": "Opened By",
             "type": "string"
+          },
+          "printed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed At"
           },
           "release_lease": {
             "default": false,
@@ -4227,6 +4252,17 @@
             ],
             "title": "Discount"
           },
+          "guest_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Count"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -4261,6 +4297,18 @@
             "title": "Opened By",
             "type": "string"
           },
+          "printed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed At"
+          },
           "table_id": {
             "anyOf": [
               {
@@ -4292,6 +4340,8 @@
           "table_label",
           "lines",
           "discount",
+          "guest_count",
+          "printed_at",
           "opened_by",
           "opened_at",
           "version",
@@ -6539,6 +6589,19 @@
             ],
             "title": "Discount"
           },
+          "guest_count": {
+            "anyOf": [
+              {
+                "maximum": 999.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Count"
+          },
           "lines": {
             "items": {
               "additionalProperties": {
@@ -6550,6 +6613,18 @@
             "minItems": 1,
             "title": "Lines",
             "type": "array"
+          },
+          "printed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed At"
           },
           "release_lease": {
             "default": false,

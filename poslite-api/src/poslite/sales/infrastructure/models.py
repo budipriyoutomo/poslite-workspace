@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import CHAR, BigInteger, Boolean, Date, DateTime, Integer, String
+from sqlalchemy import CHAR, BigInteger, Boolean, Date, DateTime, Integer, SmallInteger, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -195,6 +195,8 @@ class OpenBillModel(Base):
     table_label: Mapped[str] = mapped_column(String(30))
     lines: Mapped[list[dict[str, object]]] = mapped_column(JSONB)
     discount: Mapped[dict[str, object] | None] = mapped_column(JSONB)
+    guest_count: Mapped[int | None] = mapped_column(SmallInteger)
+    printed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     opened_by: Mapped[str] = mapped_column(CHAR(26))
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     version: Mapped[int] = mapped_column(Integer)

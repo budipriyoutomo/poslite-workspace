@@ -319,3 +319,40 @@ async def test_a_back_office_token_cannot_use_the_device_endpoints(api: AsyncCli
     response = await api.get("/api/v1/open-bills", headers=bearer(s.owner_token))
 
     assert response.status_code == 403
+
+
+async def test_the_other_device_sees_the_guests_and_when_the_bill_was_printed(
+    api: AsyncClient,
+) -> None:
+    """15 · UX-04: the table screen of every device shows the guests and a printed bill."""
+    s, waiter = await _table_service(api)
+    bill = await _open(api, waiter, _new_bill(s, guest_count=4, release_lease=True))
+    assert (bill["guest_count"], bill["printed_at"]) == (4, None)
+
+    body = {**_new_bill(s), "version": 1, "guest_count": 5, "printed_at": "2026-10-24T06:00:00Z"}
+    saved = await api.put(
+        f"/api/v1/open-bills/{bill['id']}", json=body, headers=bearer(s.device_token)
+    )
+
+    assert saved.status_code == 200, saved.text
+    [seen] = await _bills(api, waiter)
+    assert (seen["guest_count"], seen["printed_at"]) == (5, "2026-10-24T06:00:00Z")
+
+
+async def test_a_bill_without_guests_or_print_keeps_both_empty(api: AsyncClient) -> None:
+    s, waiter = await _table_service(api)
+    await _open(api, waiter, _new_bill(s))
+
+    [seen] = await _bills(api, s.device_token)
+
+    assert (seen["guest_count"], seen["printed_at"]) == (None, None)
+
+
+async def test_a_bill_has_at_least_one_guest(api: AsyncClient) -> None:
+    s, waiter = await _table_service(api)
+
+    response = await api.post(
+        "/api/v1/open-bills", json=_new_bill(s, guest_count=0), headers=bearer(waiter)
+    )
+
+    assert response.status_code == 422

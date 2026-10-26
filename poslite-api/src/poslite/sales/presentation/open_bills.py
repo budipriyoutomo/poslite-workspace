@@ -31,6 +31,9 @@ class BillDraftIn(BaseModel):
     table_label: Annotated[str, StringConstraints(min_length=1, max_length=30)]
     lines: Annotated[list[Line], Field(min_length=1, max_length=200)]
     discount: dict[str, JsonValue] | None = None
+    guest_count: Annotated[int, Field(ge=1, le=999)] | None = None
+    # When the bill was last printed for the guests (15 · UX-04); null until then.
+    printed_at: datetime | None = None
     user_id: Ulid  # who is working on the device
     # The bill left the device's screen with this save: another device may take it at once.
     release_lease: bool = False
@@ -63,6 +66,8 @@ class OpenBillOut(BaseModel):
     table_label: str
     lines: list[Line]
     discount: dict[str, JsonValue] | None
+    guest_count: int | None
+    printed_at: datetime | None
     opened_by: str
     opened_at: datetime
     version: int
@@ -81,6 +86,8 @@ async def _out(
             table_label=b.table_label,
             lines=b.lines,
             discount=b.discount,
+            guest_count=b.guest_count,
+            printed_at=b.printed_at,
             opened_by=b.opened_by,
             opened_at=b.opened_at,
             version=b.version,
@@ -130,6 +137,8 @@ async def _draft(
         table_label=body.table_label,
         lines=body.lines,
         discount=body.discount,
+        guest_count=body.guest_count,
+        printed_at=body.printed_at,
     )
 
 

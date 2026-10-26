@@ -67,6 +67,7 @@ Semua keputusan diambil **sebelum Tahap A selesai**, karena D1 dan D4 mengubah i
 | P1-3 ✅ | — | `0030_cash_rounding` (`outlets.cash_rounding_unit`, `outlets.cash_rounding_mode`, `orders.rounding_amount`, `rpt_daily_sales.cash_rounding`) | — (pengaturan outlet di `settings`) |
 | P1-8 | — | `0031_operator_totp` (secret TOTP terenkripsi, `operator_recovery_codes`) | — |
 | 15 · UX-02 | — | `0032_blind_close` (`shifts.denominations`, `brands.blind_close`) | — (flag ikut data outlet di `settings`) |
+| 15 · UX-04 | — | `0033_open_bill_guests_printed` (`open_bills.guest_count`, `open_bills.printed_at`) | — (field tak diindeks di open bill lokal) |
 
 ADR-029 dan ADR-030 dinomori sesuai urutan dokumen (channel lebih dulu dibahas), walaupun P0-3 dikerjakan lebih dulu. v8 menggabungkan perubahan P1-1 dan P1-2 karena dikerjakan di tahap yang sama.
 
