@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { OpenBillLine, PosDb } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
-import { cancelBill, moveBill, saveBill } from "./bills";
+import { cancelBill, markBillPrinted, moveBill, saveBill } from "./bills";
 
 let db: PosDb;
 beforeEach(() => {
@@ -79,5 +79,51 @@ describe("moveBill (doc 11 §2)", () => {
     await save("B1", "T1", "A1");
 
     await expect(moveBill({ billId: "B1", table: { id: "T1", label: "A1" } }, deps())).rejects.toMatchObject({ code: "SAME_TABLE" });
+  });
+});
+
+describe("guests and the printed bill (15 · UX-04)", () => {
+  const PRINTED = new Date("2026-09-25T03:30:00.000Z");
+
+  it("keeps the number of guests the bill was opened with", async () => {
+    await saveBill({ bill: { ...bill("B1"), guestCount: 4 }, lines: [kopi], discount: null }, { db, now: () => NOW });
+    await saveBill({ bill: bill("B1"), lines: [{ ...kopi, quantity: 3 }], discount: null }, { db, now: () => NOW });
+
+    expect((await db.openBills.get("B1"))?.guestCount).toBe(4);
+  });
+
+  it("marks when the bill was printed for the guests", async () => {
+    await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
+
+    await markBillPrinted("B1", { db, now: () => PRINTED });
+
+    expect((await db.openBills.get("B1"))?.printedAt).toBe(PRINTED.toISOString());
+  });
+
+  it("forgets the printed bill once the order changes: the guests hold an old one", async () => {
+    await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
+    await markBillPrinted("B1", { db, now: () => PRINTED });
+
+    await saveBill({ bill: bill("B1"), lines: [{ ...kopi, quantity: 3 }], discount: null }, { db, now: () => NOW });
+
+    expect((await db.openBills.get("B1"))?.printedAt).toBeNull();
+  });
+
+  it("keeps the printed bill when saved unchanged", async () => {
+    await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
+    await markBillPrinted("B1", { db, now: () => PRINTED });
+
+    await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
+
+    expect((await db.openBills.get("B1"))?.printedAt).toBe(PRINTED.toISOString());
+  });
+
+  it("sends a shared bill's print to the server", async () => {
+    await saveBill({ bill: bill("B1"), lines: [kopi], discount: null }, { db, now: () => NOW });
+    await db.openBills.update("B1", { origin: "server", dirty: false });
+
+    await markBillPrinted("B1", { db, now: () => PRINTED, shared: true });
+
+    expect((await db.openBills.get("B1"))?.dirty).toBe(true);
   });
 });

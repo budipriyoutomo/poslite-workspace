@@ -10,6 +10,8 @@ export interface ServerBill {
   table_label: string;
   lines: OpenBillLine[];
   discount: LineDiscount | null;
+  guest_count: number | null;
+  printed_at: string | null;
   opened_by: string;
   opened_at: string;
   version: number;
@@ -27,6 +29,8 @@ export interface BillBody {
   table_label: string;
   lines: OpenBillLine[];
   discount: LineDiscount | null;
+  guest_count: number | null;
+  printed_at: string | null;
   user_id: string;
   release_lease: boolean;
 }
@@ -51,6 +55,9 @@ const serverBill = z.object({
     .record(z.string(), z.unknown())
     .nullable()
     .transform((d) => d as LineDiscount | null),
+  // Absent from an API older than 15 · UX-04.
+  guest_count: z.number().int().nullable().default(null),
+  printed_at: z.string().nullable().default(null),
   opened_by: z.string(),
   opened_at: z.string(),
   version: z.number().int(),

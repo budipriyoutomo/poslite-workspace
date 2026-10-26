@@ -39,6 +39,8 @@ class FakeServer implements OpenBillApi {
       table_label: "A3",
       lines: [teh],
       discount: null,
+      guest_count: null,
+      printed_at: null,
       opened_by: "U1",
       opened_at: NOW.toISOString(),
       version: 1,
@@ -83,6 +85,8 @@ class FakeServer implements OpenBillApi {
       table_label: input.table_label,
       lines: input.lines,
       discount: input.discount,
+      guest_count: input.guest_count,
+      printed_at: input.printed_at,
       version: bill.version + 1,
       lease: input.release_lease ? null : bill.lease,
     };
@@ -168,6 +172,23 @@ describe("syncOpenBills", () => {
       leaseUntil: null,
       leaseHolder: { deviceName: "Pelayan 1", userId: "U2", until: LATER },
     });
+  });
+
+  it("brings the guests and the printed bill another device recorded (15 · UX-04)", async () => {
+    server.put({ id: "B1", guest_count: 4, printed_at: LATER });
+
+    await syncOpenBills(deps());
+
+    expect(await row("B1")).toMatchObject({ guestCount: 4, printedAt: LATER });
+  });
+
+  it("uploads the guests and the printed bill recorded here (15 · UX-04)", async () => {
+    await saveBill({ bill: { ...ref("B1"), guestCount: 3 }, lines: [teh], discount: null }, { db, now: () => NOW, shared: true });
+    await db.openBills.update("B1", { printedAt: LATER });
+
+    await syncOpenBills(deps());
+
+    expect(server.bills.get("B1")).toMatchObject({ guest_count: 3, printed_at: LATER });
   });
 
   it("drops a bill another device paid or cancelled", async () => {

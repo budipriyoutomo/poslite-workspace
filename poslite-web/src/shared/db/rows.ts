@@ -386,6 +386,10 @@ export interface OpenBillRow {
   openedBy: string;
   openedAt: string;
   updatedAt: string;
+  /** Guests at the table, asked when the bill is opened (15 · UX-04); null = not asked. */
+  guestCount?: number | null;
+  /** When the bill was printed for the guests; cleared once the order changes after that. */
+  printedAt?: string | null;
   /** `local`: only on this device (counter mode, or opened offline and not uploaded yet). */
   origin?: "local" | "server";
   /** The server version this copy is based on; a save names it. */

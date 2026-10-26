@@ -44,11 +44,15 @@ describe("httpOpenBillApi", () => {
       table_label: "A3",
       lines: [],
       discount: null,
+      guest_count: null,
+      printed_at: null,
       user_id: "U1",
       release_lease: true,
     });
 
     expect(saved.version).toBe(2);
+    // An API older than 15 · UX-04 sends neither field.
+    expect([saved.guest_count, saved.printed_at]).toEqual([null, null]);
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
     expect([url, init.method, (init.headers as Record<string, string>).Authorization]).toEqual(["https://api.test/api/v1/open-bills/B1", "PUT", "Bearer tok"]);
     expect(JSON.parse(init.body as string)).toMatchObject({

@@ -32,6 +32,8 @@ function fromServer(bill: ServerBill, deviceId: string, conflict: OpenBillRow["c
     tableLabel: bill.table_label,
     lines: bill.lines,
     discount: bill.discount,
+    guestCount: bill.guest_count,
+    printedAt: bill.printed_at,
     openedBy: bill.opened_by,
     openedAt: bill.opened_at,
     updatedAt: bill.updated_at,
@@ -67,6 +69,8 @@ function body(row: OpenBillRow, deps: OpenBillSyncDeps): BillBody {
     table_label: row.tableLabel,
     lines: row.lines,
     discount: row.discount,
+    guest_count: row.guestCount ?? null,
+    printed_at: row.printedAt ?? null,
     user_id: deps.userId,
     release_lease: deps.activeBillId() !== row.id,
   };

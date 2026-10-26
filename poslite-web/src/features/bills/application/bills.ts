@@ -12,6 +12,7 @@ export interface BillRef {
   tableLabel: string;
   openedBy: string;
   openedAt: string;
+  guestCount?: number | null;
 }
 
 export interface BillDeps {
@@ -82,6 +83,8 @@ export async function saveBill(
     const voided = saved ? voidedUnits(saved.lines, input.lines) : [];
     if (voided.length > 0) await recordVoid({ bill: input.bill, scope: "line", voided, approval: input.void }, deps);
     const lines = saved ? reconcileSent(saved.lines, input.lines) : input.lines;
+    // A printed bill no longer matches once the order changed: the table is no longer "printed".
+    const printedAt = saved?.printedAt && sameOrder(saved.lines, lines) ? saved.printedAt : null;
     const sharedState = {
       origin: saved?.origin ?? "local",
       ...(deps.shared && { dirty: true }),
@@ -91,11 +94,20 @@ export async function saveBill(
       ...input.bill,
       lines,
       discount: input.discount,
+      ...(saved?.printedAt !== undefined && { printedAt }),
       updatedAt: deps.now().toISOString(),
       ...sharedState,
     });
     return { voided };
   });
+}
+
+const orderOf = (lines: OpenBillLine[]) => JSON.stringify(lines.map((l) => [l.key, l.quantity, l.unitPrice, l.modifiers, l.note, l.discount ?? null]));
+const sameOrder = (a: OpenBillLine[], b: OpenBillLine[]) => orderOf(a) === orderOf(b);
+
+/** The bill was printed for the guests (15 · UX-04): the table shows it, on every device when shared. */
+export async function markBillPrinted(billId: string, deps: BillDeps = defaultDeps()): Promise<void> {
+  await deps.db.openBills.update(billId, { printedAt: deps.now().toISOString(), ...(deps.shared && { dirty: true }) });
 }
 
 /** Nothing was paid on an open bill; only what the kitchen already had needs an approved void (ADR-028). */
