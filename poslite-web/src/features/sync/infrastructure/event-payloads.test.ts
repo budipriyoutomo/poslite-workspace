@@ -39,3 +39,19 @@ describe("bill.item_voided limits", () => {
     expect(billItemVoided.safeParse({ ...payload, lines }).success).toBe(false);
   });
 });
+
+describe("shift.closed with a blind-close count (15 · UX-02)", () => {
+  const { payload } = events.find((e) => e.type === "shift.closed")!;
+  const parse = (denominations: unknown) => eventPayloads["shift.closed"].safeParse({ ...payload, denominations }).success;
+
+  it("accepts the count per denomination, coins under 1", () => {
+    expect(parse({ "100000": 2, "50000": 1, "1": 0 })).toBe(true);
+  });
+
+  it("rejects negative or fractional pieces and non-numeric denominations", () => {
+    expect(parse({ "100000": -1 })).toBe(false);
+    expect(parse({ "100000": 1.5 })).toBe(false);
+    expect(parse({ "0": 1 })).toBe(false);
+    expect(parse({ koin: 1 })).toBe(false);
+  });
+});

@@ -76,6 +76,17 @@ describe("pullAll", () => {
     expect((await db.settings.get("outlet"))?.value.priceIncludesTax).toBe(false);
   });
 
+  it("keeps whether the brand's cashiers close shifts blind (15 · UX-02); an older server means they do", async () => {
+    const [setting, ...rest] = MENU;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, blind_close: false } }, ...rest], 9))));
+    expect((await db.settings.get("outlet"))?.value.blindClose).toBe(false);
+
+    const older: Record<string, unknown> = { ...setting!.data };
+    delete older.blind_close;
+    await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: older, version: 10 }], 10))));
+    expect((await db.settings.get("outlet"))?.value.blindClose).toBe(true);
+  });
+
   it("keeps the outlet's service mode (ADR-031); an older server means counter", async () => {
     const [setting, ...rest] = MENU;
     await pullAll(deps(vi.fn(async () => page([{ ...setting!, data: { ...setting!.data, service_mode: "table_service" } }, ...rest], 9))));

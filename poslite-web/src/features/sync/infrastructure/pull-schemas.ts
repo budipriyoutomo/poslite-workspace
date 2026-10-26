@@ -36,6 +36,7 @@ export const changeSchema = z.union([
         .optional(),
       // ADR-030; optional for older servers (prices before tax).
       price_includes_tax: z.boolean().optional(),
+      blind_close: z.boolean().optional(),
       // ADR-031; optional for older servers (counter).
       service_mode: z.enum(["counter", "table_service"]).optional(),
       // P1-3; optional for older servers (off).

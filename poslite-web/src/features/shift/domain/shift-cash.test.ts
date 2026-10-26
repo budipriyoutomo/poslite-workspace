@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { closeShiftCash, summarizeShiftCash } from "./shift-cash";
+import { closeShiftCash, COINS, countedTotal, NOTES, summarizeShiftCash } from "./shift-cash";
 
 const cashSale = (amount: number, change: number) => ({ status: "paid" as const, payments: [{ methodType: "cash" as const, amount }], changeAmount: change });
 
@@ -55,5 +55,30 @@ describe("closeShiftCash", () => {
 
   it("rejects a counted amount that is not integer Rupiah", () => {
     expect(() => closeShiftCash(100_000, 99_999.5)).toThrow(RangeError);
+  });
+});
+
+describe("countedTotal (15 · UX-02)", () => {
+  it("adds note value x pieces", () => {
+    expect(countedTotal({ 100_000: 2, 20_000: 3, 1_000: 4 })).toBe(264_000);
+  });
+
+  it("adds the coins' total kept under 1", () => {
+    expect(countedTotal({ 50_000: 1, [COINS]: 2_500 })).toBe(52_500);
+  });
+
+  it("is zero for an empty count", () => {
+    expect(countedTotal({})).toBe(0);
+  });
+
+  it("refuses negative or fractional pieces", () => {
+    expect(() => countedTotal({ 10_000: -1 })).toThrow(RangeError);
+    expect(() => countedTotal({ 10_000: 1.5 })).toThrow(RangeError);
+  });
+});
+
+describe("NOTES", () => {
+  it("lists the Rupiah notes from the largest down to 1.000", () => {
+    expect(NOTES).toEqual([100_000, 50_000, 20_000, 10_000, 5_000, 2_000, 1_000]);
   });
 });

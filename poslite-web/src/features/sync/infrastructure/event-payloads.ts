@@ -20,6 +20,8 @@ const shiftClosed = z.strictObject({
   counted_cash: rupiah,
   expected_cash: z.number().int(),
   variance: z.number().int(),
+  // Blind close (15 · UX-02): note value -> pieces; "1" holds the coins' total in Rupiah.
+  denominations: z.record(z.string().regex(/^[1-9]\d*$/), z.number().int().min(0)).optional(),
 });
 
 const cashMoved = z.strictObject({

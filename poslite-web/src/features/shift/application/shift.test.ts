@@ -85,6 +85,23 @@ describe("closeShift", () => {
   });
 });
 
+describe("closeShift with a blind count (15 · UX-02)", () => {
+  it("counts the cash from the denominations and sends them with the event", async () => {
+    await openShift({ cashierId: IDS.cashier, openingCash: 200_000 }, testDeps(db));
+
+    const closed = await closeShift({ closedBy: IDS.cashier, denominations: { 100_000: 2, 1: 1_500 } }, testDeps(db, "2026-09-25T14:00:00.000Z"));
+
+    expect(closed).toMatchObject({ expectedCash: 200_000, countedCash: 201_500, variance: 1_500 });
+    expect((await db.outbox.orderBy("seq").last())?.payload).toEqual({
+      closed_by: IDS.cashier,
+      counted_cash: 201_500,
+      expected_cash: 200_000,
+      variance: 1_500,
+      denominations: { "100000": 2, "1": 1_500 },
+    });
+  });
+});
+
 describe("closeShift with cash rounding (P1-3)", () => {
   it("expects in the drawer the rounded cash, not the total", async () => {
     const outlet = (await db.settings.get("outlet"))!.value;

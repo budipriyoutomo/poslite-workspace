@@ -84,6 +84,7 @@ async function applyChange(db: PosDb, change: Change, device: ServerDevice, touc
             cashierMaxAmount: d.discount_policy.cashier_max_amount,
           },
           priceIncludesTax: d.price_includes_tax ?? false,
+          blindClose: d.blind_close ?? true,
           serviceMode: d.service_mode ?? "counter",
           cashRounding: { unit: d.cash_rounding_unit ?? 0, mode: d.cash_rounding_mode ?? "nearest" },
         },

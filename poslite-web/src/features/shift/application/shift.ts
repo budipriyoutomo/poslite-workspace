@@ -5,7 +5,7 @@ import { getDb, readState } from "@/shared/db";
 import { newId } from "@/shared/id";
 
 import { businessDate } from "../domain/business-date";
-import { closeShiftCash, summarizeShiftCash } from "../domain/shift-cash";
+import { closeShiftCash, countedTotal, summarizeShiftCash } from "../domain/shift-cash";
 
 export interface ShiftDeps {
   db: PosDb;
@@ -80,7 +80,13 @@ export async function recordCashMovement(
 }
 
 /** Counted cash is recorded against the expected amount; a variance never blocks closing. */
-export async function closeShift(input: { closedBy: string; countedCash: number }, deps: ShiftDeps = defaultDeps()): Promise<ShiftRow> {
+/** The cash counted at close: one total, or a blind count per denomination (15 · UX-02). */
+export type CloseShiftCount = { countedCash: number } | { denominations: Record<number, number> };
+export type CloseShiftInput = { closedBy: string } & CloseShiftCount;
+
+export async function closeShift(input: CloseShiftInput, deps: ShiftDeps = defaultDeps()): Promise<ShiftRow> {
+  const denominations = "denominations" in input ? input.denominations : undefined;
+  const counted = "denominations" in input ? countedTotal(input.denominations) : input.countedCash;
   const { db } = deps;
   return db.transaction("rw", [db.shifts, db.orders, db.payments, db.refunds, db.cashMovements, db.openBills, db.outbox, db.syncState], async () => {
     const shift = await requireOpenShift(db);
@@ -101,7 +107,7 @@ export async function closeShift(input: { closedBy: string; countedCash: number 
       movements,
       refunds,
     );
-    const { expectedCash, countedCash, variance } = closeShiftCash(summary.expectedCash, input.countedCash);
+    const { expectedCash, countedCash, variance } = closeShiftCash(summary.expectedCash, counted);
     const closed: ShiftRow = { ...shift, status: "closed", closedBy: input.closedBy, closedAt: deps.now().toISOString(), expectedCash, countedCash, variance };
     await db.shifts.put(closed);
     await enqueueEvent(db, {
@@ -109,7 +115,13 @@ export async function closeShift(input: { closedBy: string; countedCash: number 
       type: "shift.closed",
       aggregateId: shift.id,
       occurredAt: closed.closedAt!,
-      payload: { closed_by: input.closedBy, counted_cash: countedCash, expected_cash: expectedCash, variance },
+      payload: {
+        closed_by: input.closedBy,
+        counted_cash: countedCash,
+        expected_cash: expectedCash,
+        variance,
+        ...(denominations && { denominations: { ...denominations } }), // object keys become text in JSON
+      },
     });
     return closed;
   });

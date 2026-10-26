@@ -18,6 +18,7 @@ export interface OutletSetting {
   brand?: BrandIdentityRow; // ADR-022; missing on a device set up by a server before brands
   discountPolicy?: DiscountPolicyRow; // the brand's manual-discount rules; missing = DEFAULT_DISCOUNT_POLICY
   priceIncludesTax?: boolean; // the brand's prices include service and PB1 (ADR-030); missing = they do not
+  blindClose?: boolean; // cashiers close shifts without seeing the expected cash (15 · UX-02); missing = they do
   serviceMode?: ServiceMode; // ADR-031; missing = counter
   cashRounding?: { unit: number; mode: "nearest" | "down" }; // P1-3; missing = off
 }

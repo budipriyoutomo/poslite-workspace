@@ -47,3 +47,16 @@ export function closeShiftCash(expectedCash: number, countedCash: number) {
   }
   return { expectedCash, countedCash, variance: countedCash - expectedCash };
 }
+
+/** Rupiah notes counted one by one at a blind close (15 · UX-02); coins are entered as a total. */
+export const NOTES = [100_000, 50_000, 20_000, 10_000, 5_000, 2_000, 1_000];
+/** The key of the coins' total in Rupiah, as sent in shift.closed `denominations` (07 API contract). */
+export const COINS = 1;
+
+/** Value × pieces per denomination (pieces under COINS are already Rupiah). */
+export function countedTotal(count: Record<number, number>): number {
+  return Object.entries(count).reduce((sum, [value, pieces]) => {
+    if (!Number.isSafeInteger(pieces) || pieces < 0) throw new RangeError(`pieces must be an integer >= 0, got ${pieces}`);
+    return sum + Number(value) * pieces;
+  }, 0);
+}
