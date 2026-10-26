@@ -25,8 +25,17 @@ export const copy = {
   closeButton: "Tutup Shift",
   closeTitle: "Tutup Shift",
   countedCash: "Uang dihitung",
+  notePieces: (note: string) => `Lembar ${note}`,
+  coinsTotal: "Total koin",
+  coins: "Koin",
+  countedTotal: "Total dihitung",
+  blindHint: "Hitung uang di laci per pecahan. Kas seharusnya tidak ditampilkan.",
   closeConfirm: "Tutup Shift",
-  closed: (variance: string) => `Shift ditutup · selisih ${variance}`,
+  // No amount: the variance would tell a blind-counting cashier how far off the count was (UX-02).
+  closed: "Shift ditutup",
+  transactions: "Transaksi",
+  revealExpected: "Lihat kas seharusnya",
+  revealHint: "Kas seharusnya hanya untuk manajer.",
   variance: "Selisih",
   errors: {
     SHIFT_ALREADY_OPEN: "Masih ada shift yang terbuka di perangkat ini",

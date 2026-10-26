@@ -21,6 +21,7 @@ export function useShiftSummary(shift: ShiftRow) {
         movements,
         refunds,
       ),
+      paidCount: orders.filter((o) => o.status === "paid").length,
       // Shown on the close-shift summary (ADR-023).
       voids: { count: orders.filter((o) => o.status === "voided").length, total: orders.filter((o) => o.status === "voided").reduce((s, o) => s + o.total, 0) },
       refunds: { count: refunds.length, total: refunds.reduce((s, r) => s + r.total, 0) },

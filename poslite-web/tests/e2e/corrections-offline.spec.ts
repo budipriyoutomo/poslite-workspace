@@ -66,6 +66,11 @@ test("void and refund offline with a manager's PIN; the drawer adds up", async (
 
   // 200.000 opening + 2 × 50.000 − 2 × 9.575 change − 40.425 voided sale − 40.425 refunded
   await page.getByRole("link", { name: "Shift" }).click();
-  await expect(page.getByText("Rp 200.000").last()).toBeVisible();
+  // 15 · UX-02: Siti counts blind, so the expected cash shows only after a manager's PIN.
+  await page.getByRole("button", { name: "Lihat kas seharusnya" }).click();
+  await page.getByLabel("Manajer yang menyetujui").selectOption({ label: "Budi" });
+  await page.getByLabel("PIN manajer").fill("9999");
+  await page.getByRole("button", { name: "Setujui" }).click();
+  await expect(page.getByText("Seharusnya di laci").locator("xpath=following-sibling::dd[1]")).toHaveText("Rp 200.000");
   await expect(page.getByRole("status", { name: "Koreksi" })).toHaveText("Void 1 (Rp 40.425) · Refund 1 (Rp 40.425)");
 });
