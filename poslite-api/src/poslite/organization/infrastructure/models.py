@@ -44,6 +44,8 @@ class BrandModel(MasterColumns, Base):
     cashier_max_discount_amount: Mapped[int] = mapped_column(BigInteger, server_default="50000")
     # Menu prices already include service and PB1 (ADR-030).
     price_includes_tax: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    # Cashiers count the drawer without seeing the expected amount (15 · UX-02).
+    blind_close: Mapped[bool] = mapped_column(Boolean, server_default="true")
 
 
 class OutletModel(MasterColumns, Base):

@@ -2905,6 +2905,11 @@ export interface components {
         };
         /** BrandIn */
         BrandIn: {
+            /**
+             * Blind Close
+             * @default true
+             */
+            blind_close: boolean;
             /** Code */
             code: string;
             /**
@@ -2954,6 +2959,8 @@ export interface components {
         };
         /** BrandOut */
         BrandOut: {
+            /** Blind Close */
+            blind_close: boolean;
             /** Code */
             code: string;
             discount: components["schemas"]["DiscountPolicyIn"];
@@ -4676,6 +4683,10 @@ export interface components {
             closed_by_name: string | null;
             /** Counted Cash */
             counted_cash: number | null;
+            /** Denominations */
+            denominations: {
+                [key: string]: number;
+            } | null;
             /** Device Id */
             device_id: string;
             /** Device Name */

@@ -135,6 +135,7 @@ class BrandIn(BaseModel):
     is_active: bool = True
     discount: DiscountPolicyIn = DiscountPolicyIn()
     price_includes_tax: bool = False  # ADR-030; applies to new orders only
+    blind_close: bool = True  # 15 · UX-02: cashiers close shifts without seeing expected cash
 
 
 class BrandOut(BaseModel):
@@ -148,6 +149,7 @@ class BrandOut(BaseModel):
     is_active: bool
     discount: DiscountPolicyIn
     price_includes_tax: bool
+    blind_close: bool
 
 
 class DeviceListItem(BaseModel):

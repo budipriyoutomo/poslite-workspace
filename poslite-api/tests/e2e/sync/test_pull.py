@@ -44,6 +44,7 @@ async def test_initial_pull_returns_all_master_data_for_the_devices_outlet(
             "cashier_max_amount": 50000,
         },
         "price_includes_tax": False,
+        "blind_close": True,
         "service_mode": "counter",
         "cash_rounding_unit": 0,
         "cash_rounding_mode": "nearest",

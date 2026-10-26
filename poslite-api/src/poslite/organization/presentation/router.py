@@ -434,6 +434,7 @@ def _brand_out(b: BrandInfo, base_url: str) -> BrandOut:
         is_active=b.is_active,
         discount=DiscountPolicyIn.model_validate(b.discount.as_data()),
         price_includes_tax=b.price_includes_tax,
+        blind_close=b.blind_close,
     )
 
 

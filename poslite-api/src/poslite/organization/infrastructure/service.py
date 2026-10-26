@@ -51,6 +51,7 @@ class BrandInfo:
     is_active: bool = True
     discount: DiscountPolicy = field(default_factory=DiscountPolicy)
     price_includes_tax: bool = False
+    blind_close: bool = True
 
 
 def _policy(b: BrandModel) -> DiscountPolicy:
@@ -82,6 +83,7 @@ def _brand(b: BrandModel) -> BrandInfo:
         is_active=b.is_active,
         discount=_policy(b),
         price_includes_tax=b.price_includes_tax,
+        blind_close=b.blind_close,
     )
 
 
@@ -132,6 +134,7 @@ async def create_brand(
     is_active: bool = True,
     discount: DiscountPolicy | None = None,
     price_includes_tax: bool = False,
+    blind_close: bool = True,
 ) -> str:
     await _ensure_code_free(uow, code)
     _check_logo(uow, logo_key)
@@ -145,6 +148,7 @@ async def create_brand(
         receipt_footer=receipt_footer,
         is_active=is_active,
         price_includes_tax=price_includes_tax,
+        blind_close=blind_close,
     )
     _set_policy(brand, discount or DiscountPolicy())
     uow.session.add(brand)
@@ -164,6 +168,7 @@ async def update_brand(
     is_active: bool,
     discount: DiscountPolicy,
     price_includes_tax: bool = False,
+    blind_close: bool = True,
 ) -> BrandInfo:
     """Devices see brand data inside `outlet_setting`, so every outlet of the brand is
     re-versioned in the same transaction (ADR-009, ADR-022)."""
@@ -175,6 +180,7 @@ async def update_brand(
     brand.receipt_header, brand.receipt_footer = receipt_header, receipt_footer
     brand.is_active, brand.updated_at = is_active, func.now()
     brand.price_includes_tax = price_includes_tax  # new orders only: old ones keep their mode
+    brand.blind_close = blind_close  # the next shift close on each device
     _set_policy(brand, discount)
     await uow.session.execute(
         update(OutletModel).where(OutletModel.brand_id == brand_id).values(updated_at=func.now())
@@ -398,6 +404,7 @@ async def outlet_changes(
             },
             "discount_policy": _policy(brand).as_data(),
             "price_includes_tax": brand.price_includes_tax,
+            "blind_close": brand.blind_close,
             "service_mode": o.service_mode,
             "cash_rounding_unit": o.cash_rounding_unit,
             "cash_rounding_mode": o.cash_rounding_mode,

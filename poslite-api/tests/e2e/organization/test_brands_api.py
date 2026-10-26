@@ -52,6 +52,7 @@ async def test_owner_creates_lists_and_updates_brands(api: AsyncClient) -> None:
             "cashier_max_amount": 50000,
         },
         "price_includes_tax": False,  # ADR-030: prices before tax unless the owner says so
+        "blind_close": True,  # 15 · UX-02: cashiers close shifts blind unless the owner says so
     }
     assert updated.json()["data"]["receipt_footer"] == "Arigato!"
     assert [(b["code"], b["name"]) for b in listed.json()["data"]] == [

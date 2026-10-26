@@ -2243,6 +2243,11 @@
       },
       "BrandIn": {
         "properties": {
+          "blind_close": {
+            "default": true,
+            "title": "Blind Close",
+            "type": "boolean"
+          },
           "code": {
             "pattern": "^[A-Za-z0-9]{2,20}$",
             "title": "Code",
@@ -2318,6 +2323,10 @@
       },
       "BrandOut": {
         "properties": {
+          "blind_close": {
+            "title": "Blind Close",
+            "type": "boolean"
+          },
           "code": {
             "title": "Code",
             "type": "string"
@@ -2382,7 +2391,8 @@
           "receipt_footer",
           "is_active",
           "discount",
-          "price_includes_tax"
+          "price_includes_tax",
+          "blind_close"
         ],
         "title": "BrandOut",
         "type": "object"
@@ -6670,6 +6680,20 @@
             ],
             "title": "Counted Cash"
           },
+          "denominations": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominations"
+          },
           "device_id": {
             "title": "Device Id",
             "type": "string"
@@ -6742,7 +6766,8 @@
           "expected_cash",
           "counted_cash",
           "variance",
-          "cash_movements"
+          "cash_movements",
+          "denominations"
         ],
         "title": "ShiftDetailOut",
         "type": "object"
