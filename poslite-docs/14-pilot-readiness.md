@@ -576,6 +576,7 @@ Satu hari penuh dengan menu asli restoran pilot, perangkat yang sama, dan 2–3 
 | Loyalty/member, reservasi, KDS layar dapur | Ditunda sampai ada sinyal kuat dari pilot |
 | Wrapper Capacitor (iOS + Bluetooth) | Hanya bila calon pelanggan banyak memakai iPad |
 | Peran operator, impersonate tenant | Tim operator masih kecil |
+| Rata-rata per tamu di laporan (15 · UX-04b) | Jumlah tamu sudah tercatat di open bill sejak UX-04; laporan menyusul setelah data pilot cukup |
 
 ## 9. Checklist Ringkas
 

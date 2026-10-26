@@ -47,7 +47,7 @@ Tabel di atas sudah diurutkan menurut urutan pengerjaan yang disarankan. Detail 
 |---|---|---|---|
 | UX-02 | `poslite-api` | Migrasi `0032_blind_close`: kolom `shifts.denominations` (JSONB, nullable) dan `brands.blind_close` (boolean, default `true`). Field opsional `denominations` di `ShiftClosedPayload` (total ≠ `counted_cash` → `DENOMINATIONS_MISMATCH`). `denominations` di detail shift (`ShiftDetailOut`). `blind_close` ikut `outlet_setting`. ✅ | **API dulu.** `ShiftClosedPayload` memakai `extra="forbid"`, jadi POS yang mengirim `denominations` ke API lama akan ditolak dan event-nya menjadi `dead` di outbox. |
 | UX-02 | `poslite-admin` | Toggle "Hitung buta saat tutup shift" di pengaturan brand; rincian pecahan di detail shift. | Setelah API. |
-| UX-04 | `poslite-api` | Migrasi `0033_open_bill_guests_printed`: kolom `open_bills.guest_count` dan `open_bills.printed_at`, ikut di API open bill. ✅ Bila rata-rata per tamu masuk laporan: `orders.guest_count` dan field opsional `guest_count` di `OrderPlacedPayload` (juga `extra="forbid"`), ditunda setelah pilot. | **API dulu**: body open bill tidak `extra="forbid"`, jadi API lama tidak menolak, tetapi diam-diam membuang jumlah tamu dan waktu cetak. |
+| UX-04 | `poslite-api` | Migrasi `0033_open_bill_guests_printed`: kolom `open_bills.guest_count` dan `open_bills.printed_at`, ikut di API open bill. ✅ Rata-rata per tamu di laporan (`orders.guest_count`, `guest_count` di `OrderPlacedPayload`) menjadi **UX-04b**, setelah pilot. | **API dulu**: body open bill tidak `extra="forbid"`, jadi API lama tidak menolak, tetapi diam-diam membuang jumlah tamu dan waktu cetak. |
 | UX-08 | `poslite-print-bridge` | Endpoint baru `GET /discover` (pindai port 9100 di subnet lokal, butuh pairing). Bridge sekarang hanya punya `/health`, `/pair`, `/print`. | Bridge dulu; POS menyembunyikan tombol "Cari printer" bila bridge tidak punya endpoint ini. |
 
 Yang **sudah ada** di backend dan tidak perlu diubah:
@@ -242,7 +242,7 @@ Catatan implementasi backend:
 
 - `guest_count` (1–999) dan `printed_at` ikut di body POST/PUT `/open-bills` dan di respons. Keduanya bagian dari draft bill: device mengirim nilai terakhirnya di setiap simpan, jadi mencetak tagihan berarti menyimpan bill (versi naik).
 - Server menyimpan `printed_at` apa adanya dan tidak mengosongkannya bila item berubah setelah dicetak; aturan itu milik POS.
-- `orders.guest_count` belum dibuat (ditunda setelah pilot).
+- `orders.guest_count` dan rata-rata per tamu di laporan belum dibuat; rencananya ada di **UX-04b** (setelah pilot).
 
 **Masalah**
 
@@ -276,8 +276,26 @@ Catatan implementasi backend:
 **Backend** (detail di §1.1)
 
 - `poslite-api`, migrasi `0033_open_bill_guests_printed`: `open_bills.guest_count` (smallint nullable) dan `open_bills.printed_at` (timestamptz nullable), ikut di request/response API open bill. Tanpa ini, outlet `table_service` kehilangan jumlah tamu dan status "Tagihan dicetak" saat bill dibuka di device lain.
-- Bila rata-rata per tamu masuk laporan: tambah `orders.guest_count` dan field opsional `guest_count` di `OrderPlacedPayload`. Bisa ditunda setelah pilot; jumlah tamu di layar meja tidak bergantung pada ini.
-- **Urutan deploy**: API dulu (payload `extra="forbid"`).
+- Rata-rata per tamu di laporan ditunda setelah pilot (lihat **UX-04b** di bawah). Jumlah tamu di layar meja tidak bergantung padanya.
+- **Urutan deploy**: API dulu. Body open bill tidak `extra="forbid"`, jadi API lama diam-diam membuang `guest_count` dan `printed_at`.
+
+**UX-04b — Rata-rata per tamu (setelah pilot)**
+
+Metrik yang biasa ditanyakan owner dine-in: **penjualan per tamu** (*spend per cover*) dan **jumlah tamu per hari**. Datanya mulai terkumpul sejak UX-04, karena kasir sudah mengisi jumlah tamu saat membuka bill. Yang belum ada adalah jalur dari bill ke order dan ke laporan.
+
+- **Aturan**
+  - Jumlah tamu milik order **dine-in** yang dibayar dari bill. Take away, delivery, dan order dine-in tanpa jumlah tamu tidak ikut dihitung, baik di pembilang maupun penyebut.
+  - **Pisah bill**: jumlah tamu dicatat di order yang **menutup** bill (`closes_bill_id`, atau pembayaran terakhir di outlet `counter`). Order pisah lainnya `null`, tetapi penjualannya tetap masuk pembilang lewat bill yang sama. Jadi rata-rata dihitung per **bill**, bukan per order.
+  - Order yang di-void tidak dihitung. Refund mengurangi pembilang dan tidak mengubah jumlah tamu.
+  - Rumus: `penjualan bersih bill dine-in bertamu ÷ jumlah tamu`, per hari bisnis, per outlet, dan per channel dine-in.
+- **Backend** (`poslite-api`)
+  - Migrasi baru (nomor berikutnya, dicatat di 14 §3.1): `orders.guest_count` (smallint nullable) dan `orders.bill_id` (char 26 nullable). Saat ini order tidak menyimpan bill asalnya; `closes_bill_id` hanya ada di payload, jadi order pisah tidak bisa dikelompokkan per bill tanpa kolom ini. Payload mendapat `bill_id` opsional untuk setiap order yang dibayar dari bill.
+  - Field opsional `guest_count` (≥ 1) di `OrderPlacedPayload`. Karena `extra="forbid"`, **API dulu**; POS lama tetap diterima tanpa field ini.
+  - Ringkasan penjualan (`/reports/sales-summary` dan export CSV) mendapat `guest_count` dan `sales_per_guest` di total serta per hari.
+- **POS**: `guestCount` dari open bill ikut ke payload order penutup bill.
+- **Admin**: kartu "Tamu" dan "Per tamu" di dashboard laporan, serta kolom di tabel per hari.
+- **DoD**: test domain untuk rumus (termasuk pisah bill, void, refund, dan order tanpa tamu), e2e push order dengan dan tanpa `guest_count`, test laporan dengan fixture campuran dine-in dan take away.
+- **Estimasi**: ±2 hari (API 1 hari, POS + admin 1 hari).
 
 **File terdampak**
 
@@ -539,6 +557,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-03 Keypad terlihat tanpa scroll di tablet; metode bayar dikelompokkan; cetak otomatis
 - [x] UX-04 API: migrasi `0033`, `guest_count` dan `printed_at` di open bill
 - [ ] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
+- [ ] UX-04b (setelah pilot) Rata-rata per tamu: `orders.guest_count`, `guest_count` di `OrderPlacedPayload`, laporan dan dashboard
 - [ ] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
 - [ ] UX-10 Label laporan & ringkasan kas
 - [ ] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
