@@ -6,6 +6,11 @@ from poslite.shared.domain.events import DomainEvent
 from poslite.shift.domain.events import ShiftClosed, ShiftOpened
 
 
+def counted_total(denominations: dict[int, int]) -> int:
+    """Rupiah in a count per denomination (value x pieces; coins are counted under 1)."""
+    return sum(value * pieces for value, pieces in denominations.items())
+
+
 @dataclass
 class Shift:
     """A cashier session on one device: opened with a cash float, closed with a cash count."""
@@ -23,6 +28,8 @@ class Shift:
     counted_cash: int | None = None
     expected_cash: int | None = None
     variance: int | None = None
+    # Blind close (15 · UX-02): pieces counted per note value; 1 holds the coins' total in Rupiah.
+    denominations: dict[int, int] | None = None
     events: list[DomainEvent] = field(default_factory=list)
 
     @classmethod
@@ -53,6 +60,7 @@ class Shift:
         counted_cash: int,
         expected_cash: int,
         variance: int,
+        denominations: dict[int, int] | None = None,
     ) -> None:
         """Expected cash comes from the device; the variance is recorded, never blocking."""
         if self.status == "closed":
@@ -61,6 +69,9 @@ class Shift:
             raise DomainError(
                 "VARIANCE_MISMATCH", "variance must equal counted_cash - expected_cash"
             )
+        if denominations is not None and counted_total(denominations) != counted_cash:
+            raise DomainError("DENOMINATIONS_MISMATCH", "denominations must add up to counted_cash")
+        self.denominations = denominations
         self.status, self.closed_by, self.closed_at = "closed", closed_by, closed_at
         self.counted_cash, self.expected_cash, self.variance = counted_cash, expected_cash, variance
         self.events.append(

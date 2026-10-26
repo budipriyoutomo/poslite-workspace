@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 
 from sqlalchemy import select
@@ -47,6 +47,7 @@ class ShiftRow:
     expected_cash: int | None
     counted_cash: int | None
     variance: int | None
+    denominations: dict[str, int] | None = None  # filled for the detail only
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +100,8 @@ async def shift_detail(
         .where(CashMovementModel.shift_id == shift_id)
         .order_by(CashMovementModel.created_at)
     )
-    return _row(row), [
+    detail = replace(_row(row), denominations=row.denominations)
+    return detail, [
         CashMovementRow(m.id, m.type, m.amount, m.reason, m.created_by, m.created_at)
         for m in movements
     ]

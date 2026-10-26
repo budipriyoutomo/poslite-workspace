@@ -58,11 +58,17 @@ class ShiftOpenedPayload(_Strict):
     opened_by: Ulid
 
 
+# Note value -> pieces; 1 holds the coins' total in Rupiah (15 · UX-02). JSON keys arrive as text.
+Denomination = Annotated[int, Field(ge=1)]
+Pieces = Annotated[StrictInt, Field(ge=0)]
+
+
 class ShiftClosedPayload(_Strict):
     closed_by: Ulid
     counted_cash: Rupiah
     expected_cash: StrictInt
     variance: StrictInt
+    denominations: dict[Denomination, Pieces] | None = None  # a blind close sends its count
 
 
 class CashMovedPayload(_Strict):
@@ -269,6 +275,7 @@ def to_command(event: IncomingEvent) -> Command:
                 closed.expected_cash,
                 closed.variance,
                 event.occurred_at,
+                closed.denominations,
             )
         case "cash.moved":
             moved = _parse(CashMovedPayload, event)

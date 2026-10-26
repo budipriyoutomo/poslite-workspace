@@ -153,3 +153,39 @@ def test_rejects_a_bill_void_that_breaks_the_contract(broken: dict[str, Any]) ->
         to_command(IncomingEvent.model_validate(event))
 
     assert err.value.code == "SCHEMA_INVALID"
+
+
+SHIFT_CLOSED = next(e for e in EVENTS if e["type"] == "shift.closed")
+
+
+def _closed_with(denominations: object) -> dict[str, Any]:
+    return {**SHIFT_CLOSED, "payload": {**SHIFT_CLOSED["payload"], "denominations": denominations}}
+
+
+def test_maps_the_count_per_denomination_of_a_blind_close() -> None:
+    # 250.000 counted: 2 x 100.000, 2 x 20.000, 1 x 10.000 (JSON object keys are strings).
+    event = _closed_with({"100000": 2, "20000": 2, "10000": 1})
+
+    command = to_command(IncomingEvent.model_validate(event))
+
+    assert isinstance(command, CloseShift)
+    assert command.denominations == {100_000: 2, 20_000: 2, 10_000: 1}
+
+
+def test_a_shift_closed_without_denominations_still_maps() -> None:
+    command = to_command(IncomingEvent.model_validate(SHIFT_CLOSED))
+
+    assert isinstance(command, CloseShift)
+    assert command.denominations is None
+
+
+@pytest.mark.parametrize(
+    "denominations",
+    [{"100000": -1}, {"0": 5}, {"100000": 1.5}, {"abc": 1}],
+    ids=["negative pieces", "zero value", "fractional pieces", "non-numeric value"],
+)
+def test_rejects_denominations_that_break_the_contract(denominations: object) -> None:
+    with pytest.raises(DomainError) as err:
+        to_command(IncomingEvent.model_validate(_closed_with(denominations)))
+
+    assert err.value.code == "SCHEMA_INVALID"

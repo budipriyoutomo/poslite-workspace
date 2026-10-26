@@ -47,6 +47,8 @@ class CashMovementOut(BaseModel):
 
 class ShiftDetailOut(ShiftOut):
     cash_movements: list[CashMovementOut]
+    # Blind close count (15 · UX-02): note value -> pieces; "1" = coins in Rupiah. Null without one.
+    denominations: dict[str, int] | None
 
 
 async def _outlet_in_scope(
@@ -120,6 +122,7 @@ async def shift(
     return ok(
         ShiftDetailOut(
             **out.model_dump(),
+            denominations=row.denominations,
             cash_movements=[
                 CashMovementOut(
                     id=m.id,

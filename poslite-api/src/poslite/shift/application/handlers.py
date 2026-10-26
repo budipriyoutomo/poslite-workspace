@@ -30,6 +30,7 @@ class CloseShift:
     expected_cash: int
     variance: int
     occurred_at: datetime
+    denominations: dict[int, int] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +109,7 @@ class CloseShiftHandler:
             counted_cash=cmd.counted_cash,
             expected_cash=cmd.expected_cash,
             variance=cmd.variance,
+            denominations=cmd.denominations,
         )
         await uow.shifts.save(shift)
         _flush_events(uow, shift)

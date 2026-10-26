@@ -61,6 +61,27 @@ async def test_closes_an_open_shift() -> None:
     assert uow.shifts.rows["S1"].status == "closed"
 
 
+async def test_keeps_the_count_per_denomination_of_a_blind_close() -> None:
+    uow = FakeUnitOfWork()
+    await opened(uow)
+
+    await CloseShiftHandler(FakeCashiers({"U1"}))(
+        CloseShift(
+            shift_id="S1",
+            closed_by="U1",
+            counted_cash=201_500,
+            expected_cash=200_000,
+            variance=1_500,
+            occurred_at=AT,
+            denominations={100_000: 2, 1: 1_500},
+        ),
+        CTX,
+        uow,
+    )
+
+    assert uow.shifts.rows["S1"].denominations == {100_000: 2, 1: 1_500}
+
+
 async def test_rejects_closing_an_unknown_shift() -> None:
     with pytest.raises(DomainError) as err:
         await CloseShiftHandler(FakeCashiers({"U1"}))(

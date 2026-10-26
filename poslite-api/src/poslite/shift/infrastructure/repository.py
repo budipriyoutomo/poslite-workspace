@@ -7,6 +7,15 @@ from poslite.shift.infrastructure.models import CashMovementModel, ShiftModel
 _FIELDS = ("status", "closed_by", "closed_at", "counted_cash", "expected_cash", "variance")
 
 
+def _to_json(denominations: dict[int, int] | None) -> dict[str, int] | None:
+    """JSON object keys are text."""
+    return None if denominations is None else {str(k): v for k, v in denominations.items()}
+
+
+def _from_json(denominations: dict[str, int] | None) -> dict[int, int] | None:
+    return None if denominations is None else {int(k): v for k, v in denominations.items()}
+
+
 class SqlAlchemyShiftRepository:
     def __init__(self, session: AsyncSession, tenant_id: str) -> None:
         self._session, self._tenant_id = session, tenant_id
@@ -29,6 +38,7 @@ class SqlAlchemyShiftRepository:
             counted_cash=row.counted_cash,
             expected_cash=row.expected_cash,
             variance=row.variance,
+            denominations=_from_json(row.denominations),
         )
 
     async def add(self, shift: Shift) -> None:
@@ -51,6 +61,7 @@ class SqlAlchemyShiftRepository:
         row = await self._session.get_one(ShiftModel, shift.id)
         for name in _FIELDS:
             setattr(row, name, getattr(shift, name))
+        row.denominations = _to_json(shift.denominations)
         await flush_or_conflict(self._session)
 
     async def add_movement(self, movement: CashMovement) -> None:

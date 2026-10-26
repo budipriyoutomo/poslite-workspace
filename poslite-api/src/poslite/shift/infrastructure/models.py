@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import CHAR, BigInteger, Date, DateTime, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from poslite.shared.infrastructure.database import Base
@@ -23,6 +24,8 @@ class ShiftModel(Base):
     counted_cash: Mapped[int | None] = mapped_column(BigInteger)
     expected_cash: Mapped[int | None] = mapped_column(BigInteger)
     variance: Mapped[int | None] = mapped_column(BigInteger)
+    # Blind close count (15 · UX-02): note value as text -> pieces; "1" = coins in Rupiah.
+    denominations: Mapped[dict[str, int] | None] = mapped_column(JSONB)
 
 
 class CashMovementModel(Base):

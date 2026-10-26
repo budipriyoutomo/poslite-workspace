@@ -80,3 +80,28 @@ async def test_managers_of_another_brand_cannot_list_the_outlets_shifts(
     )
 
     assert (response.status_code, response.json()["code"]) == (403, "OUTLET_FORBIDDEN")
+
+
+async def test_shift_detail_has_the_count_per_denomination_of_a_blind_close(
+    api: AsyncClient,
+) -> None:
+    s = await outlet_with_menu_and_device(api)
+    events = batch(s)
+    closed = next(e for e in events if e["type"] == "shift.closed")
+    # 250.000 counted: 2 x 100.000, 1 x 50.000 (15 · UX-02)
+    closed["payload"]["denominations"] = {"100000": 2, "50000": 1}
+    pushed = await push(api, s.device_token, events)
+    assert {r["status"] for r in pushed.json()["data"]["results"]} == {"accepted"}
+
+    response = await api.get(f"/api/v1/shifts/{SHIFT}", headers=bearer(s.owner_token))
+
+    assert response.json()["data"]["denominations"] == {"100000": 2, "50000": 1}
+
+
+async def test_shift_detail_has_no_denominations_without_a_blind_close(api: AsyncClient) -> None:
+    s = await outlet_with_menu_and_device(api)
+    await push(api, s.device_token, batch(s))
+
+    response = await api.get(f"/api/v1/shifts/{SHIFT}", headers=bearer(s.owner_token))
+
+    assert response.json()["data"]["denominations"] is None

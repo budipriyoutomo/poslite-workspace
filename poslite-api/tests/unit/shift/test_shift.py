@@ -107,3 +107,55 @@ def test_rejects_a_non_positive_cash_movement() -> None:
         )
 
     assert err.value.code == "INVALID_AMOUNT"
+
+
+def test_closing_keeps_the_count_per_denomination() -> None:
+    shift = open_shift()
+
+    shift.close(
+        closed_by="U1",
+        closed_at=CLOSED,
+        counted_cash=330_000,
+        expected_cash=337_500,
+        variance=-7_500,
+        denominations={100_000: 3, 20_000: 1, 5_000: 2, 1: 0},
+    )
+
+    assert shift.denominations == {100_000: 3, 20_000: 1, 5_000: 2, 1: 0}
+
+
+def test_counts_coins_as_their_total_under_denomination_one() -> None:
+    shift = open_shift()
+
+    shift.close(
+        closed_by="U1",
+        closed_at=CLOSED,
+        counted_cash=101_500,
+        expected_cash=101_500,
+        variance=0,
+        denominations={100_000: 1, 1: 1_500},
+    )
+
+    assert shift.denominations == {100_000: 1, 1: 1_500}
+
+
+def test_rejects_denominations_that_do_not_add_up_to_the_counted_cash() -> None:
+    with pytest.raises(DomainError) as err:
+        open_shift().close(
+            closed_by="U1",
+            closed_at=CLOSED,
+            counted_cash=330_000,
+            expected_cash=337_500,
+            variance=-7_500,
+            denominations={100_000: 3},
+        )
+
+    assert err.value.code == "DENOMINATIONS_MISMATCH"
+
+
+def test_closing_without_denominations_keeps_none() -> None:
+    shift = open_shift()
+
+    shift.close(closed_by="U1", closed_at=CLOSED, counted_cash=0, expected_cash=0, variance=0)
+
+    assert shift.denominations is None
