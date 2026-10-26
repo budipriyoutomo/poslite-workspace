@@ -303,7 +303,7 @@ export interface PrintJobRow {
   id: string;
   orderId: string;
   /** Absent on rows from before Fase 7 = "receipt". */
-  documentType?: "receipt" | "void_slip" | "refund_slip" | "kitchen_ticket";
+  documentType?: "receipt" | "void_slip" | "refund_slip" | "kitchen_ticket" | "guest_check";
   refundId?: string;
   status: "queued" | "printed" | "failed";
   attempts: number;

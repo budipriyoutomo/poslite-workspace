@@ -70,7 +70,19 @@ export function buildReceipt({ header, footer, timezone, order, payments }: Rece
     { kind: "row", left: `Kasir: ${order.cashierName}`, right: dateTime(order.createdAt, timezone) },
   );
   if (order.tableLabel) doc.push({ kind: "text", text: `Meja : ${order.tableLabel}` });
-  doc.push({ kind: "rule" });
+  doc.push({ kind: "rule" }, ...itemsAndTotal(order));
+  if (order.rounding) doc.push({ kind: "row", left: "Pembulatan", right: amount(order.rounding) });
+  for (const p of payments) doc.push({ kind: "row", left: p.methodName, right: amount(p.amount) });
+  if (order.changeAmount > 0) doc.push({ kind: "row", left: "Kembali", right: amount(order.changeAmount) });
+  doc.push({ kind: "rule" }, { kind: "text", text: footer, align: "center" });
+  return doc;
+}
+
+type PricedOrder = Pick<ReceiptInput["order"], "lines" | "discount" | "rates" | "subtotal" | "discountAmount" | "serviceCharge" | "tax" | "total">;
+
+/** The items with their discounts, then subtotal, order discount, service, PB1 and TOTAL. */
+export function itemsAndTotal(order: PricedOrder): ReceiptDocument {
+  const doc: ReceiptDocument = [];
   let itemDiscounts = 0;
   for (const line of order.lines) {
     const unit = line.unitPrice + line.modifiers.reduce((s, m) => s + m.price, 0);
@@ -96,9 +108,5 @@ export function buildReceipt({ header, footer, timezone, order, payments }: Rece
   if (order.rates.taxBps > 0) rateRows.push({ kind: "row", left: `${included ? "Termasuk PB1" : "PB1"} ${percent(order.rates.taxBps)}`, right: amount(order.tax) });
   const total: ReceiptDocument[number] = { kind: "row", left: "TOTAL", right: amount(order.total), bold: true };
   doc.push(...(included ? [total, ...rateRows] : [...rateRows, total]));
-  if (order.rounding) doc.push({ kind: "row", left: "Pembulatan", right: amount(order.rounding) });
-  for (const p of payments) doc.push({ kind: "row", left: p.methodName, right: amount(p.amount) });
-  if (order.changeAmount > 0) doc.push({ kind: "row", left: "Kembali", right: amount(order.changeAmount) });
-  doc.push({ kind: "rule" }, { kind: "text", text: footer, align: "center" });
   return doc;
 }
