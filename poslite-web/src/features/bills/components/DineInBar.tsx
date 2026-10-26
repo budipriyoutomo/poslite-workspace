@@ -17,6 +17,7 @@ import { releaseBill, renewLease } from "../application/open-bill-sync";
 import { kickBillSync, sharedBillDeps, useBillStore } from "../application/shared-bills";
 import { useDiningTables, useOpenBills } from "../application/use-bills";
 import { copy } from "../copy";
+import { GuestCount } from "./GuestCount";
 import { TablePicker } from "./TablePicker";
 import { useBillVoid } from "./use-bill-void";
 
@@ -53,7 +54,7 @@ export function DineInBar() {
   const store = useBillStore();
   useBillLease(cart.bill?.id ?? null, store.isShared);
   const isSaved = bills.some((b) => b.id === cart.bill?.id);
-  const occupied = bills.filter((b) => b.id !== cart.bill?.id && b.tableId).map((b) => b.tableId!);
+  const others = bills.filter((b) => b.id !== cart.bill?.id);
 
   const pick = (table: { tableId: string | null; tableLabel: string }) => {
     if (!user) return;
@@ -98,7 +99,7 @@ export function DineInBar() {
         <Button variant="outline" size="sm" className="ml-auto" onClick={() => setIsPicking(true)}>
           <Armchair /> Makan di tempat
         </Button>
-        {isPicking && <TablePicker tables={tables} occupiedTableIds={occupied} onPick={pick} onClose={() => setIsPicking(false)} />}
+        {isPicking && <TablePicker tables={tables} bills={others} onPick={pick} onClose={() => setIsPicking(false)} />}
       </div>
     );
   }
@@ -107,6 +108,7 @@ export function DineInBar() {
       <Badge className="gap-1 bg-warning text-warning-foreground">
         <Armchair className="size-3" /> {copy.table(cart.bill.tableLabel)}
       </Badge>
+      <GuestCount value={cart.bill.guestCount ?? null} onChange={(guestCount) => cart.bill && cart.setBill({ ...cart.bill, guestCount })} />
       {!isSaved && (
         <Button variant="ghost" size="sm" onClick={() => cart.setBill(null)}>
           <ShoppingBag /> Bawa pulang

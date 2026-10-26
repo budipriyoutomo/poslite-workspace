@@ -1,7 +1,7 @@
 import { type OpenBillRow, type PosDb, readState, type ServiceMode, writeState } from "@/shared/db";
 import { AppError } from "@/shared/errors";
 
-import { type BillDeps, cancelBill, moveBill, saveBill, type VoidApproval } from "./bills";
+import { type BillDeps, cancelBill, markBillPrinted, moveBill, saveBill, type VoidApproval } from "./bills";
 import { cancelOnServer, type OpenBillSyncDeps, openForEditing } from "./open-bill-sync";
 
 /** Something of this device's own that the other mode would strand: a bill only it has, or an unsent edit. */
@@ -32,6 +32,8 @@ export interface BillStore {
   save(input: SaveInput, deps?: BillDeps): ReturnType<typeof saveBill>;
   cancel(input: { billId: string; void?: VoidApproval }): ReturnType<typeof cancelBill>;
   move(input: { billId: string; table: { id: string | null; label: string } }): Promise<void>;
+  /** The bill was printed for the guests (15 · UX-04). */
+  markPrinted(billId: string): Promise<void>;
 }
 
 /** Counter: this device only (ADR-015). */
@@ -40,6 +42,7 @@ const localBillStore: BillStore = {
   save: (input, deps) => saveBill(input, deps),
   cancel: (input) => cancelBill(input),
   move: (input) => moveBill(input),
+  markPrinted: (billId) => markBillPrinted(billId),
 };
 
 /** Table service: saved here first (works offline), then sent to the server by the bill sync. */
@@ -61,6 +64,8 @@ function serverBillStore(server: () => Promise<OpenBillSyncDeps>): BillStore {
       await openForEditing(input.billId, deps); // rule 6: moving needs the bill's lease
       await moveBill(input, local);
     },
+    // No lease needed: the save that carries it waits until no other device is editing the bill.
+    markPrinted: async (billId) => markBillPrinted(billId, (await shared()).local),
   };
 }
 

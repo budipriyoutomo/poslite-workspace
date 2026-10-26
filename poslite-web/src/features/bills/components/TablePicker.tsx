@@ -2,23 +2,27 @@
 
 import { type FormEvent, useState } from "react";
 
-import type { DiningTableRow } from "@/shared/db";
+import type { DiningTableRow, OpenBillRow } from "@/shared/db";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
 import { copy } from "../copy";
+import { areasOf, tableTiles } from "../domain/table-status";
+import { TableBoard } from "./TableBoard";
 
 interface Props {
   tables: DiningTableRow[];
-  occupiedTableIds: string[];
+  /** Bills on the tables: their tables show their status and cannot be picked. */
+  bills: OpenBillRow[];
+  totalOf?: (bill: OpenBillRow) => number;
   onPick: (table: { tableId: string | null; tableLabel: string }) => void;
   onClose: () => void;
 }
 
-/** Tables from the back-office; an occupied table already has an open bill on this device. */
-export function TablePicker({ tables, occupiedTableIds, onPick, onClose }: Props) {
+/** The table screen's grid as a dialog (15 · UX-04): pick a free table from the back-office's list. */
+export function TablePicker({ tables, bills, totalOf, onPick, onClose }: Props) {
   const [label, setLabel] = useState("");
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -27,22 +31,18 @@ export function TablePicker({ tables, occupiedTableIds, onPick, onClose }: Props
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent mobileSheet className="sm:max-w-lg">
+      <DialogContent mobileSheet className="max-h-dvh overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{copy.pickTable}</DialogTitle>
         </DialogHeader>
         {tables.length > 0 ? (
-          <div className="grid grid-cols-4 gap-2">
-            {tables.map((t) => {
-              const isOccupied = occupiedTableIds.includes(t.id);
-              return (
-                <Button key={t.id} variant="outline" className="h-16 flex-col" disabled={isOccupied} onClick={() => onPick({ tableId: t.id, tableLabel: t.label })}>
-                  <span className="text-lg font-bold">{t.label}</span>
-                  <span className="text-xs text-muted-foreground">{isOccupied ? copy.occupied : t.area}</span>
-                </Button>
-              );
-            })}
-          </div>
+          <TableBoard
+            tiles={tableTiles(tables, bills, new Date()).filter((t) => t.tableId !== null && tables.some((x) => x.id === t.tableId))}
+            areas={areasOf(tables)}
+            totalOf={totalOf}
+            isPicking
+            onSelect={(t) => onPick({ tableId: t.tableId, tableLabel: t.label })}
+          />
         ) : (
           <form onSubmit={submit} className="space-y-2">
             <p className="text-sm text-muted-foreground">{copy.noTables}</p>

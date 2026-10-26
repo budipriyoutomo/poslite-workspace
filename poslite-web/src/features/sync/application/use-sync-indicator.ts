@@ -1,19 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMinuteClock } from "@/shared/hooks";
 
 import { syncIndicator } from "../domain/sync-indicator";
 import { useSyncStatus } from "./use-sync-status";
-
-/** Re-reads the clock every minute so "n mnt lalu" and the 2-hour stale rule stay current. */
-function useMinuteClock(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
-  return now;
-}
 
 /** The header badge state (15 · UX-01); undefined while loading or on a device not set up yet. */
 export function useSyncIndicator(isOnline: boolean) {

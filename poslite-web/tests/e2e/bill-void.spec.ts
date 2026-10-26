@@ -68,8 +68,9 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
   await expectOrderEmpty(page);
 
   // The guest drops one: saving asks for a reason and a manager's PIN
-  await page.getByRole("link", { name: "Bill" }).click();
-  await page.getByRole("button", { name: "Lanjutkan A1" }).click();
+  await page.getByRole("link", { name: "Meja" }).click();
+  await page.getByRole("button", { name: /^Meja A1/ }).click();
+  await page.getByRole("button", { name: "Tambah pesanan" }).click();
   await openOrder(page);
   await expect(page.getByText("2 sudah ke dapur")).toBeVisible();
   await page.getByRole("button", { name: "Kurangi jumlah Nasi Gudeg" }).click();
@@ -78,13 +79,15 @@ test("take a sent item off a bill, then cancel the bill, each with a manager's P
   await approveVoid(page, "Batalkan 1× Nasi Gudeg", "Tamu batal/pergi", /^Batalkan item · Rp/);
   await expectOrderEmpty(page);
 
-  await page.getByRole("link", { name: "Bill" }).click();
-  await expect(page.getByRole("listitem", { name: "Meja A1" })).toContainText("1 item");
+  await page.getByRole("link", { name: "Meja" }).click();
+  await page.getByRole("button", { name: /^Meja A1/ }).click();
+  await expect(page.getByRole("listitem", { name: "1× Nasi Gudeg" })).toContainText("Di dapur");
 
   // Then the table leaves: cancelling the bill needs the same approval
-  await page.getByRole("button", { name: "Batalkan A1" }).click();
+  await expect(page.getByText("Butuh PIN manajer")).toBeVisible();
+  await page.getByRole("button", { name: "Batalkan bill" }).click();
   await approveVoid(page, "Batalkan bill meja A1", "Salah input", /^Batalkan bill · Rp/);
-  await expect(page.getByText("Tidak ada bill terbuka")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Meja A1/ })).toHaveAttribute("data-state", "empty");
 
   expect(await queuedBillVoids(page)).toBe(2);
 });

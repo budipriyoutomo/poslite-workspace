@@ -13,7 +13,7 @@ describe("redirectFor (POS route guard)", () => {
   });
 
   it("keeps a waiter away from payment and the cash drawer", () => {
-    expect(redirectFor({ role: "waiter", pathname: "/checkout", hasShift: true })).toBe("/bills");
-    expect(redirectFor({ role: "waiter", pathname: "/shift", hasShift: false })).toBe("/bills");
+    expect(redirectFor({ role: "waiter", pathname: "/checkout", hasShift: true })).toBe("/tables");
+    expect(redirectFor({ role: "waiter", pathname: "/shift", hasShift: false })).toBe("/tables");
   });
 });

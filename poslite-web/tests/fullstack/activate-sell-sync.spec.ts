@@ -390,7 +390,7 @@ test("a waiter's bill is paid on the cashier's device without typing it again", 
     for (const digit of pin) await page.getByRole("button", { name: digit, exact: true }).click();
     await expect(page).not.toHaveURL(/\/lock$/);
     // The device works in table-service mode once its bill loop has seen the outlet's mode.
-    await nav(page, "Bill");
+    await nav(page, "Meja");
     await expect(page.getByText("dari semua perangkat outlet ini")).toBeVisible({ timeout: 20_000 });
     return page;
   };
@@ -401,19 +401,23 @@ test("a waiter's bill is paid on the cashier's device without typing it again", 
   await waiter.getByRole("button", { name: "Makan di tempat" }).click();
   await waiter.getByRole("button", { name: /A1/ }).click();
   await waiter.getByRole("button", { name: /^Kopi Susu E2E/ }).click();
+  for (let i = 0; i < 3; i++) await waiter.getByRole("button", { name: "Tambah tamu" }).click();
   await waiter.getByRole("button", { name: "Simpan bill" }).click();
 
   const cashier = await device("Rina", "2468");
   await nav(cashier, "Shift");
   await cashier.getByRole("button", { name: "Buka Shift" }).click();
-  await nav(cashier, "Bill");
-  await cashier.getByRole("button", { name: "Lanjutkan A1" }).click({ timeout: 20_000 });
-  await expect(cashier).toHaveURL(/\/sell$/);
-  await cashier.getByRole("link", { name: /Bayar · Rp 20\.790/ }).click();
+  // 15 · UX-04: the cashier's table screen shows the waiter's table, guests and total.
+  await nav(cashier, "Meja");
+  const a1 = cashier.getByRole("button", { name: /^Meja A1/ });
+  await expect(a1).toHaveAccessibleName(/Terisi · 3 tamu · \d+ mnt · Rp 20\.790/, { timeout: 20_000 });
+  await a1.click();
+  await cashier.getByRole("button", { name: "Bayar", exact: true }).click();
+  await expect(cashier).toHaveURL(/\/checkout$/);
   await cashier.getByRole("button", { name: "Rp 20.790" }).click();
   await cashier.getByRole("button", { name: "Selesaikan" }).click();
   await expect(cashier.getByRole("dialog", { name: "Transaksi berhasil" })).toBeVisible();
 
-  await nav(waiter, "Bill");
-  await expect(waiter.getByText("Tidak ada bill terbuka")).toBeVisible({ timeout: 30_000 });
+  await nav(waiter, "Meja");
+  await expect(waiter.getByRole("button", { name: /^Meja A1/ })).toHaveAttribute("data-state", "empty", { timeout: 30_000 });
 });

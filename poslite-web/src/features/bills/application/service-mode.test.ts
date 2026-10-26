@@ -96,4 +96,13 @@ describe("billStoreFor", () => {
   it("shares a table-service outlet's bills through the server", () => {
     expect(billStoreFor("table_service").isShared).toBe(true);
   });
+
+  it("sends a printed shared bill to the server with the next bill round (15 · UX-04)", async () => {
+    await db.openBills.put(bill("B1", { origin: "server", serverVersion: 1, dirty: false }));
+    const server = async () => ({ db, api: {} as never, deviceId: "D1", userId: "U1", now: () => new Date("2026-10-26T12:00:00.000Z"), activeBillId: () => null });
+
+    await billStoreFor("table_service", server).markPrinted("B1");
+
+    expect(await db.openBills.get("B1")).toMatchObject({ printedAt: "2026-10-26T12:00:00.000Z", dirty: true });
+  });
 });

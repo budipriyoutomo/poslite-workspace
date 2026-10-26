@@ -18,7 +18,7 @@ const NOT_FOR_WAITERS = ["/checkout", "/shift"];
 
 /** Where the guard sends the user instead, or null to stay. */
 export function redirectFor(input: { role: UserRole; pathname: string; hasShift: boolean }): string | null {
-  if (input.role === "waiter") return NOT_FOR_WAITERS.includes(input.pathname) ? "/bills" : null;
+  if (input.role === "waiter") return NOT_FOR_WAITERS.includes(input.pathname) ? "/tables" : null;
   return !input.hasShift && NEEDS_SHIFT.includes(input.pathname) ? "/shift" : null;
 }
 

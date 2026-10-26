@@ -33,6 +33,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -76,6 +78,9 @@
   --success-foreground: oklch(0.99 0.01 164);
   --warning: oklch(0.52 0.14 55);
   --warning-foreground: oklch(0.99 0.01 80);
+  /* A table whose bill was printed (15 · UX-04). */
+  --info: oklch(0.5 0.16 255);
+  --info-foreground: oklch(0.99 0.01 255);
   --border: oklch(0.925 0.01 255);
   --input: oklch(0.9 0.012 255);
   --ring: oklch(0.62 0.13 164);
@@ -117,6 +122,8 @@
   --success-foreground: oklch(0.2 0.04 165);
   --warning: oklch(0.82 0.14 80);
   --warning-foreground: oklch(0.22 0.05 60);
+  --info: oklch(0.78 0.12 250);
+  --info-foreground: oklch(0.2 0.05 255);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.6 0.12 164);

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Clock, History, type LucideIcon, Menu, Printer, ReceiptText, RefreshCw, ShoppingCart } from "lucide-react";
+import { Armchair, BarChart3, Clock, History, type LucideIcon, Menu, Printer, RefreshCw, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ type NavItem = { href: string; label: string; icon: LucideIcon };
 // The four screens a cashier switches between all shift; the rest sit behind "Lainnya" on phones.
 const PRIMARY: NavItem[] = [
   { href: "/sell", label: "Jual", icon: ShoppingCart },
-  { href: "/bills", label: "Bill", icon: ReceiptText },
+  { href: "/tables", label: "Meja", icon: Armchair },
   { href: "/orders", label: "Riwayat", icon: History },
   { href: "/shift", label: "Shift", icon: Clock },
 ];

@@ -2,7 +2,8 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectOrderEmpty, openOrder, expectToastClear } from "./layout";
 
-// Fase 4 DoD (ADR-015): open a table's bill, add to it later, then guests pay separately by item — all offline.
+// Fase 4 DoD (ADR-015) and 15 · UX-04: open a table's bill, add to it later, then guests pay
+// separately by item — all offline, with the table's status on the table screen.
 
 async function logIn(page: Page, name: string, pin: string) {
   await page.getByRole("button", { name: new RegExp(name) }).click();
@@ -30,35 +31,54 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await expect(page).toHaveURL(/\/sell$/);
   await context.setOffline(true);
 
-  // First round for table A1, kept open
+  // A1 starts empty on the table screen (15 · UX-04)
+  await page.getByRole("link", { name: "Meja" }).click();
+  await expect(page.getByRole("button", { name: /^Meja A1/ })).toHaveAttribute("data-state", "empty");
+  await page.getByRole("link", { name: "Jual" }).click();
+
+  // First round for table A1, for two guests, kept open
   await addPlain(page, /^Nasi Gudeg/);
   await addPlain(page, /^Nasi Gudeg/);
   await openOrder(page);
   await page.getByRole("button", { name: "Makan di tempat" }).click();
   await page.getByRole("button", { name: /A1/ }).click();
   await expect(page.getByText("Meja A1").first()).toBeVisible();
+  await page.getByRole("button", { name: "Tambah tamu" }).click();
+  await page.getByRole("button", { name: "Tambah tamu" }).click();
   await page.getByRole("button", { name: "Simpan bill" }).click();
   await expectToastClear(page, "Bill meja A1 disimpan");
   await expectOrderEmpty(page);
 
+  // A1 is now occupied, with its guests
+  await page.getByRole("link", { name: "Meja" }).click();
+  const a1 = page.getByRole("button", { name: /^Meja A1/ });
+  await expect(a1).toHaveAttribute("data-state", "occupied");
+  await expect(a1).toHaveAccessibleName(/2 tamu/);
+
   // The guests change tables (A1 → A2) and back again: the bill follows, offline (doc 11 §2)
-  await page.getByRole("link", { name: "Bill" }).click();
-  await page.getByRole("button", { name: "Pindah meja A1" }).click();
+  await a1.click();
+  await page.getByRole("button", { name: "Pindah meja" }).click();
   await page.getByRole("dialog").getByRole("button", { name: /A2/ }).click();
-  await expect(page.getByRole("listitem", { name: "Meja A2" })).toContainText("2 item");
-  await page.getByRole("button", { name: "Pindah meja A2" }).click();
+  await expect(page.getByRole("button", { name: /^Meja A2/ })).toHaveAttribute("data-state", "occupied");
+  await expect(page.getByRole("button", { name: /^Meja A1/ })).toHaveAttribute("data-state", "empty");
+  await page.getByRole("button", { name: /^Meja A2/ }).click();
+  await page.getByRole("button", { name: "Pindah meja" }).click();
   await page.getByRole("dialog").getByRole("button", { name: /A1/ }).click();
 
-  // Later: resume the bill and add a drink
-  await expect(page.getByRole("listitem", { name: "Meja A1" })).toContainText("2 item");
-  await page.getByRole("button", { name: "Lanjutkan A1" }).click();
+  // Later: add a drink to the bill
+  await page.getByRole("button", { name: /^Meja A1/ }).click();
+  await expect(page.getByRole("listitem", { name: "2× Nasi Gudeg" })).toBeVisible();
+  await page.getByRole("button", { name: "Tambah pesanan" }).click();
   await expect(page).toHaveURL(/\/sell$/);
   await addPlain(page, /^Es Teh Manis/);
   await openOrder(page);
-  await page.getByRole("link", { name: /^Bayar ·/ }).first().click();
+  await page.getByRole("button", { name: "Simpan bill" }).click();
+  await expectOrderEmpty(page);
 
-  // Guest 1 pays one Nasi Gudeg; the rest stays open
-  await page.getByRole("button", { name: "Pisah per item" }).click();
+  // Guest 1 pays one Nasi Gudeg ("Pisah bill"); the rest stays open
+  await page.getByRole("link", { name: "Meja" }).click();
+  await page.getByRole("button", { name: /^Meja A1/ }).click();
+  await page.getByRole("button", { name: "Pisah bill" }).click();
   await page.getByRole("button", { name: "Tambah Nasi Gudeg dibayar" }).click();
   await page.getByRole("button", { name: "Rp 50.000" }).first().click();
   await page.getByRole("button", { name: "Selesaikan" }).click();
@@ -67,16 +87,15 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await expect(done.getByLabel("Pratinjau struk")).toContainText("1x Nasi Gudeg");
   await done.getByRole("button", { name: "Pesanan Baru" }).click();
 
-  await page.getByRole("link", { name: "Bill" }).click();
-  await expect(page.getByRole("listitem", { name: "Meja A1" })).toContainText("2 item");
+  await page.getByRole("link", { name: "Meja" }).click();
+  await page.getByRole("button", { name: /^Meja A1/ }).click();
+  await expect(page.getByRole("listitem", { name: "1× Nasi Gudeg" })).toBeVisible();
 
-  // Guest 2 pays the rest: the bill closes
-  await page.getByRole("button", { name: "Lanjutkan A1" }).click();
-  await openOrder(page);
-  await page.getByRole("link", { name: /^Bayar ·/ }).first().click();
+  // Guest 2 pays the rest: the bill closes and A1 is empty again
+  await page.getByRole("button", { name: "Bayar", exact: true }).click();
   await page.getByRole("button", { name: "Rp 50.000" }).first().click();
   await page.getByRole("button", { name: "Selesaikan" }).click();
   await page.getByRole("dialog", { name: "Transaksi berhasil" }).getByRole("button", { name: "Pesanan Baru" }).click();
-  await page.getByRole("link", { name: "Bill" }).click();
-  await expect(page.getByText("Tidak ada bill terbuka")).toBeVisible();
+  await page.getByRole("link", { name: "Meja" }).click();
+  await expect(page.getByRole("button", { name: /^Meja A1/ })).toHaveAttribute("data-state", "empty");
 });

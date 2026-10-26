@@ -46,7 +46,8 @@ function toPay<L extends { key: string; quantity: number }>(lines: L[], take: Re
   }
 }
 
-export function CheckoutScreen() {
+/** `startSplit`: the table screen's "Pisah bill" (15 · UX-04) opens with paying by item. */
+export function CheckoutScreen({ startSplit = false }: { startSplit?: boolean }) {
   const user = useSession((s) => s.user);
   const outlet = useOutletSetting();
   const methods = usePaymentMethods();
@@ -55,7 +56,7 @@ export function CheckoutScreen() {
   // The sale channel's rates (ADR-029) in the brand's price mode (ADR-030), as placeOrder snapshots them.
   const { channel, rates } = useSaleChannel();
   const needsRef = channel?.requiresExternalRef === true && externalRef.trim() === "";
-  const [take, setTake] = useState<Record<string, number> | null>(null);
+  const [take, setTake] = useState<Record<string, number> | null>(() => (startSplit && bill && canSplit(discount) ? {} : null));
   const { paying, remaining } = toPay(lines, take);
   const totals = usePricing(paying, discount, rates, promotionIds);
   const promotions = useAvailablePromotions(paying);

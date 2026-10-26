@@ -19,6 +19,8 @@ export interface CartBill {
   tableLabel: string;
   openedBy: string;
   openedAt: string;
+  /** Guests at the table (15 · UX-04); null = not asked. */
+  guestCount?: number | null;
 }
 
 interface CartState {
