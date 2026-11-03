@@ -33,12 +33,20 @@ async def test_an_operator_email_is_used_once(api: AsyncClient, admin_token: str
     assert (response.status_code, response.json()["code"]) == (409, "OPERATOR_EMAIL_TAKEN")
 
 
-async def test_an_operator_password_has_at_least_12_characters(
+async def test_an_operator_password_has_at_least_8_characters(
     api: AsyncClient, admin_token: str
 ) -> None:
-    response = await ops_post(api, admin_token, "/operators", {**NEW, "password": "pendek-123"})
+    response = await ops_post(api, admin_token, "/operators", {**NEW, "password": "pendek1"})
 
     assert response.status_code == 422
+
+
+async def test_an_operator_password_of_8_characters_is_enough(
+    api: AsyncClient, admin_token: str
+) -> None:
+    response = await ops_post(api, admin_token, "/operators", {**NEW, "password": "rina-123"})
+
+    assert response.status_code == 201, response.text
 
 
 async def test_a_disabled_operator_is_signed_out_and_cannot_sign_in(

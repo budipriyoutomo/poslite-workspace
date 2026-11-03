@@ -6,7 +6,7 @@ import { type components, unwrap, useApi } from "@/shared/api";
 
 export type OperatorInput = components["schemas"]["OperatorIn"];
 
-export const MIN_PASSWORD = 12;
+export const MIN_PASSWORD = 8;
 
 export function useOperators() {
   const api = useApi();

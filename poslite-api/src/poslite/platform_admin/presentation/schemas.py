@@ -3,9 +3,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
-from poslite.shared.presentation.schemas import Email, Name
-
-OperatorPassword = Annotated[str, StringConstraints(min_length=12, max_length=128)]
+from poslite.shared.presentation.schemas import Email, Name, Password
 
 
 class LoginIn(BaseModel):
@@ -38,7 +36,7 @@ class SessionOut(BaseModel):
 class OperatorIn(BaseModel):
     email: Email
     name: Name
-    password: OperatorPassword
+    password: Password
 
 
 class OperatorOut(BaseModel):

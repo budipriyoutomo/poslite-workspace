@@ -58,16 +58,18 @@ describe("OperatorsScreen", () => {
     );
   });
 
-  it("requires a password of at least 12 characters", async () => {
+  it("requires a password of at least 8 characters", async () => {
     const { calls } = server();
     await row("ops@poslite.id");
 
     await userEvent.click(screen.getByRole("button", { name: "Tambah operator" }));
     await userEvent.type(screen.getByLabelText("Nama"), "Sari");
     await userEvent.type(screen.getByLabelText("Email"), "sari@poslite.id");
-    await userEvent.type(screen.getByLabelText("Password"), "pendek");
+    await userEvent.type(screen.getByLabelText("Password"), "pendek1");
 
     expect(screen.getByRole("button", { name: "Simpan" })).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("Password"), "2");
+    expect(screen.getByRole("button", { name: "Simpan" })).toBeEnabled();
     expect(calls.some((c) => c.method === "POST")).toBe(false);
   });
 

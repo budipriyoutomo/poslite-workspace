@@ -29,9 +29,9 @@ def main() -> None:
     create.add_argument("email")
     create.add_argument("name")
     args = parser.parse_args()
-    password = getpass.getpass("Password (min. 12 characters): ")
-    if len(password) < 12 or password != getpass.getpass("Repeat password: "):
-        parser.error("passwords must match and be at least 12 characters")
+    password = getpass.getpass("Password (min. 8 characters): ")
+    if len(password) < 8 or password != getpass.getpass("Repeat password: "):
+        parser.error("passwords must match and be at least 8 characters")
     admin_id = asyncio.run(_create(args.email, args.name, password))
     print(f"created platform admin {admin_id}")  # noqa: T201 — CLI output
 
