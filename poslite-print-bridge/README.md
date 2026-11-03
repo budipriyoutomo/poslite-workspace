@@ -41,6 +41,9 @@ Bridge menjawab preflight *Private Network Access* Chrome (`Access-Control-Allow
 - `POST /print` `{"printer":"192.168.1.50:9100","data":"<base64 ESC/POS>"}` dengan `Authorization: Bearer <token>`
   - `200 {"ok":true}` · `400 BAD_REQUEST` · `401 UNAUTHORIZED` · `403 PRINTER_NOT_ALLOWED` / `ORIGIN_NOT_ALLOWED` · `413 TOO_LARGE` (> 1 MB) · `502 PRINTER_UNREACHABLE` · `504 PRINTER_TIMEOUT`
 
+- `GET /discover` dengan `Authorization: Bearer <token>` (token yang sama dengan `/print`) → `200 {"printers":[{"host":"192.168.1.50","port":9100}]}` · `401 UNAUTHORIZED` · `403 ORIGIN_NOT_ALLOWED`
+  - Untuk wizard printer di POS (15 · UX-08): bridge mencoba port 9100 di subnet antarmuka jaringannya sendiri, paling luas /24 alamat bridge, paling lama ±5 detik. Yang menjawab sampai batas waktu itu dikembalikan. Printer yang tidak lolos `BRIDGE_PRINTERS` tidak ikut dikembalikan. Bridge versi lama menjawab `404`, lalu POS meminta alamat IP manual.
+
 Job ke printer yang sama dikerjakan berurutan (dua tablet tidak saling menyela). Token dan isi struk tidak pernah dicatat di log.
 
 ## Keamanan

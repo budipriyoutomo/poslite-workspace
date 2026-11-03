@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type RequestListener, type Server, type ServerResponse } from "node:http";
 
+import { discoverPrinters } from "./discover.ts";
 import { Pairing } from "./pairing.ts";
 import { isAllowed, type PrinterAddress, parsePrinterAddress } from "./printer-address.ts";
 import { statusPage } from "./status-page.ts";
@@ -17,6 +18,8 @@ export interface BridgeConfig {
   pairing?: Pairing;
   /** Whether the caller is this PC (the local page and test print are not for the LAN). */
   isLocal?: (req: IncomingMessage) => boolean;
+  /** 15 · UX-08: finds printers on the LAN for the POS's setup wizard; tests pass a fake. */
+  discover?: () => Promise<PrinterAddress[]>;
 }
 
 export type SendRaw = (address: PrinterAddress, data: Buffer) => Promise<void>;
@@ -88,6 +91,7 @@ export function createBridgeHandler(config: BridgeConfig, send: SendRaw): Reques
   const queues = new Map<string, Promise<unknown>>();
   const pairing = config.pairing ?? new Pairing();
   const isLocal = config.isLocal ?? isLoopback;
+  const discover = config.discover ?? (() => discoverPrinters());
   // Why the last jobs failed (printer and error code only: never the receipt bytes).
   const errors: { at: string; printer: string; error: string }[] = [];
   const failed = (printer: PrinterAddress, error: string) => {
@@ -146,6 +150,13 @@ export function createBridgeHandler(config: BridgeConfig, send: SendRaw): Reques
         failed(address, code);
         return json(res, STATUS_OF[code] ?? 502, { error: code });
       }
+    }
+    if (req.method === "GET" && path === "/discover") {
+      if (!isOriginAllowed) return json(res, 403, { error: "ORIGIN_NOT_ALLOWED" });
+      // The same token as printing: an open scan would map the outlet's LAN for anyone on it.
+      if (!isTokenValid(req.headers.authorization, config.token)) return json(res, 401, { error: "UNAUTHORIZED" });
+      const printers = (await discover()).filter((p) => isAllowed(p, config.printers));
+      return json(res, 200, { printers });
     }
     if (req.method !== "POST" || path !== "/print") return json(res, 404, { error: "NOT_FOUND" });
 

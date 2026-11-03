@@ -17,7 +17,7 @@ export function parsePrinterAddress(value: string): PrinterAddress | null {
   return { host: match[1]!, port };
 }
 
-function isPrivateIPv4(host: string): boolean {
+export function isPrivateIPv4(host: string): boolean {
   if (!isIPv4(host)) return false;
   const [a, b] = host.split(".").map(Number) as [number, number];
   return a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);

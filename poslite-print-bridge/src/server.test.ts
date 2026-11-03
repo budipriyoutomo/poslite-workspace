@@ -194,4 +194,47 @@ describe("Print Bridge server", () => {
     assert.equal((await fetch(`${url}/`)).status, 403);
     assert.equal((await fetch(`${url}/test-print`, { method: "POST", body: "{}" })).status, 403);
   });
+
+  describe("GET /discover (15 · UX-08)", () => {
+    const found = [
+      { host: "192.168.1.50", port: 9100 },
+      { host: "192.168.1.60", port: 9100 },
+    ];
+    const discover = (url: string, headers: Record<string, string> = {}) => fetch(`${url}/discover`, { headers: { Authorization: "Bearer s3cret", Origin: POS, ...headers } });
+
+    it("lists the printers found on the LAN", async () => {
+      const { url } = await start({ discover: async () => found });
+
+      const response = await discover(url);
+
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { printers: found });
+    });
+
+    it("needs the same token as printing", async () => {
+      let scans = 0;
+      const { url } = await start({
+        discover: async () => {
+          scans++;
+          return found;
+        },
+      });
+
+      assert.equal((await discover(url, { Authorization: "Bearer wrong" })).status, 401);
+      assert.equal((await fetch(`${url}/discover`)).status, 401);
+      assert.equal(scans, 0);
+    });
+
+    it("leaves out printers the allowlist would refuse to print to", async () => {
+      const { url } = await start({ printers: ["192.168.1.60:9100"], discover: async () => found });
+
+      assert.deepEqual(await (await discover(url)).json(), { printers: [{ host: "192.168.1.60", port: 9100 }] });
+    });
+
+    it("refuses a POS origin that is not allowed", async () => {
+      const { url } = await start({ allowedOrigins: ["https://other.example"], discover: async () => found });
+
+      assert.equal((await discover(url)).status, 403);
+    });
+  });
 });
