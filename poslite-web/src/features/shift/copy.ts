@@ -7,8 +7,8 @@ export const copy = {
   currentTitle: "Shift Berjalan",
   businessDate: "Tanggal operasional",
   openedAt: "Dibuka",
-  cashSales: "Penjualan tunai",
-  cashChange: "Kembalian",
+  // 15 · UX-10: what the cash sales left in the drawer, change already handed back.
+  netCashSales: "Penjualan tunai (bersih)",
   cashIn: "Kas masuk",
   cashOut: "Kas keluar",
   expectedCash: "Seharusnya di laci",

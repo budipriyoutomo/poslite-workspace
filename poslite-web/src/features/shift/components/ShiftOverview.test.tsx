@@ -42,13 +42,28 @@ describe("ShiftOverview (15 · UX-02)", () => {
     expect(await screen.findByText("Modal awal")).toBeInTheDocument();
     expect(screen.getByText("Transaksi")).toBeInTheDocument();
     expect(screen.queryByText("Seharusnya di laci")).not.toBeInTheDocument();
-    expect(screen.queryByText("Penjualan tunai")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Penjualan tunai/)).not.toBeInTheDocument();
     expect(screen.queryByText("Kembalian")).not.toBeInTheDocument();
   });
 
   it("shows a manager the expected cash", async () => {
     renderAs("Budi");
     expect(await screen.findByText("Seharusnya di laci")).toBeInTheDocument();
+  });
+
+  it("shows a manager the cash sales net of change on one row (15 · UX-10)", async () => {
+    const db = getDb();
+    await db.orders.put({
+      id: "01ORDER", shiftId: shift.id, receiptNo: "A1-0001", cashierId: users.Siti!.id, cashierName: "Siti", businessDate: shift.businessDate,
+      orderType: "take_away", lines: [], discount: null, rates: { serviceBps: 0, taxBps: 0 }, subtotal: 46_200, discountAmount: 0,
+      serviceCharge: 0, tax: 0, total: 46_200, paidAmount: 50_000, changeAmount: 3_800, status: "paid", syncStatus: "pending", flags: [], createdAt: shift.openedAt,
+    });
+    await db.payments.put({ id: "01PAY", orderId: "01ORDER", paymentMethodId: "PM1", methodType: "cash", methodName: "Tunai", amount: 50_000, reference: null, createdAt: shift.openedAt });
+    renderAs("Budi");
+
+    const row = await screen.findByText("Penjualan tunai (bersih)");
+    expect(row.nextElementSibling).toHaveTextContent("Rp 46.200");
+    expect(screen.queryByText("Kembalian")).not.toBeInTheDocument();
   });
 
   it("shows the cashier the expected cash once a manager approves", async () => {

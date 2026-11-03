@@ -31,8 +31,7 @@ const blindRows = (s: Summary): [string, string][] => [
 
 const fullRows = (s: Summary): [string, string][] => [
   [copy.openingCash, formatRupiah(s.openingCash)],
-  [copy.cashSales, formatRupiah(s.cashSales)],
-  [copy.cashChange, formatRupiah(-s.cashChange)],
+  [copy.netCashSales, formatRupiah(s.cashSales - s.cashChange)],
   [copy.cashIn, formatRupiah(s.cashIn)],
   [copy.cashOut, formatRupiah(-s.cashOut)],
   [copy.cashRefunds, formatRupiah(-s.cashRefunds)],
