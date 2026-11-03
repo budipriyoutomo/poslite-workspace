@@ -5,10 +5,11 @@ import { useState } from "react";
 import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
-import { BillCartActions, OrderTypeBar, PhoneSendBar, PhoneTableBar } from "@/features/bills";
+import { BillCartActions, OrderTypeBar, PhoneSendBar, PhoneTableBar, retryStation } from "@/features/bills";
 import { CartLines, LineDiscountField, useCart } from "@/features/cart";
 import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog, useMenuView } from "@/features/catalog";
 import { OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
+import { StationAlert } from "@/features/printing";
 import { isManager, type ProductRow } from "@/shared/db";
 import { useMediaQuery } from "@/shared/hooks";
 import { formatRupiah } from "@/shared/money";
@@ -111,52 +112,56 @@ export function SellScreen() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      {!isWide && <PhoneTableBar />}
-      <ProductGrid
-        catalog={catalog}
-        quantities={quantities}
-        view={menuView}
-        layout={isWide ? "grid" : "list"}
-        {...(isManager(user?.role) && { onViewChange: setMenuView })}
-        onSelect={select}
-        onDecrease={decrease}
-        {...(user && !isWaiter && { onManage: setManaging })}
-      />
-      {managing && (
-        <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
-      )}
-      {isWide ? (
-        <aside className="flex w-80 shrink-0 flex-col border-l bg-card p-4 lg:w-96">
-          <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
-          {cartPanel}
-        </aside>
-      ) : newCount > 0 ? (
-        <PhoneSendBar subtotal={totals.subtotal} onOpen={() => setIsCartOpen(true)} />
-      ) : (
-        <CartBar itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
-      )}
-      <Sheet open={isCartOpen && !isWide} onOpenChange={setIsCartOpen}>
-        <SheetContent side="bottom" aria-describedby={undefined} className="h-[88dvh] gap-2 rounded-t-2xl p-4 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <span aria-hidden className="mx-auto mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="p-0">
-            <SheetTitle>Pesanan</SheetTitle>
-          </SheetHeader>
-          {cartPanel}
-        </SheetContent>
-      </Sheet>
-      {editing && (
-        <LineEditorDialog
-          open
-          product={editing.product}
-          groups={groupsOf(editing.product)}
-          initial={editingLine && { optionIds: editingLine.modifiers.map((m) => m.optionId), note: editingLine.note }}
-          onConfirm={confirm}
-          onOpenChange={(open) => !open && setEditing(null)}
-        >
-          {editing.lineKey && <LineDiscountField lineKey={editing.lineKey} />}
-        </LineEditorDialog>
-      )}
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* 15 · UX-08: the kitchen gets no orders while its printer is down. */}
+      <StationAlert onRetry={(station) => retryStation(station, user?.name ?? "")} />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+        {!isWide && <PhoneTableBar />}
+        <ProductGrid
+          catalog={catalog}
+          quantities={quantities}
+          view={menuView}
+          layout={isWide ? "grid" : "list"}
+          {...(isManager(user?.role) && { onViewChange: setMenuView })}
+          onSelect={select}
+          onDecrease={decrease}
+          {...(user && !isWaiter && { onManage: setManaging })}
+        />
+        {managing && (
+          <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
+        )}
+        {isWide ? (
+          <aside className="flex w-80 shrink-0 flex-col border-l bg-card p-4 lg:w-96">
+            <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
+            {cartPanel}
+          </aside>
+        ) : newCount > 0 ? (
+          <PhoneSendBar subtotal={totals.subtotal} onOpen={() => setIsCartOpen(true)} />
+        ) : (
+          <CartBar itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
+        )}
+        <Sheet open={isCartOpen && !isWide} onOpenChange={setIsCartOpen}>
+          <SheetContent side="bottom" aria-describedby={undefined} className="h-[88dvh] gap-2 rounded-t-2xl p-4 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <span aria-hidden className="mx-auto mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+            <SheetHeader className="p-0">
+              <SheetTitle>Pesanan</SheetTitle>
+            </SheetHeader>
+            {cartPanel}
+          </SheetContent>
+        </Sheet>
+        {editing && (
+          <LineEditorDialog
+            open
+            product={editing.product}
+            groups={groupsOf(editing.product)}
+            initial={editingLine && { optionIds: editingLine.modifiers.map((m) => m.optionId), note: editingLine.note }}
+            onConfirm={confirm}
+            onOpenChange={(open) => !open && setEditing(null)}
+          >
+            {editing.lineKey && <LineDiscountField lineKey={editing.lineKey} />}
+          </LineEditorDialog>
+        )}
+      </div>
     </div>
   );
 }

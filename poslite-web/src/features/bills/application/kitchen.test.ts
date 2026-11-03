@@ -4,7 +4,7 @@ import type { KitchenOrder } from "@/features/printing";
 import type { OpenBillLine, PosDb } from "@/shared/db";
 
 import { createTestDb } from "../../../../tests/support/test-db";
-import { sendBillToKitchen, sendVoidToKitchen } from "./kitchen";
+import { retryKitchenTickets, retryStation, sendBillToKitchen, sendVoidToKitchen } from "./kitchen";
 
 let db: PosDb;
 let tickets: KitchenOrder[];
@@ -82,5 +82,48 @@ describe("sendVoidToKitchen (ADR-028)", () => {
     const result = await sendVoidToKitchen({ bill: { id: "B1", tableLabel: "A1" }, voided, cashierName: "Siti", reason: "Salah input", approverName: null }, deps());
 
     expect(result).toEqual({ hasFailed: true });
+  });
+});
+
+describe("retryKitchenTickets (15 · UX-08)", () => {
+  it("sends again every open bill's items the kitchen never got", async () => {
+    await db.openBills.bulkPut([
+      { ...BILL, lines: [gudeg] },
+      { ...BILL, id: "B2", tableId: "T2", tableLabel: "A2", lines: [{ ...teh, sentQuantity: 1 }] },
+      { ...BILL, id: "B3", tableId: "T3", tableLabel: "A3", lines: [teh] },
+    ]);
+
+    expect(await retryKitchenTickets("Siti", deps())).toEqual({ retried: 2, hasFailed: false });
+    expect(tickets.map((t) => t.refId)).toEqual(["B1", "B3"]);
+  });
+
+  it("says when the printer still fails", async () => {
+    await db.openBills.put({ ...BILL, lines: [gudeg] });
+    failingKeys = ["g"];
+
+    expect(await retryKitchenTickets("Siti", deps())).toEqual({ retried: 1, hasFailed: true });
+  });
+});
+
+describe("retryStation (15 · UX-08)", () => {
+  it("sends the waiting tickets without a test print", async () => {
+    await db.openBills.put({ ...BILL, lines: [gudeg] });
+    const tested: string[] = [];
+
+    await retryStation("kitchen", "Siti", { kitchen: deps(), test: async (role) => void tested.push(role) });
+
+    expect([tickets.length, tested]).toEqual([1, []]);
+  });
+
+  it("test prints the station when no ticket is waiting, so its status can clear", async () => {
+    const tested: string[] = [];
+
+    await retryStation("bar", "Siti", { kitchen: deps(), test: async (role) => void tested.push(role) });
+
+    expect(tested).toEqual(["bar"]);
+  });
+
+  it("never throws when the printer is still off", async () => {
+    await expect(retryStation("bar", "Siti", { kitchen: deps(), test: () => Promise.reject(new Error("PRINTER_TIMEOUT")) })).resolves.toBeUndefined();
   });
 });

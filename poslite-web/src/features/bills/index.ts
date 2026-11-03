@@ -2,3 +2,4 @@
 export { TablesScreen } from "./components/TablesScreen";
 export { BillCartActions, OrderTypeBar, PhoneSendBar, PhoneTableBar } from "./components/OrderTypeBar";
 export { startOpenBillLoop } from "./application/shared-bills";
+export { retryStation } from "./application/kitchen";

@@ -1,5 +1,5 @@
 import { kitchenPending, markSent, type VoidedLine } from "@/features/cart";
-import { type KitchenOrder, printKitchenTickets } from "@/features/printing";
+import { type KitchenOrder, printKitchenTickets, testPrinter } from "@/features/printing";
 import { getDb, type PosDb } from "@/shared/db";
 
 export interface KitchenDeps {
@@ -60,4 +60,28 @@ export async function sendVoidToKitchen(
     lines: input.voided.map((v) => ({ key: v.key, productId: v.productId, name: v.name, quantity: v.quantity, modifiers: v.modifiers, note: "" })),
   });
   return { hasFailed };
+}
+
+/**
+ * "Coba lagi" when a kitchen or bar printer was unreachable (15 · UX-08): every open bill on this
+ * device sends the items its station never printed, one bill after another.
+ */
+export async function retryKitchenTickets(cashierName: string, deps: KitchenDeps = defaultDeps()): Promise<{ retried: number; hasFailed: boolean }> {
+  const bills = (await deps.db.openBills.orderBy("openedAt").toArray()).filter((b) => kitchenPending(b.lines).length > 0);
+  let hasFailed = false;
+  for (const bill of bills) hasFailed = (await sendBillToKitchen({ billId: bill.id, cashierName }, deps)).hasFailed || hasFailed;
+  return { retried: bills.length, hasFailed };
+}
+
+/**
+ * "Coba lagi" on a station's printer: the tickets still waiting go again; with none waiting, a
+ * test print shows whether the printer is back (and clears its "unreachable" when it is).
+ */
+export async function retryStation(
+  station: "kitchen" | "bar",
+  cashierName: string,
+  { kitchen = defaultDeps(), test = testPrinter }: { kitchen?: KitchenDeps; test?: (role: "kitchen" | "bar") => Promise<void> } = {},
+): Promise<void> {
+  const { retried } = await retryKitchenTickets(cashierName, kitchen);
+  if (retried === 0) await test(station).catch(() => undefined); // the status shows the result
 }
