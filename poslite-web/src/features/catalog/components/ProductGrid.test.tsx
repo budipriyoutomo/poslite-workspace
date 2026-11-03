@@ -91,4 +91,42 @@ describe("ProductGrid", () => {
       expect(screen.queryByRole("group", { name: "Tampilan menu" })).not.toBeInTheDocument();
     });
   });
+
+  describe("list on a phone (15 · UX-09)", () => {
+    const withOptions = { ...catalog(null), products: [product("P1", "Es Teh", null), { ...product("P3", "Nasi Goreng", null), modifierGroupIds: ["G1"] }] };
+
+    it("adds an item with the big + button", async () => {
+      const onSelect = vi.fn();
+      render(<ProductGrid catalog={catalog(null)} layout="list" onSelect={onSelect} />);
+
+      await userEvent.click(screen.getByRole("button", { name: "Tambah Es Teh" }));
+
+      expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "P1" }));
+    });
+
+    it("turns + into a stepper once the item is in the order", async () => {
+      const onDecrease = vi.fn();
+      render(<ProductGrid catalog={catalog(null)} layout="list" quantities={{ P1: 2 }} onSelect={vi.fn()} onDecrease={onDecrease} />);
+
+      expect(screen.getByRole("group", { name: "Jumlah Es Teh" })).toHaveTextContent("2");
+      await userEvent.click(screen.getByRole("button", { name: "Kurangi Es Teh" }));
+      expect(onDecrease).toHaveBeenCalledWith(expect.objectContaining({ id: "P1" }));
+    });
+
+    it("marks an item with choices and keeps + so each choice is its own line", () => {
+      render(<ProductGrid catalog={withOptions} layout="list" quantities={{ P3: 1 }} onSelect={vi.fn()} onDecrease={vi.fn()} />);
+
+      expect(screen.getByText("ada pilihan")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Tambah Nasi Goreng" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Kurangi Nasi Goreng" })).not.toBeInTheDocument();
+    });
+
+    it("shows a sold-out item without a + button", () => {
+      const soldOut = { ...catalog(null), products: [{ ...product("P1", "Es Teh", null), isAvailable: false }] };
+      render(<ProductGrid catalog={soldOut} layout="list" onSelect={vi.fn()} />);
+
+      expect(screen.getByText("Habis")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Tambah Es Teh" })).not.toBeInTheDocument();
+    });
+  });
 });

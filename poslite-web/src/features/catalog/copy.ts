@@ -9,6 +9,11 @@ export const copy = {
   loading: "Memuat menu",
   inOrder: (quantity: number) => `${quantity} di pesanan`,
   unavailable: "Habis",
+  // 15 · UX-09: the phone's list rows.
+  hasChoices: "ada pilihan",
+  increase: (name: string) => `Tambah ${name}`,
+  decrease: (name: string) => `Kurangi ${name}`,
+  quantityOf: (name: string) => `Jumlah ${name}`,
   view: "Tampilan menu",
   compact: "Ringkas",
   photo: "Foto",

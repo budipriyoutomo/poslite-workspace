@@ -16,23 +16,13 @@ import { cn } from "@/shared/ui/utils";
 import type { Catalog } from "../application/use-catalog";
 import { copy } from "../copy";
 import { categoryTone, initials, type Tone } from "../domain/menu-tile";
+import { ProductListRow } from "./ProductListRow";
+import { STRIP, tap } from "./tile";
 
 // Columns follow the space the grid gets (rail and cart panel vary by device), not the viewport.
 const gridClass = "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3";
 // Compact (15 · UX-06): text tiles, five across beside the cart on a tablet.
 const compactGridClass = "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2";
-
-const STRIP: Record<Tone, string> = {
-  emerald: "bg-emerald-500",
-  sky: "bg-sky-500",
-  amber: "bg-amber-500",
-  rose: "bg-rose-500",
-  violet: "bg-violet-500",
-  lime: "bg-lime-500",
-  orange: "bg-orange-500",
-  cyan: "bg-cyan-500",
-  neutral: "bg-muted-foreground/40",
-};
 
 interface Props {
   catalog: Catalog;
@@ -40,14 +30,18 @@ interface Props {
   quantities?: Record<string, number>;
   /** Compact text tiles (the default) or photos (15 · UX-06). */
   view?: MenuView;
+  /** "list" on a phone (15 · UX-09): compact tiles become one row per item with a + button. */
+  layout?: "grid" | "list";
   /** A manager switches the view; absent = the switch is hidden. */
   onViewChange?: (view: MenuView) => void;
   onSelect: (product: ProductRow) => void;
+  /** The list's − button: one unit of the item less; absent = no stepper. */
+  onDecrease?: (product: ProductRow) => void;
   /** Long press: mark the item sold out or available again (P1-2); absent = not allowed. */
   onManage?: (product: ProductRow) => void;
 }
 
-export function ProductGrid({ catalog, quantities = {}, view = "compact", onViewChange, onSelect, onManage }: Props) {
+export function ProductGrid({ catalog, quantities = {}, view = "compact", layout = "grid", onViewChange, onSelect, onDecrease, onManage }: Props) {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
@@ -55,6 +49,7 @@ export function ProductGrid({ catalog, quantities = {}, view = "compact", onView
 
   const categoryIds = catalog.categories.map((c) => c.id);
   const toneOf = (p: ProductRow) => categoryTone(categoryIds, p.categoryId);
+  const isList = view === "compact" && layout === "list";
 
   if (catalog.products.length === 0) return <EmptyState icon={UtensilsCrossed} title={copy.noMenu} hint={copy.noMenuHint} />;
   return (
@@ -103,7 +98,7 @@ export function ProductGrid({ catalog, quantities = {}, view = "compact", onView
           )}
         </EmptyState>
       ) : (
-        <ul className={cn(view === "compact" ? compactGridClass : gridClass, "overflow-y-auto")}>
+        <ul className={cn(isList ? "flex flex-col divide-y rounded-lg border bg-card" : view === "compact" ? compactGridClass : gridClass, "overflow-y-auto")}>
           {products.map((p) => (
             // A long press opens the context menu on touch screens; the card itself may be disabled.
             <li
@@ -114,7 +109,9 @@ export function ProductGrid({ catalog, quantities = {}, view = "compact", onView
                 onManage(p);
               }}
             >
-              {view === "compact" ? (
+              {isList ? (
+                <ProductListRow product={p} tone={toneOf(p)} quantity={quantities[p.id] ?? 0} hasChoices={p.modifierGroupIds.length > 0} onSelect={onSelect} {...(onDecrease && { onDecrease })} />
+              ) : view === "compact" ? (
                 <ProductTile product={p} tone={toneOf(p)} quantity={quantities[p.id] ?? 0} onSelect={onSelect} />
               ) : (
                 <ProductCard catalog={catalog} product={p} tone={toneOf(p)} quantity={quantities[p.id] ?? 0} onSelect={onSelect} />
@@ -128,11 +125,6 @@ export function ProductGrid({ catalog, quantities = {}, view = "compact", onView
 }
 
 type CardProps = { product: ProductRow; tone: Tone; quantity: number; onSelect: (p: ProductRow) => void };
-
-function tap(p: ProductRow, onSelect: (p: ProductRow) => void) {
-  navigator.vibrate?.(10); // a short tick on phones that support it, so a tap feels registered
-  onSelect(p);
-}
 
 function QuantityBadge({ quantity, className }: { quantity: number; className?: string }) {
   // Keyed by quantity so the badge pops on every add.
