@@ -316,8 +316,10 @@ export interface PrintJobRow {
   id: string;
   orderId: string;
   /** Absent on rows from before Fase 7 = "receipt". */
-  documentType?: "receipt" | "void_slip" | "refund_slip" | "kitchen_ticket" | "guest_check";
+  documentType?: "receipt" | "void_slip" | "refund_slip" | "kitchen_ticket" | "guest_check" | "test_page";
   refundId?: string;
+  /** The printer it went to, for the printer's status (15 · UX-08); absent = the receipt printer. */
+  role?: PrinterConfigRow["role"];
   status: "queued" | "printed" | "failed";
   attempts: number;
   lastError?: string;

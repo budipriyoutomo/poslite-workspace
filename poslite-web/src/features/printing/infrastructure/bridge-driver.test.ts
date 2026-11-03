@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createBridgeDriver, pairBridge } from "./bridge-driver";
+import { createBridgeDriver, discoverBridgePrinters, pairBridge } from "./bridge-driver";
 
 const DEVICE = { bridgeUrl: "https://kasir-pc.local:9443", bridgeToken: "s3cret", address: "192.168.1.50:9100" };
 
@@ -81,5 +81,25 @@ describe("pairBridge (P1-5)", () => {
     const fetchFn = vi.fn(async () => new Response(JSON.stringify({ error: "INVALID_CODE" }), { status: 401 }));
 
     await expect(pairBridge("http://localhost:9180", "000000", fetchFn)).rejects.toThrow("INVALID_CODE");
+  });
+});
+
+describe("discoverBridgePrinters (15 · UX-08)", () => {
+  it("asks the bridge for the printers on its LAN, with the token", async () => {
+    const { fetchFn, calls } = fakeFetch(() => Response.json({ printers: [{ host: "192.168.1.50", port: 9100 }] }));
+
+    expect(await discoverBridgePrinters(DEVICE.bridgeUrl, "s3cret", fetchFn)).toEqual(["192.168.1.50:9100"]);
+    expect(calls[0]).toMatchObject({ url: "https://kasir-pc.local:9443/discover", init: { headers: { Authorization: "Bearer s3cret" } } });
+  });
+
+  it("is null for a bridge too old to discover, so the wizard asks for the IP", async () => {
+    const { fetchFn } = fakeFetch(() => Response.json({ error: "NOT_FOUND" }, { status: 404 }));
+
+    expect(await discoverBridgePrinters(DEVICE.bridgeUrl, "s3cret", fetchFn)).toBeNull();
+  });
+
+  it("says why when the bridge cannot be reached or refuses the token", async () => {
+    await expect(discoverBridgePrinters(DEVICE.bridgeUrl, "x", (async () => Promise.reject(new TypeError("fetch failed"))) as typeof fetch)).rejects.toThrow("BRIDGE_UNREACHABLE");
+    await expect(discoverBridgePrinters(DEVICE.bridgeUrl, "x", fakeFetch(() => Response.json({}, { status: 401 })).fetchFn)).rejects.toThrow("BRIDGE_UNAUTHORIZED");
   });
 });

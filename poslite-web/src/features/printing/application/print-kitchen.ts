@@ -75,7 +75,7 @@ export async function printKitchenTickets(order: KitchenOrder, deps: KitchenPrin
       ...(order.queue && { queue: order.queue }),
       lines,
     });
-    const isPrinted = await runPrintJob({ orderId: order.refId, documentType: "kitchen_ticket" }, async () => ({ doc, columns }), { ...deps, printer: deps.printerFor(station) });
+    const isPrinted = await runPrintJob({ orderId: order.refId, documentType: "kitchen_ticket", role: station }, async () => ({ doc, columns }), { ...deps, printer: deps.printerFor(station) });
     if (!isPrinted) lines.forEach((l) => unsent.add(l.key));
   }
   return { sentKeys: order.lines.filter((l) => !unsent.has(l.key)).map((l) => l.key), hasFailed: unsent.size > 0 };

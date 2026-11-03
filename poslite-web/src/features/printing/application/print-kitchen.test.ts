@@ -107,6 +107,16 @@ describe("printKitchenTickets", () => {
     ]);
   });
 
+  it("records which station each ticket was for, for the printer's status (15 · UX-08)", async () => {
+    brokenRoles = ["kitchen"];
+    await printKitchenTickets(order, deps());
+
+    expect((await db.printJobs.toArray()).map((j) => [j.role, j.status])).toEqual([
+      ["kitchen", "failed"],
+      ["bar", "printed"],
+    ]);
+  });
+
   it("prints nothing when no line needs the kitchen or bar", async () => {
     expect(await printKitchenTickets({ ...order, lines: [order.lines[2]!] }, deps())).toEqual({ sentKeys: ["k3"], hasFailed: false });
     expect(printed).toEqual([]);

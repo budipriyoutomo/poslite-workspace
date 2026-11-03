@@ -25,7 +25,7 @@ export const defaultPrintDeps = (): PrintDeps => {
  * fail or roll back the sale, void or refund it belongs to (AGENTS.md §6).
  */
 export async function runPrintJob(
-  job: Pick<PrintJobRow, "orderId" | "documentType" | "refundId">,
+  job: Pick<PrintJobRow, "orderId" | "documentType" | "refundId" | "role">,
   load: () => Promise<{ doc: ReceiptDocument; columns: number } | undefined>,
   deps: PrintDeps,
 ): Promise<boolean> {

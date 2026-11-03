@@ -9,9 +9,12 @@ import { newId } from "@/shared/id";
 import { copy, printerErrorMessage } from "../copy";
 import { browserPrinterDrivers } from "../infrastructure/browser-drivers";
 import type { PrinterRole } from "./configured-printer";
-import { choicesFor, getPrinter, isAddressDriver, pairPrinter, type PrinterChoice, printTestPage, type PrinterSetupDeps, removePrinter, savePrinter, savePrinterAddress } from "./printer-setup";
+import { bridgeClient, choicesFor, getPrinter, isAddressDriver, pairPrinter, type PrinterChoice, printTestPage, type PrinterSetupDeps, removePrinter, savePrinter, savePrinterAddress } from "./printer-setup";
 
-export const defaultPrinterSetupDeps = (): PrinterSetupDeps => ({ db: getDb(), printers: browserPrinterDrivers(), newId, now: () => new Date() });
+export const defaultPrinterSetupDeps = (): PrinterSetupDeps => ({ db: getDb(), printers: browserPrinterDrivers(), newId, now: () => new Date(), bridge: bridgeClient });
+
+/** A test print on this device's printer for a role, from outside the settings screen (UX-08 retry). */
+export const testPrinter = (role: PrinterRole): Promise<void> => printTestPage(defaultPrinterSetupDeps(), role);
 
 /** The cashier closed the browser's device picker: not an error worth showing. */
 const isPickerCancelled = (e: unknown) => e instanceof DOMException && e.name === "NotFoundError";

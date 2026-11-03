@@ -1,15 +1,26 @@
 import type { PosDb, PrinterConfigRow, PrinterDevice } from "@/shared/db";
 
+import { TEST_PAGE_REF } from "../domain/printer-status";
 import { buildTestPage } from "../domain/test-page";
 import { createConfiguredPrinter, type PrinterDrivers, type PrinterRole, printerConfigFor } from "./configured-printer";
 import { RECEIPT_COLUMNS } from "./load-receipt";
-import { pairBridge } from "../infrastructure/bridge-driver";
+import { discoverBridgePrinters, pairBridge } from "../infrastructure/bridge-driver";
+
+/** The Print Bridge's pairing and LAN discovery (P1-5, 15 · UX-08); tests pass fakes. */
+export interface BridgeClient {
+  pair: (bridgeUrl: string, code: string) => Promise<string>;
+  /** `host:port` of the printers found; null = a bridge too old to look. */
+  discover: (bridgeUrl: string, token: string) => Promise<string[] | null>;
+}
+
+export const bridgeClient: BridgeClient = { pair: (url, code) => pairBridge(url, code), discover: (url, token) => discoverBridgePrinters(url, token) };
 
 export interface PrinterSetupDeps {
   db: PosDb;
   printers: PrinterDrivers;
   newId: () => string;
   now: () => Date;
+  bridge?: BridgeClient;
 }
 
 export type PrinterDriverChoice = PrinterConfigRow["driver"];
@@ -64,8 +75,11 @@ export async function pairPrinter({ db, printers }: PrinterSetupDeps, role: Prin
   await db.printers.put({ ...current, device });
 }
 
-/** Throws on failure so the settings screen can say why; receipts and tickets never do. */
-export async function printTestPage({ db, printers, now }: PrinterSetupDeps, role: PrinterRole = "receipt"): Promise<void> {
+/**
+ * Throws on failure so the settings screen can say why; receipts and tickets never do. Recorded as
+ * a print job of its role, so a test print that works clears the printer's "unreachable" (UX-08).
+ */
+export async function printTestPage({ db, printers, now, newId }: PrinterSetupDeps, role: PrinterRole = "receipt"): Promise<void> {
   const [config, outlet] = await Promise.all([printerConfigFor(db, role), db.settings.get("outlet")]);
   const columns = RECEIPT_COLUMNS[config?.paperWidth ?? 58];
   const doc = buildTestPage({
@@ -74,7 +88,15 @@ export async function printTestPage({ db, printers, now }: PrinterSetupDeps, rol
     printedAt: now().toISOString(),
     timezone: outlet?.value.timezone ?? "Asia/Jakarta",
   });
-  await createConfiguredPrinter(db, printers, role).print(doc, columns);
+  const id = newId();
+  await db.printJobs.add({ id, orderId: TEST_PAGE_REF, documentType: "test_page", role, status: "queued", attempts: 1, createdAt: now().toISOString() });
+  try {
+    await createConfiguredPrinter(db, printers, role).print(doc, columns);
+    await db.printJobs.update(id, { status: "printed" });
+  } catch (e) {
+    await db.printJobs.update(id, { status: "failed", lastError: e instanceof Error ? e.message : String(e) });
+    throw e;
+  }
 }
 
 /** LAN printers are found by an address the cashier types in, not a device picker. */

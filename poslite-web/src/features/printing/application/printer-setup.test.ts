@@ -83,6 +83,22 @@ describe("printer setup", () => {
   });
 });
 
+describe("the test print in the printer's status (15 · UX-08)", () => {
+  it("records a test print as a job of its role", async () => {
+    await savePrinter({ role: "kitchen", driver: "system", paperWidth: 58 }, deps);
+    await printTestPage(deps, "kitchen");
+
+    expect(await db.printJobs.toArray()).toMatchObject([{ role: "kitchen", orderId: "test-page", documentType: "test_page", status: "printed" }]);
+  });
+
+  it("records a failed test print and still tells the screen why", async () => {
+    deps.printers.system = { print: async () => Promise.reject(new Error("PRINTER_TIMEOUT")) };
+
+    await expect(printTestPage(deps)).rejects.toThrow("PRINTER_TIMEOUT");
+    expect(await db.printJobs.toArray()).toMatchObject([{ role: "receipt", status: "failed", lastError: "PRINTER_TIMEOUT" }]);
+  });
+});
+
 describe("kitchen and bar printers", () => {
   it("can be left out, share the receipt printer, or use their own connection", () => {
     expect(choicesFor("kitchen", deps.printers)).toEqual(["none", "same-as-receipt", "system", "web-serial"]);

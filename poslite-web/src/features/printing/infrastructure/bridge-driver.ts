@@ -58,3 +58,21 @@ export async function pairBridge(bridgeUrl: string, code: string, fetchFn: typeo
   if (!response.ok || !body.token) throw new Error(body.error ?? `HTTP_${response.status}`);
   return body.token;
 }
+
+/**
+ * The printers the bridge finds on its LAN (15 · UX-08), as `host:port`. A bridge from before
+ * `/discover` answers 404: null, and the setup wizard asks for the printer's IP instead.
+ */
+export async function discoverBridgePrinters(bridgeUrl: string, token: string, fetchFn: typeof fetch = (...args) => fetch(...args)): Promise<string[] | null> {
+  let response: Response;
+  try {
+    response = await fetchFn(`${httpBase(bridgeUrl)}/discover`, { headers: { Authorization: `Bearer ${token}` } });
+  } catch {
+    throw new Error("BRIDGE_UNREACHABLE");
+  }
+  if (response.status === 404) return null;
+  if (response.status === 401) throw new Error("BRIDGE_UNAUTHORIZED");
+  const body = (await response.json().catch(() => ({}))) as { printers?: { host: string; port: number }[]; error?: string };
+  if (!response.ok || !Array.isArray(body.printers)) throw new Error(body.error ?? `HTTP_${response.status}`);
+  return body.printers.map((p) => `${p.host}:${p.port}`);
+}
