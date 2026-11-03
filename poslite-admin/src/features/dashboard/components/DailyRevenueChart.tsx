@@ -50,11 +50,11 @@ export function DailyRevenueChart({ from, to, days }: { from: string; to: string
 
   return (
     <figure className="space-y-2">
-      <figcaption className="text-sm font-semibold">Pendapatan harian</figcaption>
+      <figcaption className="text-sm font-semibold">Total diterima harian</figcaption>
       {!hasSales && <p className="py-8 text-center text-sm text-muted-foreground">Belum ada penjualan pada periode ini.</p>}
       <div ref={box} className="relative" hidden={!hasSales}>
         {hasSales && (
-          <svg role="img" aria-label="Pendapatan harian per tanggal operasional" viewBox={`0 0 ${W} ${H}`} className="w-full">
+          <svg role="img" aria-label="Total diterima harian per tanggal operasional" viewBox={`0 0 ${W} ${H}`} className="w-full">
             {ticks.map((t) => (
               <g key={t}>
                 <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--chart-grid)" strokeWidth={1} />
@@ -107,11 +107,11 @@ export function DailyRevenueChart({ from, to, days }: { from: string; to: string
       <details className="text-sm">
         <summary className="cursor-pointer text-muted-foreground">Lihat tabel</summary>
         <div className="overflow-x-auto">
-          <table aria-label="Pendapatan harian (tabel)" className="mt-2 w-full">
+          <table aria-label="Total diterima harian (tabel)" className="mt-2 w-full">
             <thead>
               <tr className="text-left text-muted-foreground">
                 <th className="py-1 font-medium">Tanggal</th>
-                <th className="py-1 text-right font-medium">Pendapatan</th>
+                <th className="py-1 text-right font-medium">Total diterima</th>
               </tr>
             </thead>
             <tbody>

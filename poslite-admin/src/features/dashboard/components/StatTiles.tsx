@@ -25,7 +25,7 @@ function Tile({ label, value, icon: Icon, tone }: { label: string; value: string
   );
 }
 
-/** One hero figure (revenue) plus three supporting tiles. */
+/** One hero figure (total taken, service and PB1 included — 15 · UX-10) plus three supporting tiles. */
 export function StatTiles({ totals }: { totals: Totals }) {
   const average = totals.order_count > 0 ? Math.round(totals.net / totals.order_count) : 0;
   return (
@@ -33,8 +33,8 @@ export function StatTiles({ totals }: { totals: Totals }) {
       <Card className="relative gap-1 overflow-hidden border-0 bg-gradient-to-br from-emerald-600 to-teal-700 py-5 text-white shadow-lg shadow-emerald-700/20 sm:col-span-3 lg:col-span-1">
         <TrendingUp aria-hidden className="absolute -right-4 -bottom-6 size-32 text-white/10" />
         <CardContent className="relative px-5">
-          <p className="text-sm font-medium text-emerald-50/90">Pendapatan</p>
-          <output role="status" aria-label="Pendapatan" className="mt-1 block text-4xl font-semibold tracking-tight tabular-nums md:text-5xl">
+          <p className="text-sm font-medium text-emerald-50/90">Total diterima</p>
+          <output role="status" aria-label="Total diterima" className="mt-1 block text-4xl font-semibold tracking-tight tabular-nums md:text-5xl">
             {formatRupiah(totals.net)}
           </output>
         </CardContent>

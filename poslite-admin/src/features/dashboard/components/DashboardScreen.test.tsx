@@ -48,7 +48,7 @@ describe("DashboardScreen", () => {
   it("shows the last 7 days of the selected outlet by default", async () => {
     const { calls } = server();
 
-    expect(await screen.findByRole("status", { name: "Pendapatan" })).toHaveTextContent("Rp 72.765");
+    expect(await screen.findByRole("status", { name: "Total diterima" })).toHaveTextContent("Rp 72.765");
     expect(calls.find((c) => c.path.startsWith("/api/v1/reports"))?.path).toBe(
       `/api/v1/reports/sales-summary?outlet_id=${OUTLET.id}&from=2026-09-20&to=2026-09-26`,
     );
@@ -56,7 +56,7 @@ describe("DashboardScreen", () => {
 
   it("reports the whole active brand or the whole company (ADR-022)", async () => {
     const { calls } = server();
-    await screen.findByRole("status", { name: "Pendapatan" });
+    await screen.findByRole("status", { name: "Total diterima" });
 
     await userEvent.click(screen.getByRole("button", { name: "Semua outlet brand" }));
     await waitFor(() => expect(calls.at(-1)?.path).toBe(`/api/v1/reports/sales-summary?brand_id=${TEST_BRAND}&from=2026-09-20&to=2026-09-26`));
@@ -82,7 +82,7 @@ describe("DashboardScreen", () => {
 
   it("switches the range with a preset", async () => {
     const { calls } = server();
-    await screen.findByRole("status", { name: "Pendapatan" });
+    await screen.findByRole("status", { name: "Total diterima" });
 
     await userEvent.click(screen.getByRole("button", { name: "Hari ini" }));
 

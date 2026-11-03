@@ -11,7 +11,7 @@ const DAYS = [
 describe("DailyRevenueChart", () => {
   it("draws one column per day of the range, empty days included", () => {
     render(<DailyRevenueChart from="2026-09-24" to="2026-09-26" days={DAYS} />);
-    const chart = screen.getByRole("img", { name: /Pendapatan harian/ });
+    const chart = screen.getByRole("img", { name: /Total diterima harian/ });
     expect(within(chart).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
       "24 Sep: Rp 50.000",
       "25 Sep: Rp 0",
@@ -27,13 +27,13 @@ describe("DailyRevenueChart", () => {
 
   it("says there were no sales instead of drawing an empty scale", () => {
     render(<DailyRevenueChart from="2026-09-24" to="2026-09-26" days={[]} />);
-    expect(screen.queryByRole("img", { name: /Pendapatan harian/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /Total diterima harian/ })).not.toBeInTheDocument();
     expect(screen.getByText("Belum ada penjualan pada periode ini.")).toBeInTheDocument();
   });
 
   it("offers the same numbers as a table", () => {
     render(<DailyRevenueChart from="2026-09-24" to="2026-09-26" days={DAYS} />);
-    const table = screen.getByRole("table", { name: "Pendapatan harian (tabel)" });
+    const table = screen.getByRole("table", { name: "Total diterima harian (tabel)" });
     expect(within(table).getAllByRole("row")).toHaveLength(4); // header + 3 days
   });
 });
