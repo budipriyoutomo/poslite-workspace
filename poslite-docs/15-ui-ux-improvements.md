@@ -457,6 +457,27 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 
 ### UX-08 — Pengaturan Printer
 
+**Status: selesai** (branch `feat/ux-08-printer-setup`). Catatan implementasi:
+
+- **Status per printer**: dihitung dari `printJobs`, dan sekarang tiap job mencatat `role`. Test print juga dicatat sebagai job, jadi test print yang berhasil menghapus status gagal. Rinciannya di 04 "Layar Printer".
+- **Peran**:
+  - Kasir dan pelayan melihat status, Test print, Coba lagi, dan Panduan.
+  - Manajer/owner juga melihat **Ganti** (wizard) dan **Pengaturan lanjutan**. Isinya layar lama dengan semua driver: dialog sistem, ePOS, alamat bridge manual, dan token.
+- **Wizard**:
+  - Langkah 1 (Peran) sudah terisi dari kartu yang dibuka, jadi wizard mulai di "Langkah 2 dari 4".
+  - Bluetooth/USB yang tidak didukung browser tampil nonaktif dengan alasan "Tidak tersedia di perangkat ini (mis. iPad)".
+  - Pilihan "Tidak dicetak" menghapus printer stasiun lalu menutup wizard. "Pakai printer struk" langsung ke Test print.
+  - LAN: pairing, lalu `GET /discover`, lalu pilih dari daftar. Bridge lama atau tanpa hasil → input IP manual.
+- **Banner di layar Jual** dan **Coba lagi**: `retryStation` mengirim ulang item bill terbuka yang belum tercetak. Kalau tidak ada yang tertunda, dilakukan test print stasiun itu.
+- **Panduan**: dialog teks untuk 4 masalah umum (kertas/tutup, printer mati, Bluetooth, LAN).
+- **Belum**:
+  - Panduan masih teks, belum bergambar.
+  - "Tiket menunggu" dari order take-away yang sudah dibayar tidak ikut dicetak ulang oleh Coba lagi. Order itu dicetak ulang dari Riwayat.
+  - `/discover` belum diuji dengan printer dan jaringan asli (bagian 14 · P1-6).
+- **Test**:
+  - Bridge: `discover.test.ts` (probe palsu, batas /24, batas waktu) dan `/discover` di `server.test.ts` (token, daftar izin, origin).
+  - Web: `printer-status`, `connection-kinds`, `discoverBridgePrinters`, `PrinterOverview.test.tsx` (kasir vs manajer, wizard LAN/Bluetooth/iPad/printer struk), `StationAlert`, dan `retryKitchenTickets` / `retryStation`.
+
 **Masalah**
 
 - Layar Printer bisa dibuka kasir dan penuh istilah teknis: "Dialog cetak sistem", "USB (WebUSB)", "Bluetooth / USB (Web Serial)", "Printer LAN lewat Print Bridge", "Printer LAN Epson (ePOS)".
@@ -494,6 +515,18 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 ---
 
 ### UX-09 — Mode Daftar untuk HP Pelayan
+
+**Status: selesai** (branch `feat/ux-09-waiter-phone`). Catatan implementasi:
+
+- **Berlaku untuk** semua peran di layar sempit (< 768 px). Tampilan Ringkas menjadi daftar, sedangkan tampilan Foto yang dipilih manajer tetap foto.
+- **Baris**:
+  - Strip warna kategori dan tombol **+** 44 px. Setelah ditambah, tombol berubah jadi stepper − n +.
+  - Tombol − mengurangi baris terakhir menu itu. Mengurangi item yang sudah di dapur tetap meminta PIN saat bill disimpan (UX-05/06).
+  - Menu dengan modifier bertanda "ada pilihan" dan tidak punya stepper, karena tiap pilihan adalah baris sendiri. Tombol + membuka dialog pilihan.
+- **Meja aktif** menempel di atas menu (`PhoneTableBar`). "Ganti meja" nonaktif untuk bill yang sudah disimpan, karena pindah meja dilakukan di layar Meja.
+- **Bar bawah**: selama bill meja punya item baru, bar "Lihat pesanan" diganti dengan ringkasan (n item · subtotal, ketuk untuk membuka pesanan) + **Kirim ke dapur (n baru)**. Logika kirimnya sama dengan tombol di keranjang (`useSendBill`).
+- **Badge sync ringkas** sudah ada di header sejak UX-01.
+- **Test**: `ProductGrid` (daftar, stepper, "ada pilihan", habis) dan `PhoneBillBars`. Dua helper e2e (`dine-in-offline`, `bill-void`) sekarang menerima tombol "Tambah …" di HP.
 
 **Masalah**: di HP, grid 2 kolom dengan foto besar hanya memuat ±4 menu per layar. Pelayan yang mencatat pesanan di meja butuh daftar yang padat dan bisa dipakai dengan satu tangan.
 
@@ -544,6 +577,17 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 
 ### UX-11 — Identitas Visual & Layar Kunci
 
+**Status: selesai** (branch `feat/ux-11-identity`). Catatan implementasi:
+
+- **Satu logo**: `PosliteLogo` (`shared/ui/logo.tsx`, ikon garpu-pisau di gradasi emerald) dipakai di header, aktivasi, dan layar kunci tanpa logo brand.
+  - Ikon PWA `icon-192/512.png` dibuat dari `public/icons/icon.svg`. Glyph ada di 60% tengah, jadi satu file cukup untuk `any` dan `maskable`.
+  - Favicon bawaan Next diganti `app/icon.svg`.
+- **Layar kunci** menampilkan logo brand (atau logo POSLite), nama brand, dan **nama outlet**.
+- **Mode demo**: petunjuk PIN hanya muncul bersama banner UX-01, yang sekarang juga tampil di layar kunci.
+- **Kontras**: petunjuk di layar kunci naik dari `slate-500` (1,6:1 di atas kartu) / `slate-400` (3,0:1) ke `slate-300` (5,2:1, lolos AA).
+- **Dark mode**: token status (`--warning`, `--info`, `--destructive`, `--success`) sudah punya nilai gelap. Warna keras yang tersisa hanya dipakai di permukaan yang selalu gelap (header, layar kunci, ringkasan bayar), jadi tetap terbaca.
+- **Test**: `LockScreen.test.tsx` (brand + outlet, logo cadangan, demo), serta logo di header dan aktivasi.
+
 <img src="./assets/15-ui-ux/before-lock.png" width="640" alt="Sekarang: layar pilih kasir">
 
 - **Satu logo.** Layar aktivasi dan layar kunci memakai ikon troli belanja, sedangkan header memakai ikon toko. Troli juga lebih terasa retail daripada restoran. Pilih satu logo POSLite dan pakai di semua layar, termasuk ikon PWA di `manifest.ts`.
@@ -590,9 +634,9 @@ Item P0 dan sebagian besar P1 di dokumen 14 sudah selesai, sehingga sebagian bes
 | 8 | UX-04 bagian web: layar Meja | web | Tahap D | |
 | 9 | UX-06 Layar Jual | web | Tahap D | |
 | 10 | UX-10 Label laporan ✅ | web (+ admin bila perlu) | Tahap D | |
-| 11 | UX-08 Printer + `GET /discover` | web, bridge | Tahap D, bersama P1-5/P1-6 | Diuji dengan printer asli di P1-6 |
-| 12 | UX-11 Identitas visual | web | Tahap E, sebelum dry run | |
-| 13 | UX-09 HP pelayan | web | Tahap E, atau setelah pilot | Naik ke langkah 9 bila outlet pilot memakai `table_service` |
+| 11 | UX-08 Printer + `GET /discover` ✅ | web, bridge | Tahap D, bersama P1-5/P1-6 | Diuji dengan printer asli di P1-6 |
+| 12 | UX-11 Identitas visual ✅ | web | Tahap E, sebelum dry run | |
+| 13 | UX-09 HP pelayan ✅ | web | Tahap E, atau setelah pilot | Naik ke langkah 9 bila outlet pilot memakai `table_service` |
 
 **Gerbang**: semua item prioritas Tinggi (UX-01 sampai UX-05) harus selesai sebelum dry run (14 §7.3), supaya kasir pilot mencoba layar yang akan dipakai saat pilot.
 
@@ -611,9 +655,9 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [ ] UX-04b (setelah pilot) Rata-rata per tamu: `orders.guest_count`, `guest_count` di `OrderPlacedPayload`, laporan dan dashboard
 - [x] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
 - [x] UX-10 Label laporan & ringkasan kas
-- [ ] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
-- [ ] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
-- [ ] UX-09 Mode daftar HP pelayan
+- [x] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
+- [x] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
+- [x] UX-09 Mode daftar HP pelayan
 - [x] Nomor migrasi `0032` dan `0033` dicatat di 14 §3.1
 - [ ] Semua e2e hijau di `chromium`, `tablet`, `tablet-portrait`, `phone`; `make api-check` hijau
 - [ ] Uji langsung dengan 2 kasir restoran pilot (lihat 14 §7.3) sebelum Go/No-Go

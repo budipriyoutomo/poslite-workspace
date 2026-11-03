@@ -31,6 +31,16 @@ Tenant SaaS akan memakai semua jenis printer, jadi driver dibangun bertahap:
 
 Halaman Settings → Printer hanya menampilkan tipe koneksi yang `isSupported()` di browser tersebut.
 
+**Layar Printer (15 · UX-08)**:
+- Satu kartu per peran (Struk, Dapur, Bar), masing-masing dengan status: *Siap*, *Tidak terjangkau · n tiket menunggu*, atau *Belum diatur*. Status dihitung dari `printJobs` (`domain/printer-status.ts`). Kalau ada job yang gagal setelah cetak terakhir yang berhasil, printer dianggap tidak terjangkau. "n tiket" = jumlah `orderId` berbeda di antara job gagal itu, jadi retry untuk bill yang sama tidak dihitung dua kali. Test print juga dicatat sebagai job (`documentType: "test_page"`, `orderId: "test-page"`), jadi test print yang berhasil menghapus status gagal. Tanpa printer struk tersimpan, statusnya *Siap* (dialog sistem).
+- Semua peran boleh Test print, Coba lagi (dapur/bar), dan membuka Panduan. Hanya manajer/owner yang melihat **Ganti** (wizard) dan **Pengaturan lanjutan** (semua driver, termasuk ePOS dan alamat bridge manual).
+- Wizard: Peran → Cara terhubung → Pilih printer → Test print.
+  - Pilihan koneksi: *Wi-Fi / Kabel LAN* = `bridge`; *Bluetooth* = `web-serial`, atau `web-bluetooth` kalau Web Serial tidak ada; *Kabel USB* = `web-usb`, atau `web-serial` kalau WebUSB tidak ada. Pemetaannya di `domain/connection-kinds.ts`, dan driver ADR-007 tidak berubah.
+  - Pilihan yang tidak didukung browser (Bluetooth/USB di iPad) tampil nonaktif dengan alasannya.
+  - Untuk LAN: pairing kode 6 digit, lalu `GET /discover` di bridge. Kalau bridge menjawab 404 (versi lama) atau tidak menemukan printer, POS meminta alamat IP manual.
+- **Coba lagi** (`retryStation` di bills) mengirim ulang item bill terbuka yang belum tercetak. Kalau tidak ada yang tertunda, dilakukan test print stasiun itu.
+- Saat printer dapur/bar tidak terjangkau, layar Jual menampilkan banner kecil "Printer dapur tidak terjangkau · n tiket menunggu · Coba lagi" (`StationAlert`).
+
 ## Arsitektur Printing
 
 Implementasi saat ini (Fase 7) — lebih datar dari rancangan di bawah:
@@ -114,7 +124,7 @@ export interface PrinterDriver {
 
 ## Print Jobs Queue
 
-- Setiap print masuk tabel `printJobs` (Dexie): `{ id, role, documentType, refId, status, attempts, createdAt }`.
+- Setiap print masuk tabel `printJobs` (Dexie): `{ id, role, documentType, orderId, status, attempts, createdAt }`. `role` diisi untuk tiket dapur/bar dan test print (UX-08); tanpa `role` = printer struk. Field ini tanpa index, jadi tidak perlu versi Dexie baru.
 - Gagal print **tidak membatalkan transaksi**. Tampilkan toast "Struk gagal dicetak — Coba lagi" + bisa reprint dari halaman Orders.
 - Auto-reconnect: saat app start, `connect()` ke printer tersimpan (Web Serial `getPorts()`, Web Bluetooth `getDevices()`, WebUSB `getDevices()`).
 - Routing per role: `receipt` → printer kasir, `kitchen` → printer dapur, `bar` → printer minuman. Peran ditentukan per **kategori** di back-office (Menu → Kategori, `categories.print_role`, ikut pull) — berlaku untuk semua outlet brand; kategori `receipt` tidak menghasilkan tiket.
@@ -128,6 +138,11 @@ App **`poslite-print-bridge`** (Node.js ≥ 24, tanpa dependency runtime; README
 - Halaman HTTPS hanya boleh memanggil `http://localhost` (bridge di PC yang sama) atau bridge HTTPS dengan sertifikat yang dipercaya device (mis. mkcert). Bridge menjawab preflight *Private Network Access* Chrome.
 - Auth: shared token per outlet (`BRIDGE_TOKEN`, ≥ 16 karakter, dibandingkan timing-safe); `BRIDGE_ALLOWED_ORIGINS` opsional.
 - Tanpa `BRIDGE_PRINTERS` hanya IPv4 privat yang boleh dihubungi (bukan relay terbuka); nama host wajib di daftar izin.
+- `GET /discover` (15 · UX-08):
+  - Wajib token yang sama dengan `/print`.
+  - Mencoba port 9100 di subnet antarmuka IPv4 privat milik bridge, paling luas /24 alamat bridge (tanpa alamat bridge sendiri), paling lama ±5 detik.
+  - Mengembalikan `{ printers: [{ host, port }] }`, hanya yang lolos `BRIDGE_PRINTERS`.
+  - Test memakai probe dan antarmuka palsu (`discover.test.ts`), tanpa jaringan asli.
 - Job per printer berurutan; error: `401 UNAUTHORIZED`, `403 PRINTER_NOT_ALLOWED`, `502 PRINTER_UNREACHABLE`, `504 PRINTER_TIMEOUT`. Token & isi struk tidak di-log.
 
 ## Layout Struk (58mm = 32 kolom, 80mm = 48 kolom)
