@@ -2905,6 +2905,11 @@ export interface components {
         };
         /** BrandIn */
         BrandIn: {
+            /**
+             * Blind Close
+             * @default true
+             */
+            blind_close: boolean;
             /** Code */
             code: string;
             /**
@@ -2954,6 +2959,8 @@ export interface components {
         };
         /** BrandOut */
         BrandOut: {
+            /** Blind Close */
+            blind_close: boolean;
             /** Code */
             code: string;
             discount: components["schemas"]["DiscountPolicyIn"];
@@ -3635,6 +3642,8 @@ export interface components {
             discount?: {
                 [key: string]: components["schemas"]["JsonValue"];
             } | null;
+            /** Guest Count */
+            guest_count?: number | null;
             /** Id */
             id: string;
             /** Lines */
@@ -3648,6 +3657,8 @@ export interface components {
             opened_at: string;
             /** Opened By */
             opened_by: string;
+            /** Printed At */
+            printed_at?: string | null;
             /**
              * Release Lease
              * @default false
@@ -3719,6 +3730,8 @@ export interface components {
             discount: {
                 [key: string]: components["schemas"]["JsonValue"];
             } | null;
+            /** Guest Count */
+            guest_count: number | null;
             /** Id */
             id: string;
             /** @description null when nobody is editing the bill */
@@ -3734,6 +3747,8 @@ export interface components {
             opened_at: string;
             /** Opened By */
             opened_by: string;
+            /** Printed At */
+            printed_at: string | null;
             /** Table Id */
             table_id: string | null;
             /** Table Label */
@@ -4626,10 +4641,14 @@ export interface components {
             discount?: {
                 [key: string]: components["schemas"]["JsonValue"];
             } | null;
+            /** Guest Count */
+            guest_count?: number | null;
             /** Lines */
             lines: {
                 [key: string]: components["schemas"]["JsonValue"];
             }[];
+            /** Printed At */
+            printed_at?: string | null;
             /**
              * Release Lease
              * @default false
@@ -4676,6 +4695,10 @@ export interface components {
             closed_by_name: string | null;
             /** Counted Cash */
             counted_cash: number | null;
+            /** Denominations */
+            denominations: {
+                [key: string]: number;
+            } | null;
             /** Device Id */
             device_id: string;
             /** Device Name */
