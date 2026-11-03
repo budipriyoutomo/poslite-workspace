@@ -49,7 +49,7 @@ export function CashierLogin({
     <>
       <div className="mb-8 text-center short:mb-0 short:flex-1">
         {header}
-        <p className="mt-1 text-sm text-slate-400">{selected ? copy.enterPin(selected.name) : copy.pickCashier}</p>
+        <p className="mt-1 text-sm text-slate-300">{selected ? copy.enterPin(selected.name) : copy.pickCashier}</p>
       </div>
       <div className="rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-md short:flex-1 short:p-4">
         {selected ? (
@@ -70,7 +70,7 @@ export function CashierLogin({
                 >
                   <UserRound className="size-8 text-emerald-300" />
                   <span className="font-semibold">{u.name}</span>
-                  <span className="text-xs text-slate-400">{copy.roles[u.role]}</span>
+                  <span className="text-xs text-slate-300">{copy.roles[u.role]}</span>
                 </button>
               </li>
             ))}
