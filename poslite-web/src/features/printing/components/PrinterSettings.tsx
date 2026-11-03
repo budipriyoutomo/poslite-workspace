@@ -1,110 +1,107 @@
 "use client";
 
-import { Bluetooth, Printer } from "lucide-react";
+import { BookOpen, Pencil, Printer, RotateCw } from "lucide-react";
 import { useState } from "react";
 
-import { Badge } from "@/shared/ui/badge";
+import { useSession } from "@/features/auth";
+import { isManager } from "@/shared/db";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { StatusPill } from "@/shared/ui/status-pill";
 
 import type { PrinterRole } from "../application/configured-printer";
-import { choiceLabel, type PrinterChoice, type PrinterSetupDeps } from "../application/printer-setup";
+import type { PrinterSetupDeps } from "../application/printer-setup";
 import { defaultPrinterSetupDeps, usePrinterSetup } from "../application/use-printer-setup";
+import { ROLES, usePrinterStatuses } from "../application/use-printer-statuses";
 import { copy } from "../copy";
-import { PrinterAddressForm } from "./PrinterAddressForm";
+import { kindOf } from "../domain/connection-kinds";
+import type { PrinterStatus } from "../domain/printer-status";
+import { PrinterRoleSettings } from "./AdvancedPrinterSettings";
+import { PrinterGuide } from "./PrinterGuide";
+import { PrinterWizard } from "./PrinterWizard";
 
-const PAPER_WIDTHS = [58, 80] as const;
-const ROLES: PrinterRole[] = ["receipt", "kitchen", "bar"];
+export { PrinterRoleSettings } from "./AdvancedPrinterSettings";
 
-/** Settings → Printer (04-printing.md): one card per role — receipt, kitchen, bar. */
-export function PrinterSettings({ deps: injected }: { deps?: PrinterSetupDeps }) {
+const TONE = { ready: "ok", unreachable: "error", unset: "neutral" } as const;
+const statusLabel = (s: PrinterStatus) => (s.state === "unreachable" ? copy.status.unreachable(s.waiting) : copy.status[s.state]);
+
+/**
+ * Settings → Printer (15 · UX-08): each role's printer with its status. Everyone may test print and
+ * retry; only a manager changes a printer, through the wizard or the advanced settings.
+ */
+export function PrinterSettings({ deps: injected, onRetry }: { deps?: PrinterSetupDeps; onRetry?: (role: PrinterRole) => void }) {
   const [deps] = useState(() => injected ?? defaultPrinterSetupDeps());
+  const statuses = usePrinterStatuses(deps.db);
+  const canChange = isManager(useSession((s) => s.user)?.role);
+  const [editing, setEditing] = useState<PrinterRole | null>(null);
+  if (!statuses) return null;
   return (
     <div className="mx-auto grid w-full max-w-6xl items-start gap-3 p-3 sm:p-4 md:grid-cols-2 xl:grid-cols-3">
       {ROLES.map((role) => (
-        <PrinterRoleSettings key={role} role={role} deps={deps} />
+        <PrinterCard key={role} role={role} deps={deps} status={statuses[role].status} driver={statuses[role].config?.driver} canChange={canChange} onChange={() => setEditing(role)} {...(onRetry && role !== "receipt" && { onRetry: () => onRetry(role) })} />
       ))}
+      {editing && <PrinterWizard role={editing} deps={deps} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
-/** Connection, paper width, pairing and a test print for one role's printer. */
-export function PrinterRoleSettings({ role, deps }: { role: PrinterRole; deps: PrinterSetupDeps }) {
-  const setup = usePrinterSetup(deps, role);
-  if (setup.isLoading) return null;
+interface CardProps {
+  role: PrinterRole;
+  deps: PrinterSetupDeps;
+  status: PrinterStatus;
+  driver: Parameters<typeof kindOf>[0] | undefined;
+  canChange: boolean;
+  onChange: () => void;
+  onRetry?: () => void;
+}
 
+function PrinterCard({ role, deps, status, driver, canChange, onChange, onRetry }: CardProps) {
+  const setup = usePrinterSetup(deps, role);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const kind = driver ? kindOf(driver) : role === "receipt" ? "system" : "none";
   return (
-    <Card size="sm">
+    <Card size="sm" role="region" aria-labelledby={`printer-${role}`}>
       <CardHeader>
-        <CardTitle>
-          <h2>{copy.titles[role]}</h2>
+        <CardTitle className="flex items-center justify-between gap-2">
+          <h2 id={`printer-${role}`}>{copy.titles[role]}</h2>
+          <StatusPill tone={TONE[status.state]}>{statusLabel(status)}</StatusPill>
         </CardTitle>
-        {role !== "receipt" && <CardDescription className="text-xs">{copy.stationHint}</CardDescription>}
+        <CardDescription className="text-xs">{copy.kinds[kind].label}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <fieldset>
-          <legend className="mb-1.5 text-xs font-medium text-muted-foreground">{copy.connection}</legend>
-          <RadioGroup className="gap-x-3 gap-y-1.5 sm:grid-cols-2" value={setup.choice} onValueChange={(v) => void setup.choose(v as PrinterChoice)} disabled={setup.isBusy}>
-            {setup.choices.map((choice) => (
-              <div key={choice} className="flex items-center gap-2">
-                <RadioGroupItem id={`printer-${role}-${choice}`} value={choice} />
-                <Label htmlFor={`printer-${role}-${choice}`}>{choiceLabel(choice)}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-          {!setup.choices.includes("web-serial") && <p className="mt-1.5 text-xs text-muted-foreground">{copy.noWebSerial}</p>}
-        </fieldset>
-
-        {setup.hasOwnPrinter && (
-          <fieldset className="flex items-center gap-4">
-            <legend className="float-left text-xs font-medium text-muted-foreground">{copy.paperWidth}</legend>
-            <RadioGroup className="flex w-auto gap-4" value={String(setup.paperWidth)} onValueChange={(v) => void setup.choosePaperWidth(Number(v) as 58 | 80)} disabled={setup.isBusy}>
-              {PAPER_WIDTHS.map((w) => (
-                <div key={w} className="flex items-center gap-2">
-                  <RadioGroupItem id={`paper-${role}-${w}`} value={String(w)} />
-                  <Label htmlFor={`paper-${role}-${w}`}>{w} mm</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </fieldset>
-        )}
-
-        {setup.needsPairing && (
-          <div className="space-y-1.5 rounded-md border bg-muted/50 p-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <Badge variant={setup.isPaired ? "default" : "outline"}>{setup.isPaired ? copy.paired : copy.notPaired}</Badge>
-              <Button size="sm" variant="outline" onClick={() => void setup.pair()} disabled={setup.isBusy}>
-                <Bluetooth /> {copy.pair}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">{copy.pairHint}</p>
-          </div>
-        )}
-
-        {setup.addressDriver && (
-          <PrinterAddressForm
-            key={setup.addressDriver}
-            id={`address-${role}`}
-            isBridge={setup.addressDriver === "bridge"}
-            device={setup.device}
-            isBusy={setup.isBusy}
-            onSave={(device) => void setup.saveAddress(device)}
-          />
-        )}
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" onClick={() => void setup.testPrint()} disabled={setup.isBusy || setup.choice === "none"}>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => void setup.testPrint()} disabled={setup.isBusy || status.state === "unset"}>
             <Printer /> {copy.testPrint}
           </Button>
-          {setup.message && (
-            <p role="status" className="text-xs text-muted-foreground">
-              {setup.message}
-            </p>
+          {status.state === "unreachable" && onRetry && (
+            <Button size="sm" variant="outline" onClick={onRetry}>
+              <RotateCw /> {copy.retry}
+            </Button>
           )}
+          {canChange && (
+            <Button size="sm" variant="outline" onClick={onChange}>
+              <Pencil /> {copy.change}
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => setIsGuideOpen(true)}>
+            <BookOpen /> {copy.guide}
+          </Button>
         </div>
+        {setup.message && <p className="text-xs text-muted-foreground">{setup.message}</p>}
+        {canChange && (
+          // Mounted only when open: the technical choices stay out of the way (and out of the page).
+          <details className="rounded-md border" onToggle={(e) => setIsAdvancedOpen(e.currentTarget.open)}>
+            <summary className="cursor-pointer px-2.5 py-1.5 text-xs font-medium text-muted-foreground">{copy.advanced}</summary>
+            {isAdvancedOpen && (
+              <div className="border-t p-2">
+                <PrinterRoleSettings role={role} deps={deps} />
+              </div>
+            )}
+          </details>
+        )}
       </CardContent>
+      {isGuideOpen && <PrinterGuide onClose={() => setIsGuideOpen(false)} />}
     </Card>
   );
 }

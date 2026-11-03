@@ -6,3 +6,5 @@ export { PrinterSettings } from "./components/PrinterSettings";
 export { printRefundSlip, printVoidSlip } from "./application/print-slips";
 export { type GuestCheck, printGuestCheck } from "./application/print-guest-check";
 export { type KitchenOrder, printKitchenTickets } from "./application/print-kitchen";
+export { StationAlert } from "./components/StationAlert";
+export { testPrinter } from "./application/use-printer-setup";
