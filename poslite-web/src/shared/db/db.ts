@@ -2,6 +2,7 @@ import Dexie, { type DexieOptions, type Table } from "dexie";
 
 import type {
   AvailabilityOverrideRow,
+  BillVoidRow,
   CashMovementRow,
   CategoryRow,
   DiningTableRow,
@@ -44,6 +45,8 @@ export class PosDb extends Dexie {
   payments!: Table<PaymentRow, string>;
   refunds!: Table<RefundRow, string>;
   cashMovements!: Table<CashMovementRow, string>;
+  /** Pre-payment voids of this device's shifts (15 · UX-10). */
+  billVoids!: Table<BillVoidRow, string>;
   /** Sold-out marks made here, until the server has them (P1-2). */
   availabilityOverrides!: Table<AvailabilityOverrideRow, string>;
   /** Unpaid dine-in bills: this device's own (ADR-015), or copies of the outlet's shared bills (ADR-031). */
@@ -106,6 +109,8 @@ export class PosDb extends Dexie {
       );
     // v8 (P1-2): sold-out marks made on this device, shown at once even offline.
     this.version(8).stores({ availabilityOverrides: "productId" });
+    // v9 (15 · UX-10): pre-payment voids for the shift report; the outbox drops its events once synced.
+    this.version(9).stores({ billVoids: "id, shiftId" });
   }
 }
 

@@ -206,6 +206,16 @@ export interface PaymentRow {
   createdAt: string;
 }
 
+/** Sent items taken off an open bill (ADR-028), kept for the shift report once the event has synced (15 · UX-10). */
+export interface BillVoidRow {
+  id: string; // the bill.item_voided aggregate id
+  shiftId: string;
+  billId: string;
+  scope: "line" | "bill_cancelled";
+  amount: number;
+  createdAt: string;
+}
+
 export interface CashMovementRow {
   id: string;
   shiftId: string;

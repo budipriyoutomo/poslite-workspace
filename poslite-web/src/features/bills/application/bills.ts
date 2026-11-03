@@ -32,7 +32,7 @@ export interface VoidApproval {
 
 const defaultDeps = (): BillDeps => ({ db: getDb(), now: () => new Date(), newId });
 
-const voidTables = (db: PosDb) => [db.openBills, db.users, db.shifts, db.outbox];
+const voidTables = (db: PosDb) => [db.openBills, db.billVoids, db.users, db.shifts, db.outbox];
 
 /** Queues bill.item_voided (ADR-028) inside the caller's transaction. */
 async function recordVoid(
@@ -45,11 +45,21 @@ async function recordVoid(
   const shift = await getOpenShift(db);
   if (!shift) throw new AppError("NO_OPEN_SHIFT");
   const id = deps.newId ?? newId;
+  const voidId = id();
+  const occurredAt = deps.now().toISOString();
+  await db.billVoids.add({
+    id: voidId,
+    shiftId: shift.id,
+    billId: input.bill.id,
+    scope: input.scope,
+    amount: input.voided.reduce((s, v) => s + v.amount, 0),
+    createdAt: occurredAt,
+  });
   await enqueueEvent(db, {
     id: id(),
     type: "bill.item_voided",
-    aggregateId: id(),
-    occurredAt: deps.now().toISOString(),
+    aggregateId: voidId,
+    occurredAt,
     payload: {
       bill_id: input.bill.id,
       scope: input.scope,

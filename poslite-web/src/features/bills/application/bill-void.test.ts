@@ -108,3 +108,16 @@ describe("cancelBill (ADR-028)", () => {
     expect([await db.openBills.count(), voided.length]).toEqual([0, 1]);
   });
 });
+
+describe("the shift's own record of pre-payment voids (15 · UX-10)", () => {
+  // The outbox row is gone once synced; the shift report still counts the void offline.
+  it("keeps each void on its shift with the amount taken off", async () => {
+    await save([{ ...gudeg, quantity: 1 }], approval);
+    await db.outbox.clear();
+
+    const shift = await db.shifts.where("status").equals("open").first();
+    expect(await db.billVoids.where("shiftId").equals(shift!.id).toArray()).toEqual([
+      { id: expect.any(String), shiftId: shift!.id, billId: bill.id, scope: "line", amount: 35_000, createdAt: expect.any(String) },
+    ]);
+  });
+});
