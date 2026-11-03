@@ -4,24 +4,22 @@ import { Armchair } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useSession } from "@/features/auth";
-import { useCart, voidedUnits } from "@/features/cart";
+import { useCart } from "@/features/cart";
 import { activeOrderType, orderTypes, useSaleChannel } from "@/features/checkout";
-import { AppError } from "@/shared/errors";
 import { newId } from "@/shared/id";
 import { Button } from "@/shared/ui/button";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { toast } from "@/shared/ui/toast";
 
-import { type VoidApproval } from "../application/bills";
-import { sendBillToKitchen } from "../application/kitchen";
 import { releaseBill, renewLease } from "../application/open-bill-sync";
-import { kickBillSync, sharedBillDeps, useBillStore } from "../application/shared-bills";
+import { sharedBillDeps, useBillStore } from "../application/shared-bills";
 import { useDiningTables, useOpenBills } from "../application/use-bills";
 import { copy } from "../copy";
 import { BillActions } from "./BillActions";
 import { GuestCount } from "./GuestCount";
+import { ActiveTableBar, KitchenSendBar } from "./PhoneBillBars";
 import { TablePicker } from "./TablePicker";
-import { useBillVoid } from "./use-bill-void";
+import { useSendBill } from "./use-send-bill";
 import { useTableActions } from "./use-table-actions";
 
 const RENEW_MS = 30_000; // the server's lease lasts 60 s (ADR-031)
@@ -107,54 +105,57 @@ export function OrderTypeBar() {
 export function BillCartActions({ total }: { total: number }) {
   const user = useSession((s) => s.user);
   const cart = useCart();
-  const bills = useOpenBills() ?? [];
-  const billVoid = useBillVoid();
-  const store = useBillStore();
+  const sender = useSendBill();
   const actions = useTableActions(undefined);
-  const [isBusy, setIsBusy] = useState(false);
-  const saved = bills.find((b) => b.id === cart.bill?.id);
-  const newCount = cart.lines.reduce((n, l) => n + Math.max(0, l.quantity - (l.sentQuantity ?? 0)), 0);
-
-  const send = async () => {
-    if (!cart.bill || !user) return;
-    const { bill, lines, discount } = cart;
-    const persist = async (approval?: VoidApproval) => {
-      const result = await store.save({ bill, lines, discount, ...(approval && { void: approval }) });
-      toast.success(`Bill meja ${bill.tableLabel} disimpan`);
-      cart.clear();
-      void sendBillToKitchen({ billId: bill.id, cashierName: user.name }).then(({ hasFailed }) => {
-        if (hasFailed) toast.error(copy.kitchenFailed);
-        if (store.isShared) kickBillSync();
-      });
-      return result;
-    };
-    // Sent items taken off need a manager's approval first (ADR-028).
-    const voided = saved ? voidedUnits(saved.lines, lines) : [];
-    if (voided.length > 0) return billVoid.ask({ scope: "line", billId: bill.id, tableLabel: bill.tableLabel, voided, run: persist });
-    setIsBusy(true);
-    try {
-      await persist();
-    } catch (e) {
-      toast.error(e instanceof AppError ? (copy.errors[e.code] ?? e.code) : String(e));
-    } finally {
-      setIsBusy(false);
-    }
-  };
 
   return (
     <>
       <BillActions
-        newCount={newCount}
-        isSaved={saved !== undefined}
+        newCount={sender.newCount}
+        isSaved={sender.saved !== undefined}
         isEmpty={cart.lines.length === 0}
         canPay={user?.role !== "waiter"}
         total={total}
-        isBusy={isBusy}
-        onSend={() => void send()}
-        onCancel={() => saved && void actions.cancel(saved)}
+        isBusy={sender.isBusy}
+        onSend={() => void sender.send()}
+        onCancel={() => sender.saved && void actions.cancel(sender.saved)}
       />
-      {billVoid.dialog}
+      {sender.dialog}
       {actions.voidDialog}
+    </>
+  );
+}
+
+/** The table's bar above the menu on a phone (15 · UX-09); nothing when the cart is not a table's bill. */
+export function PhoneTableBar() {
+  const cart = useCart();
+  const tables = useDiningTables() ?? [];
+  const bills = useOpenBills() ?? [];
+  const [isPicking, setIsPicking] = useState(false);
+  if (!cart.bill) return null;
+  const isSaved = bills.some((b) => b.id === cart.bill?.id);
+  return (
+    <>
+      <ActiveTableBar tableLabel={cart.bill.tableLabel} canChange={!isSaved} onChange={() => setIsPicking(true)} />
+      {isPicking && (
+        <TablePicker tables={tables} bills={bills.filter((b) => b.id !== cart.bill?.id)} onPick={(t) => cart.bill && (cart.setBill({ ...cart.bill, ...t }), setIsPicking(false))} onClose={() => setIsPicking(false)} />
+      )}
+    </>
+  );
+}
+
+/**
+ * The phone's bottom bar while a table's bill has new items (15 · UX-09): "Kirim ke dapur" without
+ * opening the order. The caller shows it only then; otherwise its usual cart bar.
+ */
+export function PhoneSendBar({ subtotal, onOpen }: { subtotal: number; onOpen: () => void }) {
+  const cart = useCart();
+  const sender = useSendBill();
+  const itemCount = cart.lines.reduce((n, l) => n + l.quantity, 0);
+  return (
+    <>
+      <KitchenSendBar newCount={sender.newCount} itemCount={itemCount} subtotal={subtotal} isBusy={sender.isBusy} onSend={() => void sender.send()} onOpen={onOpen} />
+      {sender.dialog}
     </>
   );
 }

@@ -11,7 +11,8 @@ async function logIn(page: Page, name: string, pin: string) {
 }
 
 async function addGudeg(page: Page) {
-  await page.getByRole("button", { name: /^Nasi Gudeg/ }).click();
+  // A tile on a tablet, the row's "Tambah …" button on a phone's list (15 · UX-09).
+  await page.getByRole("button", { name: /^(Tambah )?Nasi Gudeg/ }).click();
   const add = page.getByRole("button", { name: /^Tambah ·/ });
   // Wait briefly for the options dialog: an instant isVisible() can run before it opens.
   const hasOptions = await add.waitFor({ state: "visible", timeout: 2_000 }).then(() => true, () => false);

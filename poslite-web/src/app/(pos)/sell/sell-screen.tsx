@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "@/shared/ui/toast";
 
 import { useSession } from "@/features/auth";
-import { BillCartActions, OrderTypeBar } from "@/features/bills";
+import { BillCartActions, OrderTypeBar, PhoneSendBar, PhoneTableBar } from "@/features/bills";
 import { CartLines, LineDiscountField, useCart } from "@/features/cart";
 import { AvailabilityDialog, LineEditorDialog, type LineChoice, markAvailability, ProductGrid, ProductGridSkeleton, useCatalog, useMenuView } from "@/features/catalog";
 import { OrderSummary, useCartTotals, useSaleChannel } from "@/features/checkout";
@@ -79,6 +79,13 @@ export function SellScreen() {
   const itemCount = cart.lines.reduce((n, l) => n + l.quantity, 0);
   // A saved bill or cleared cart leaves nothing to show: close the phone drawer with it.
   if (isCartOpen && itemCount === 0) setIsCartOpen(false);
+  // A waiter's phone sends a table's new items from the bottom bar (15 · UX-09).
+  const newCount = cart.bill ? cart.lines.reduce((n, l) => n + Math.max(0, l.quantity - (l.sentQuantity ?? 0)), 0) : 0;
+  // The list's − takes one off the item's latest line; items with choices have no stepper.
+  const decrease = (product: ProductRow) => {
+    const line = cart.lines.findLast((l) => l.productId === product.id);
+    if (line) cart.changeQuantity(line.key, -1);
+  };
   const quantities: Record<string, number> = {};
   for (const l of cart.lines) quantities[l.productId] = (quantities[l.productId] ?? 0) + l.quantity;
 
@@ -105,7 +112,17 @@ export function SellScreen() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <ProductGrid catalog={catalog} quantities={quantities} view={menuView} {...(isManager(user?.role) && { onViewChange: setMenuView })} onSelect={select} {...(user && !isWaiter && { onManage: setManaging })} />
+      {!isWide && <PhoneTableBar />}
+      <ProductGrid
+        catalog={catalog}
+        quantities={quantities}
+        view={menuView}
+        layout={isWide ? "grid" : "list"}
+        {...(isManager(user?.role) && { onViewChange: setMenuView })}
+        onSelect={select}
+        onDecrease={decrease}
+        {...(user && !isWaiter && { onManage: setManaging })}
+      />
       {managing && (
         <AvailabilityDialog productName={managing.name} isAvailable={managing.isAvailable} onChoose={(c) => void chooseAvailability(c)} onClose={() => setManaging(null)} />
       )}
@@ -114,6 +131,8 @@ export function SellScreen() {
           <h2 className="mb-2 text-lg font-semibold">Pesanan</h2>
           {cartPanel}
         </aside>
+      ) : newCount > 0 ? (
+        <PhoneSendBar subtotal={totals.subtotal} onOpen={() => setIsCartOpen(true)} />
       ) : (
         <CartBar itemCount={itemCount} total={totals.total} onOpen={() => setIsCartOpen(true)} />
       )}

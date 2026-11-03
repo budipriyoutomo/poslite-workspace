@@ -10,8 +10,9 @@ async function logIn(page: Page, name: string, pin: string) {
   for (const digit of pin) await page.getByRole("button", { name: digit, exact: true }).click();
 }
 
-async function addPlain(page: Page, product: RegExp) {
-  await page.getByRole("button", { name: product }).click();
+async function addPlain(page: Page, product: string) {
+  // A tile on a tablet, the row's "Tambah …" button on a phone's list (15 · UX-09).
+  await page.getByRole("button", { name: new RegExp(`^(Tambah )?${product}`) }).click();
   const add = page.getByRole("button", { name: /^Tambah ·/ });
   // Wait briefly for the options dialog: an instant isVisible() can run before it opens.
   const hasOptions = await add.waitFor({ state: "visible", timeout: 2_000 }).then(() => true, () => false);
@@ -37,8 +38,8 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await page.getByRole("link", { name: "Jual" }).click();
 
   // First round for table A1, for two guests, kept open
-  await addPlain(page, /^Nasi Gudeg/);
-  await addPlain(page, /^Nasi Gudeg/);
+  await addPlain(page, "Nasi Gudeg");
+  await addPlain(page, "Nasi Gudeg");
   await openOrder(page);
   await page.getByRole("button", { name: "Makan di tempat" }).click();
   await page.getByRole("button", { name: /A1/ }).click();
@@ -70,7 +71,7 @@ test("keep a table's bill open, add to it, then split the payment by item offlin
   await expect(page.getByRole("listitem", { name: "2× Nasi Gudeg" })).toBeVisible();
   await page.getByRole("button", { name: "Tambah pesanan" }).click();
   await expect(page).toHaveURL(/\/sell$/);
-  await addPlain(page, /^Es Teh Manis/);
+  await addPlain(page, "Es Teh Manis");
   await openOrder(page);
   // 15 · UX-06: the bill's lines say what the kitchen has and what is new.
   await expect(page.getByText("Di dapur 2")).toBeVisible();

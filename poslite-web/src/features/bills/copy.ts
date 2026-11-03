@@ -55,6 +55,10 @@ export const copy = {
   notSoldOn: (channel: string) => `Ada menu di keranjang yang tidak dijual di ${channel}`,
   sendToKitchen: (n: number) => `Kirim ke dapur (${n} baru)`,
   saveBill: "Simpan bill",
+  // 15 · UX-09: a waiter's phone
+  activeTable: "Meja aktif",
+  changeTable: "Ganti meja",
+  viewOrder: "Lihat pesanan",
   payTotal: (total: string) => `Bayar · ${total}`,
   fewerGuests: "Kurangi tamu",
   occupied: "terisi",
