@@ -5,18 +5,23 @@ export interface SalesOrder {
   serviceCharge: number;
   tax: number;
   changeAmount: number;
+  channelName: string;
   lines: { productName: string; categoryName: string; quantity: number; lineTotal: number }[];
   payments: { methodName: string; methodType: string; amount: number }[];
 }
 
 export interface SalesSummary {
+  /** Total taken from guests: service and PB1 included. */
   revenue: number;
+  /** Sales after discounts, without service and PB1 (15 · UX-10). */
+  netSales: number;
   transactions: number;
   voided: number;
   discount: number;
   service: number;
   tax: number;
   byPaymentMethod: { name: string; amount: number; count: number }[];
+  byChannel: { name: string; amount: number; count: number }[];
   byCategory: { name: string; quantity: number; amount: number }[];
   byProduct: { name: string; quantity: number; amount: number }[];
 }
@@ -34,10 +39,13 @@ const byAmount = (a: Bucket, b: Bucket) => b.amount - a.amount || a.name.localeC
 export function summarizeSales(orders: SalesOrder[]): SalesSummary {
   const paid = orders.filter((o) => o.status === "paid");
   const methods = new Map<string, { name: string; amount: number; count: number }>();
+  const channels = new Map<string, { name: string; amount: number; count: number }>();
   const categories = new Map<string, Bucket>();
   const products = new Map<string, Bucket>();
 
   for (const o of paid) {
+    const c = channels.get(o.channelName) ?? { name: o.channelName, amount: 0, count: 0 };
+    channels.set(o.channelName, { name: o.channelName, amount: c.amount + o.total, count: c.count + 1 });
     let change = o.changeAmount;
     for (const p of o.payments) {
       const kept = p.methodType === "cash" ? p.amount - Math.min(change, p.amount) : p.amount;
@@ -54,12 +62,14 @@ export function summarizeSales(orders: SalesOrder[]): SalesSummary {
   const sum = (f: (o: SalesOrder) => number) => paid.reduce((s, o) => s + f(o), 0);
   return {
     revenue: sum((o) => o.total),
+    netSales: sum((o) => o.total - o.serviceCharge - o.tax),
     transactions: paid.length,
     voided: orders.length - paid.length,
     discount: sum((o) => o.discountAmount),
     service: sum((o) => o.serviceCharge),
     tax: sum((o) => o.tax),
     byPaymentMethod: [...methods.values()].sort((a, b) => b.amount - a.amount),
+    byChannel: [...channels.values()].sort((a, b) => b.amount - a.amount),
     byCategory: [...categories.values()].sort(byAmount),
     byProduct: [...products.values()].sort(byAmount),
   };

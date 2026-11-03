@@ -10,6 +10,7 @@ const order = (o: Partial<SalesOrder> & Pick<SalesOrder, "total">): SalesOrder =
   lines: [],
   payments: [],
   changeAmount: 0,
+  channelName: "Bawa pulang",
   ...o,
 });
 
@@ -53,6 +54,23 @@ describe("summarizeSales", () => {
       { name: "Minuman", quantity: 2, amount: 11_000 },
     ]);
     expect(summary.byProduct.map((p) => p.name)).toEqual(["Nasi Gudeg", "Kopi Tubruk", "Es Teh Manis"]);
+  });
+
+  it("takes service and PB1 out of the takings for net sales (15 · UX-10)", () => {
+    expect(summarizeSales(orders).netSales).toBe(83_765 - 3_150 - 6_615);
+  });
+
+  it("totals paid orders per channel, largest first", () => {
+    const summary = summarizeSales([
+      order({ total: 10_000, channelName: "Dine In" }),
+      order({ total: 25_000, channelName: "GoFood" }),
+      order({ total: 5_000, channelName: "Dine In" }),
+      order({ status: "voided", total: 99_999, channelName: "Dine In" }),
+    ]);
+    expect(summary.byChannel).toEqual([
+      { name: "GoFood", amount: 25_000, count: 1 },
+      { name: "Dine In", amount: 15_000, count: 2 },
+    ]);
   });
 
   it("is all zeros with no orders", () => {
