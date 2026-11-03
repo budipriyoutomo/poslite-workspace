@@ -659,7 +659,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
 - [x] UX-09 Mode daftar HP pelayan
 - [x] Nomor migrasi `0032` dan `0033` dicatat di 14 §3.1
-- [ ] Semua e2e hijau di `chromium`, `tablet`, `tablet-portrait`, `phone`; `make api-check` hijau
+- [x] Semua e2e hijau di `chromium`, `tablet`, `tablet-portrait`, `phone` (44 test, 2026-11-03); `make api-check` hijau (740 test, coverage 95%)
 - [ ] Uji langsung dengan 2 kasir restoran pilot (lihat 14 §7.3) sebelum Go/No-Go
 
 ## Lampiran — Daftar Gambar
