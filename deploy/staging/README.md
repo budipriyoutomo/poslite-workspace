@@ -49,7 +49,7 @@ Buat **tiga project** dari repo yang sama:
 | Node.js | 24.x | 24.x | 24.x |
 | Domain | `POS_DOMAIN` | `ADMIN_DOMAIN` | `OPERATOR_DOMAIN` |
 
-Env `NEXT_PUBLIC_*` dibaca saat **build** — setelah mengubahnya, redeploy. `vercel.json` melewati build bila folder app tidak berubah. Domain ketiga app harus sama persis dengan `POS_DOMAIN`/`ADMIN_DOMAIN`/`OPERATOR_DOMAIN` di `.env` VPS (CORS). Konsol operator sebaiknya juga dilindungi di Vercel (Deployment Protection / allowlist IP) karena hanya untuk tim internal.
+Env `NEXT_PUBLIC_*` dibaca saat **build** — setelah mengubahnya, redeploy. `vercel.json` melewati build hanya bila folder app tidak berubah sejak **deploy sukses terakhir** (`VERCEL_GIT_PREVIOUS_SHA`), bukan sejak commit sebelumnya. Vercel hanya membangun commit teratas dari sebuah push, jadi push yang diakhiri commit doc tetap membangun app yang berubah di commit-commit sebelumnya. Tanpa deploy sebelumnya, atau bila commit itu tidak ada di clone Vercel, build selalu jalan. Domain ketiga app harus sama persis dengan `POS_DOMAIN`/`ADMIN_DOMAIN`/`OPERATOR_DOMAIN` di `.env` VPS (CORS). Konsol operator sebaiknya juga dilindungi di Vercel (Deployment Protection / allowlist IP) karena hanya untuk tim internal.
 
 ## 3. Verifikasi setelah deploy
 
