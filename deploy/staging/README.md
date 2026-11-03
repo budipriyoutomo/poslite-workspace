@@ -83,6 +83,16 @@ docker compose exec -T postgres pg_restore -U postgres -d poslite --clean --if-e
 docker compose start api worker
 ```
 
+### Reset ke kosong
+
+`reset.sh` menghapus **semua** data (tenant, user, order, media) lalu menyalakan staging dengan database kosong yang sudah dimigrasi. Script meminta ketik `RESET`, menjalankan `backup.sh` dulu (lewati dengan `SKIP_BACKUP=1`), dan tidak menyentuh volume Caddy (sertifikat TLS). Argumen opsional membuat operator pertama:
+
+```bash
+./reset.sh ops@domain.id "Ops"
+```
+
+Sesudahnya setiap device POS harus diaktivasi ulang (hapus data situs di browsernya). Di lokal, padanannya `make db-reset`.
+
 Uji restore minimal sekali sebelum pilot.
 
 ## 6. Catatan operasional
