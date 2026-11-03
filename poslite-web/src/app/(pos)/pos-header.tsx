@@ -1,11 +1,12 @@
 "use client";
 
-import { Lock, Store, WifiOff } from "lucide-react";
+import { Lock, WifiOff } from "lucide-react";
 
 import { authCopy, DemoBanner } from "@/features/auth";
 import { SyncStatus } from "@/features/sync";
 import { useOutletSetting } from "@/shared/hooks";
 import { Button } from "@/shared/ui/button";
+import { PosliteLogo } from "@/shared/ui/logo";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 
 type Props = { cashierName: string; isOnline: boolean; onLock: () => void };
@@ -27,9 +28,7 @@ export function PosHeader({ cashierName, isOnline, onLock }: Props) {
     <>
       <DemoBanner />
       <header className="flex h-14 shrink-0 items-center gap-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 px-3 text-white shadow-md lg:px-4">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm shadow-emerald-500/30">
-          <Store className="size-4" />
-        </span>
+        <PosliteLogo className="size-8 rounded-lg shadow-sm shadow-emerald-500/30" iconClassName="size-4" />
         <span className="hidden min-w-0 flex-col leading-tight sm:flex">
           <span className="font-bold tracking-tight">POSLite</span>
           {tillName && <span className="truncate text-xs text-slate-400">{tillName}</span>}

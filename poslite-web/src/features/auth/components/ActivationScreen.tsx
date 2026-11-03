@@ -1,6 +1,5 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -10,6 +9,7 @@ import { useOnlineStatus } from "@/shared/hooks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { PosliteLogo } from "@/shared/ui/logo";
 import { cn } from "@/shared/ui/utils";
 
 import { activateDevice, DEFAULT_API as API, IS_DEMO_ENABLED, loginManager, startDemo } from "../application/activate-device";
@@ -75,9 +75,7 @@ export function ActivationScreen({ isDemoEnabled = IS_DEMO_ENABLED }: { isDemoEn
     <main className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
       <div className="w-full max-w-sm space-y-6 rounded-2xl border border-white/20 bg-white/10 p-6 text-white shadow-2xl backdrop-blur-md">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-500">
-            <ShoppingCart className="size-7" />
-          </div>
+          <PosliteLogo className="mx-auto mb-3 size-14 rounded-2xl" iconClassName="size-7" />
           <h1 className="text-2xl font-bold">Aktivasi Perangkat</h1>
           <p className="text-sm text-slate-300">Masuk sebagai pemilik atau manajer outlet</p>
         </div>

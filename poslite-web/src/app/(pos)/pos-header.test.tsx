@@ -61,6 +61,11 @@ describe("PosHeader", () => {
     expect(await screen.findByText("Sushi Maru · Outlet Dago · Perangkat A")).toBeInTheDocument();
   });
 
+  it("shows the POSLite logo (15 · UX-11)", () => {
+    renderHeader(true);
+    expect(screen.getByRole("img", { name: "POSLite" })).toBeInTheDocument();
+  });
+
   it("locks the POS", async () => {
     const onLock = vi.fn();
     renderHeader(true, onLock);

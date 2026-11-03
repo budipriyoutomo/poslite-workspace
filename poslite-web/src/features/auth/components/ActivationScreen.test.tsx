@@ -16,3 +16,10 @@ describe("ActivationScreen demo entry (15 · UX-01)", () => {
     expect(screen.queryByRole("button", { name: /mode demo/ })).not.toBeInTheDocument();
   });
 });
+
+describe("ActivationScreen identity (15 · UX-11)", () => {
+  it("shows the same POSLite logo as the lock screen and header", () => {
+    render(<ActivationScreen isDemoEnabled={false} />);
+    expect(screen.getByRole("img", { name: "POSLite" })).toBeInTheDocument();
+  });
+});
