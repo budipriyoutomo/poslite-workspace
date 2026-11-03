@@ -517,6 +517,15 @@ Ini adalah sisi UI dari **14 · P0-1 (ADR-028)**, yang domain dan backend-nya su
 
 ### UX-10 — Label Laporan & Ringkasan Kas Shift
 
+**Status: selesai** (branch `feat/ux-10-report-labels`). Catatan implementasi:
+
+- **Laporan Shift** (POS): "Total diterima" dan "Penjualan bersih" (total − service − PB1) tampil terpisah, begitu juga Service dan PB1. Tabel baru "Per Channel": order lama tanpa channel masuk ke jenis pesanannya ("Makan di tempat" / "Bawa pulang").
+- **Void sebelum bayar**: hanya manajer/owner yang melihat, dan baris ini hanya muncul bila ada void. Event `bill.item_voided` hilang dari outbox setelah sync, jadi POS menyimpan salinannya di **Dexie v9 `billVoids`** (dicatat di 03). Hitungannya sama dengan `pre_payment_void_count` di server: satu per event.
+- **Shift Berjalan**: baris "Penjualan tunai" dan "Kembalian" digabung menjadi "Penjualan tunai (bersih)". Kasir yang menghitung buta tetap tidak melihatnya (UX-02).
+- **Back-office**: "Pendapatan" di dashboard admin (nilai `net`, sudah termasuk service dan PB1) diganti menjadi "Total diterima" dan "Total diterima harian".
+- **Belum**: void yang dibuat sebelum v9 terpasang tidak punya salinan lokal, jadi tidak terhitung di laporan shift yang sedang berjalan saat update.
+- **Test**: unit `sales-summary` (penjualan bersih, per channel), `bill-void` (salinan lokal tetap ada setelah outbox kosong), komponen baru `ReportsScreen.test.tsx`, dan `ShiftOverview` (baris tunai bersih).
+
 <img src="./assets/15-ui-ux/before-shift-report.png" width="640" alt="Sekarang: laporan shift">
 
 | Sekarang | Usulan | Alasan |
@@ -580,7 +589,7 @@ Item P0 dan sebagian besar P1 di dokumen 14 sudah selesai, sehingga sebagian bes
 | 7 | UX-04 bagian API: migrasi `0033`, field open bill | api | Tahap D | Deploy ke staging sebelum langkah 8 |
 | 8 | UX-04 bagian web: layar Meja | web | Tahap D | |
 | 9 | UX-06 Layar Jual | web | Tahap D | |
-| 10 | UX-10 Label laporan | web (+ admin bila perlu) | Tahap D | |
+| 10 | UX-10 Label laporan ✅ | web (+ admin bila perlu) | Tahap D | |
 | 11 | UX-08 Printer + `GET /discover` | web, bridge | Tahap D, bersama P1-5/P1-6 | Diuji dengan printer asli di P1-6 |
 | 12 | UX-11 Identitas visual | web | Tahap E, sebelum dry run | |
 | 13 | UX-09 HP pelayan | web | Tahap E, atau setelah pilot | Naik ke langkah 9 bila outlet pilot memakai `table_service` |
@@ -601,7 +610,7 @@ Semua perubahan mengikuti alur TDD di `poslite-web/AGENTS.md` dan `poslite-api/A
 - [x] UX-04 Web: layar Meja dengan status dan urutan status; Batalkan dipisah dan berwarna merah
 - [ ] UX-04b (setelah pilot) Rata-rata per tamu: `orders.guest_count`, `guest_count` di `OrderPlacedPayload`, laporan dan dashboard
 - [x] UX-06 Mode ringkas, jenis pesanan di awal (dengan overflow), status baris dapur, aksi utama "Kirim ke dapur"
-- [ ] UX-10 Label laporan & ringkasan kas
+- [x] UX-10 Label laporan & ringkasan kas
 - [ ] UX-08 Printer: khusus manajer, wizard, status per printer, bahasa operasional; bridge `GET /discover`
 - [ ] UX-11 Satu logo, brand + outlet di layar kunci, kontras AA, cek dark mode
 - [ ] UX-09 Mode daftar HP pelayan
